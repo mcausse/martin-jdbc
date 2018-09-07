@@ -18,11 +18,11 @@ import org.lenteja.mapper.query.Operations;
 import org.lenteja.mapper.query.Query;
 import org.lenteja.mapper.query.Relational;
 
-public class QWERTYU2 {
+public class PizzaTest {
 
     final DataAccesFacade facade;
 
-    public QWERTYU2() {
+    public PizzaTest() {
         final JDBCDataSource ds = new JDBCDataSource();
         ds.setUrl("jdbc:hsqldb:mem:a");
         ds.setUser("sa");
@@ -149,7 +149,7 @@ public class QWERTYU2 {
                 new EnumColumnHandler<>(EPizzaType.class));
 
         public Pizza_() {
-            super(Pizza.class, "pizzas");
+            this(null);
         }
 
         public Pizza_(String alias) {

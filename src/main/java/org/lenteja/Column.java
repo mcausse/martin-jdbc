@@ -31,6 +31,10 @@ public class Column<E, T> implements Aliasable, Mapable<T> {
         this.handler = handler;
     }
 
+    public Class<T> getColumnClass() {
+        return columnClass;
+    }
+
     public boolean isPk() {
         return isPk;
     }

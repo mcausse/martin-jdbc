@@ -24,6 +24,12 @@ public class Query<E> implements IQueryObject {
         this.params = new ArrayList<>();
     }
 
+    public Query<E> append(IQueryObject query) {
+        this.query.append(query.getQuery());
+        this.params.addAll(query.getArgsList());
+        return this;
+    }
+
     public Query<E> append(String queryFragment, Object... params) {
 
         int p = 0;
