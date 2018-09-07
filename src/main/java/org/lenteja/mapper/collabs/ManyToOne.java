@@ -1,0 +1,50 @@
+package org.lenteja.mapper.collabs;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.lenteja.Table;
+import org.lenteja.jdbc.DataAccesFacade;
+import org.lenteja.jdbc.query.IQueryObject;
+import org.lenteja.mapper.query.Operations;
+import org.lenteja.mapper.query.Relational;
+
+public class ManyToOne<S, R> {
+
+    final Table<S> selfTable;
+    final Table<R> refTable;
+    final JoinColumn<S, R, ?>[] joinColumns;
+
+    @SafeVarargs
+    public ManyToOne(Table<S> selfTable, Table<R> refTable, JoinColumn<S, R, ?>... joinColumns) {
+        super();
+        this.selfTable = selfTable;
+        this.refTable = refTable;
+        this.joinColumns = joinColumns;
+    }
+
+    public R fetch(DataAccesFacade facade, S entity) {
+        Operations o = new Operations();
+
+        List<IQueryObject> restrictions = new ArrayList<>();
+        for (JoinColumn<S, R, ?> jc : joinColumns) {
+            restrictions.add(jc.getRestriction());
+        }
+
+        return o.query(refTable) //
+                .append("select * from {} ", refTable) //
+                .append("where {}", Relational.and(restrictions)) //
+                .getExecutor(facade) //
+                .loadUnique();
+    }
+
+    public Map<S, R> fetch(DataAccesFacade facade, Iterable<S> entities) {
+        Map<S, R> r = new LinkedHashMap<>();
+        for (S e : entities) {
+            r.put(e, fetch(facade, e));
+        }
+        return r;
+    }
+}
