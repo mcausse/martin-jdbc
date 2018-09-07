@@ -5,10 +5,10 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.lenteja.Mapable;
 import org.lenteja.jdbc.exception.EmptyResultException;
 import org.lenteja.jdbc.exception.TooManyResultsException;
 import org.lenteja.jdbc.query.IQueryObject;
+import org.lenteja.mapper.Mapable;
 
 public interface DataAccesFacade {
 

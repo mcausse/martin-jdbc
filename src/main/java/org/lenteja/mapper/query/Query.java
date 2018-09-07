@@ -3,12 +3,12 @@ package org.lenteja.mapper.query;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.lenteja.Aliasable;
-import org.lenteja.Mapable;
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.query.QueryObject;
 import org.lenteja.jdbc.query.QueryObjectUtils;
+import org.lenteja.mapper.Aliasable;
+import org.lenteja.mapper.Mapable;
 
 public class Query<E> implements IQueryObject {
 
@@ -61,6 +61,8 @@ public class Query<E> implements IQueryObject {
             QueryObject r = new QueryObject();
             r.append(t.getAliasedName());
             return r;
+        } else if (param instanceof String) {
+            return new QueryObject((String) param);
         } else {
             throw new RuntimeException(param.getClass().getName());
         }

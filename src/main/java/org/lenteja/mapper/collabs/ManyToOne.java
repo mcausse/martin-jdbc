@@ -5,9 +5,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.lenteja.Table;
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.query.IQueryObject;
+import org.lenteja.mapper.Table;
 import org.lenteja.mapper.query.Operations;
 import org.lenteja.mapper.query.Relational;
 

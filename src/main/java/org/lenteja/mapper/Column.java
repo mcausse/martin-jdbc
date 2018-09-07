@@ -1,4 +1,4 @@
-package org.lenteja;
+package org.lenteja.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -41,6 +41,10 @@ public class Column<E, T> implements Aliasable, Mapable<T> {
 
     public String getColumnName() {
         return columnName;
+    }
+
+    public Accessor getAccessor() {
+        return accessor;
     }
 
     @Override

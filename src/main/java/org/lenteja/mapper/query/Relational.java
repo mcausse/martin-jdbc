@@ -27,12 +27,20 @@ public class Relational {
         return composition(" or ", qs);
     }
 
+    public static IQueryObject list(List<IQueryObject> qs) {
+        return composition(", ", qs);
+    }
+
     public static IQueryObject and(IQueryObject... qs) {
         return and(Arrays.asList(qs));
     }
 
     public static IQueryObject or(IQueryObject... qs) {
         return or(Arrays.asList(qs));
+    }
+
+    public static IQueryObject list(IQueryObject... qs) {
+        return list(Arrays.asList(qs));
     }
 
     public static IQueryObject not(IQueryObject q) {

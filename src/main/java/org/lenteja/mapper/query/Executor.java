@@ -2,9 +2,9 @@ package org.lenteja.mapper.query;
 
 import java.util.List;
 
-import org.lenteja.Mapable;
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.query.IQueryObject;
+import org.lenteja.mapper.Mapable;
 
 public class Executor<E> {
 

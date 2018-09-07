@@ -1,8 +1,8 @@
 package org.lenteja.mapper.autogen.impl;
 
-import org.lenteja.Column;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.query.QueryObject;
+import org.lenteja.mapper.Column;
 import org.lenteja.mapper.autogen.Generator;
 
 public class OracleSequence<T> extends Generator<T> {
@@ -10,7 +10,7 @@ public class OracleSequence<T> extends Generator<T> {
     final String sequenceName;
 
     public OracleSequence(Column<?, T> column, String sequenceName) {
-        super(column);
+        super(column, true);
         this.sequenceName = sequenceName;
     }
 

@@ -9,11 +9,11 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.lenteja.Mapable;
 import org.lenteja.jdbc.exception.EmptyResultException;
 import org.lenteja.jdbc.exception.LechugaException;
 import org.lenteja.jdbc.exception.TooManyResultsException;
 import org.lenteja.jdbc.query.IQueryObject;
+import org.lenteja.mapper.Mapable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

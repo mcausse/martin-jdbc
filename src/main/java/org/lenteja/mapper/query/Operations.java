@@ -2,11 +2,11 @@ package org.lenteja.mapper.query;
 
 import java.util.StringJoiner;
 
-import org.lenteja.Column;
-import org.lenteja.Mapable;
-import org.lenteja.Table;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.query.QueryObject;
+import org.lenteja.mapper.Column;
+import org.lenteja.mapper.Mapable;
+import org.lenteja.mapper.Table;
 
 public class Operations {
 

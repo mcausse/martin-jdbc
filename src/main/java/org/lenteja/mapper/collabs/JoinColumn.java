@@ -1,7 +1,7 @@
 package org.lenteja.mapper.collabs;
 
-import org.lenteja.Column;
 import org.lenteja.jdbc.query.IQueryObject;
+import org.lenteja.mapper.Column;
 
 public class JoinColumn<S, R, C> {
 
