@@ -74,7 +74,7 @@ public class Column<E, T> implements Aliasable, Mapable<T> {
 
     protected IQueryObject binaryOp(String op, T value) {
         QueryObject q = new QueryObject();
-        q.append(getColumnName());
+        q.append(getAliasedName());
         q.append(op);
         q.append("?");
         q.addArg(handler.getJdbcValue(value));
@@ -109,9 +109,9 @@ public class Column<E, T> implements Aliasable, Mapable<T> {
 
     protected IQueryObject binaryOp(String op, Column<?, T> c) {
         QueryObject q = new QueryObject();
-        q.append(getColumnName());
+        q.append(getAliasedName());
         q.append(op);
-        q.append(c.getColumnName());
+        q.append(c.getAliasedName());
         return q;
     }
 
@@ -144,7 +144,7 @@ public class Column<E, T> implements Aliasable, Mapable<T> {
     protected IQueryObject unaryOp(String prefix, String postfix) {
         QueryObject q = new QueryObject();
         q.append(prefix);
-        q.append(getColumnName());
+        q.append(getAliasedName());
         q.append(postfix);
         return q;
     }
@@ -162,7 +162,7 @@ public class Column<E, T> implements Aliasable, Mapable<T> {
     public IQueryObject in(List<T> values) {
 
         QueryObject r = new QueryObject();
-        r.append(getColumnName());
+        r.append(getAliasedName());
         r.append(" in (");
         for (int i = 0; i < values.size(); i++) {
             if (i > 0) {
@@ -191,7 +191,7 @@ public class Column<E, T> implements Aliasable, Mapable<T> {
 
     public IQueryObject between(T value1, T value2) {
         QueryObject r = new QueryObject();
-        r.append(getColumnName());
+        r.append(getAliasedName());
         r.append(" between ? and ?");
         r.addArg(handler.getJdbcValue(value1));
         r.addArg(handler.getJdbcValue(value2));
@@ -200,7 +200,7 @@ public class Column<E, T> implements Aliasable, Mapable<T> {
 
     public IQueryObject like(ELike like, String value) {
         QueryObject r = new QueryObject();
-        r.append(getColumnName());
+        r.append(getAliasedName());
         r.append(" like ?");
         r.addArg(like.process(value));
         return r;
@@ -209,7 +209,7 @@ public class Column<E, T> implements Aliasable, Mapable<T> {
     public IQueryObject ilike(ELike like, String value) {
         QueryObject r = new QueryObject();
         r.append("upper(");
-        r.append(getColumnName());
+        r.append(getAliasedName());
         r.append(") like upper(?)");
         r.addArg(like.process(value));
         return r;

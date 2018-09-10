@@ -50,4 +50,8 @@ public class Relational {
         r.append(")");
         return r;
     }
+
+    public static IQueryObject all() {
+        return new QueryObject("1=1");
+    }
 }

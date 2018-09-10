@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.query.IQueryObject;
+import org.lenteja.mapper.Column;
 import org.lenteja.mapper.Table;
 import org.lenteja.mapper.query.Operations;
 import org.lenteja.mapper.query.Relational;
@@ -25,17 +26,29 @@ public class ManyToOne<S, R> {
         this.joinColumns = joinColumns;
     }
 
+    @SuppressWarnings("unchecked")
     public R fetch(DataAccesFacade facade, S entity) {
         Operations o = new Operations();
 
-        List<IQueryObject> restrictions = new ArrayList<>();
+        List<IQueryObject> onRestrictions = new ArrayList<>();
         for (JoinColumn<S, R, ?> jc : joinColumns) {
-            restrictions.add(jc.getRestriction());
+            onRestrictions.add(jc.getRestriction());
+        }
+
+        List<IQueryObject> whereRestrictions = new ArrayList<>();
+        for (Column<S, ?> selfc : selfTable.getColumns()) {
+            if (selfc.isPk()) {
+                Object whereValue = selfc.getAccessor().get(entity);
+                Column<S, Object> selfColumn = (Column<S, Object>) selfc;
+                whereRestrictions.add(selfColumn.eq(whereValue));
+            }
         }
 
         return o.query(refTable) //
                 .append("select * from {} ", refTable) //
-                .append("where {}", Relational.and(restrictions)) //
+                .append("join {} ", selfTable) //
+                .append("on {} ", Relational.and(onRestrictions)) //
+                .append("where {}", Relational.and(whereRestrictions)) //
                 .getExecutor(facade) //
                 .loadUnique();
     }

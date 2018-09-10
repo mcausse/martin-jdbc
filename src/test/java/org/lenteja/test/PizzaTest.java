@@ -104,7 +104,7 @@ public class PizzaTest {
                     p_.type.in(EPizzaType.REGULAR, EPizzaType.DELUX) //
             );
             assertEquals(
-                    "id_pizza=? and upper(name) like upper(?) and price between ? and ? and kind in (?,?) -- [100(Long), %alo%(String), 5.0(Double), 18.5(Double), REGULAR(String), DELUX(String)]",
+                    "p.id_pizza=? and upper(p.name) like upper(?) and p.price between ? and ? and p.kind in (?,?) -- [100(Long), %alo%(String), 5.0(Double), 18.5(Double), REGULAR(String), DELUX(String)]",
                     q.toString());
         }
         {

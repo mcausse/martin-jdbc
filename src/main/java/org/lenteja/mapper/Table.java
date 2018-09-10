@@ -32,6 +32,8 @@ public class Table<E> implements Aliasable, Mapable<E> {
         this.autoGens.add(generator);
     }
 
+    // TODO CoC addXXX
+
     protected <T> Column<E, T> addColumn(Class<T> columnClass, String propertyPath, String columnName) {
         Column<E, T> c = new Column<>(this, columnClass, propertyPath, columnName, false,
                 Handlers.getHandlerFor(columnClass));
@@ -59,6 +61,52 @@ public class Table<E> implements Aliasable, Mapable<E> {
         this.columns.add(c);
         return c;
     }
+
+    ////////////////////////////
+
+    protected <T> Column<E, T> addColumn(Class<T> columnClass, String propertyPath) {
+        String[] ps = propertyPath.split("\\.");
+        String propName = ps[ps.length - 1];
+        String columnName = StringUtils.camelCaseToSqlCase(propName);
+
+        Column<E, T> c = new Column<>(this, columnClass, propertyPath, columnName, false,
+                Handlers.getHandlerFor(columnClass));
+        this.columns.add(c);
+        return c;
+    }
+
+    protected <T> Column<E, T> addPkColumn(Class<T> columnClass, String propertyPath) {
+        String[] ps = propertyPath.split("\\.");
+        String propName = ps[ps.length - 1];
+        String columnName = StringUtils.camelCaseToSqlCase(propName);
+
+        Column<E, T> c = new Column<>(this, columnClass, propertyPath, columnName, true,
+                Handlers.getHandlerFor(columnClass));
+        this.columns.add(c);
+        return c;
+    }
+
+    protected <T> Column<E, T> addColumn(Class<T> columnClass, String propertyPath, ColumnHandler<T> handler) {
+        String[] ps = propertyPath.split("\\.");
+        String propName = ps[ps.length - 1];
+        String columnName = StringUtils.camelCaseToSqlCase(propName);
+
+        Column<E, T> c = new Column<>(this, columnClass, propertyPath, columnName, false, handler);
+        this.columns.add(c);
+        return c;
+    }
+
+    protected <T> Column<E, T> addPkColumn(Class<T> columnClass, String propertyPath, ColumnHandler<T> handler) {
+        String[] ps = propertyPath.split("\\.");
+        String propName = ps[ps.length - 1];
+        String columnName = StringUtils.camelCaseToSqlCase(propName);
+
+        Column<E, T> c = new Column<>(this, columnClass, propertyPath, columnName, true, handler);
+        this.columns.add(c);
+        return c;
+    }
+
+    ////////////////////////////
 
     public Class<E> getEntityClass() {
         return entityClass;

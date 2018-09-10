@@ -2,29 +2,23 @@ package org.lenteja.test;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 
 import org.hsqldb.jdbc.JDBCDataSource;
 import org.junit.Before;
 import org.junit.Test;
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.JdbcDataAccesFacade;
-import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.script.SqlScriptExecutor;
-import org.lenteja.mapper.Aliasable;
 import org.lenteja.mapper.Column;
+import org.lenteja.mapper.EntityManager;
 import org.lenteja.mapper.EnumColumnHandler;
 import org.lenteja.mapper.Table;
-import org.lenteja.mapper.autogen.Generator;
 import org.lenteja.mapper.autogen.impl.HsqldbIdentity;
 import org.lenteja.mapper.autogen.impl.HsqldbSequence;
-import org.lenteja.mapper.collabs.JoinColumn;
-import org.lenteja.mapper.collabs.OneToMany;
-import org.lenteja.mapper.query.Operations;
-import org.lenteja.mapper.query.Query;
+import org.lenteja.mapper.query.ELike;
+import org.lenteja.mapper.query.Order;
 import org.lenteja.mapper.query.Relational;
 
 public class CompositionTest {
@@ -46,7 +40,7 @@ public class CompositionTest {
             SqlScriptExecutor sql = new SqlScriptExecutor(facade);
             sql.runFromClasspath("films.sql");
             facade.commit();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             facade.rollback();
             throw e;
         }
@@ -58,16 +52,16 @@ public class CompositionTest {
         facade.begin();
         try {
 
-            GenericDao<Dog, DogTable> dogDao = new GenericDao<>(facade, new DogTable());
-            GenericDao<Person, PersonTable> personDao = new GenericDao<>(facade, new PersonTable());
+            EntityManager entityManager = new EntityManager(facade);
+
+            DogTable dogTable = new DogTable();
+            PersonTable personTable = new PersonTable();
 
             Person mhc = new Person(new IdPerson(null, "8P"), "mhc", 36, new Date(0L));
-            assertEquals(
-                    "Person [id=IdPerson [idPerson=null, dni=8P], name=mhc, age=36, birthDate=Thu Jan 01 01:00:00 CET 1970]",
+            assertEquals("Person [id=IdPerson [idPerson=null, dni=8P], name=mhc, age=36, birthDate=01/01/1970]",
                     mhc.toString());
-            personDao.insert(mhc);
-            assertEquals(
-                    "Person [id=IdPerson [idPerson=10, dni=8P], name=mhc, age=36, birthDate=Thu Jan 01 01:00:00 CET 1970]",
+            entityManager.insert(personTable, mhc);
+            assertEquals("Person [id=IdPerson [idPerson=10, dni=8P], name=mhc, age=36, birthDate=01/01/1970]",
                     mhc.toString());
 
             Dog chucho = new Dog(null, "chucho", true, ESex.FEMALE, mhc.getId().getIdPerson());
@@ -75,211 +69,111 @@ public class CompositionTest {
 
             assertEquals("Dog [idDog=null, name=chucho, alive=true, sex=FEMALE, idJefe=10]", chucho.toString());
             assertEquals("Dog [idDog=null, name=din, alive=false, sex=MALE, idJefe=10]", din.toString());
-            dogDao.insert(chucho);
-            dogDao.insert(din);
+            entityManager.insert(dogTable, chucho);
+            entityManager.insert(dogTable, din);
             assertEquals("Dog [idDog=100, name=chucho, alive=true, sex=FEMALE, idJefe=10]", chucho.toString());
             assertEquals("Dog [idDog=101, name=din, alive=false, sex=MALE, idJefe=10]", din.toString());
 
             assertEquals("Dog [idDog=101, name=din, alive=false, sex=MALE, idJefe=10]", //
-                    dogDao.query() //
-                            .append("select * from {} ", dogDao) //
-                            .append("where {}", dogDao.getTable().idDog.eq(101)) //
+                    entityManager.query(dogTable) //
+                            .append("select * from {} ", dogTable) //
+                            .append("where {}", dogTable.idDog.eq(101)) //
                             .getExecutor(facade) //
                             .loadUnique() //
                             .toString() //
             );
             assertEquals("201", //
-                    dogDao.scalarQuery(dogDao.getTable().idDog) //
-                            .append("select sum({}) as {} ", dogDao.getTable().idDog, dogDao.getTable().idDog) //
-                            .append("from {} ", dogDao) //
+                    entityManager.scalarQuery(dogTable.idDog) //
+                            .append("select sum({}) as {} ", dogTable.idDog, dogTable.idDog) //
+                            .append("from {} ", dogTable) //
                             .getExecutor(facade) //
                             .loadUnique() //
                             .toString());
 
+            assertEquals(
+                    "[Dog [idDog=100, name=chucho, alive=true, sex=FEMALE, idJefe=10], Dog [idDog=101, name=din, alive=false, sex=MALE, idJefe=10]]", //
+                    entityManager.query(dogTable, Relational.all(), Order.by(Order.asc(dogTable.idDog))).toString());
+
+            assertEquals("Dog [idDog=101, name=din, alive=false, sex=MALE, idJefe=10]", //
+                    entityManager.queryUnique(dogTable, dogTable.name.ilike(ELike.CONTAINS, "i")).toString());
+
+            assertEquals("Dog [idDog=101, name=din, alive=false, sex=MALE, idJefe=10]", //
+                    entityManager.queryUnique(dogTable, din).toString());
+
+            Dog example = new Dog(null, null, null, null, mhc.getId().getIdPerson());
+            assertEquals(
+                    "[Dog [idDog=100, name=chucho, alive=true, sex=FEMALE, idJefe=10], Dog [idDog=101, name=din, alive=false, sex=MALE, idJefe=10]]", //
+                    entityManager.query(dogTable, example).toString());
+
+            din.setSex(ESex.FEMALE);
+            entityManager.update(dogTable, din);
+
+            assertEquals(
+                    "[Dog [idDog=100, name=chucho, alive=true, sex=FEMALE, idJefe=10], Dog [idDog=101, name=din, alive=false, sex=FEMALE, idJefe=10]]", //
+                    entityManager.query(dogTable, example).toString());
+
+            entityManager.delete(dogTable, din);
+
+            assertEquals("[Dog [idDog=100, name=chucho, alive=true, sex=FEMALE, idJefe=10]]", //
+                    entityManager.query(dogTable, example).toString());
+
             facade.commit();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             facade.rollback();
             throw e;
         }
-
     }
 
-    // TODO
-    public static class GenericDao<E, T extends Table<E>> implements Aliasable {
+    @Test
+    public void testCompositions() throws Exception {
 
-        final DataAccesFacade facade;
-        final T table;
+        facade.begin();
+        try {
 
-        final Operations o = new Operations();
+            EntityManager entityManager = new EntityManager(facade);
 
-        public GenericDao(DataAccesFacade facade, T table) {
-            super();
-            this.facade = facade;
-            this.table = table;
-        }
+            DogTable dogTable = new DogTable();
+            PersonTable personTable = new PersonTable();
 
-        @Override
-        public String getAliasedName() {
-            return table.getAliasedName();
-        }
+            Person mhc = new Person(new IdPerson(null, "8P"), "mhc", 36, new Date(0L));
+            entityManager.insert(personTable, mhc);
 
-        public T getTable() {
-            return table;
-        }
+            Dog chucho = new Dog(null, "chucho", true, ESex.FEMALE, mhc.getId().getIdPerson());
+            Dog din = new Dog(null, "din", false, ESex.FEMALE, mhc.getId().getIdPerson());
+            entityManager.insert(dogTable, chucho);
+            entityManager.insert(dogTable, din);
+            din.setSex(ESex.MALE);
+            entityManager.update(dogTable, din);
 
-        public void store(E entity) {
             // TODO
-        }
+            // ////
+            //
+            // Person mhc2 = dogTable.jefe.fetch(facade, chucho);
+            // Person mhc3 = dogTable.jefe.fetch(facade, din);
+            //
+            // assertEquals("Person [id=IdPerson [idPerson=10, dni=8P], name=mhc, age=36,
+            // birthDate=01/01/1970]",
+            // mhc.toString());
+            // assertEquals("Person [id=IdPerson [idPerson=10, dni=8P], name=mhc, age=36,
+            // birthDate=01/01/1970]",
+            // mhc2.toString());
+            // assertEquals("Person [id=IdPerson [idPerson=10, dni=8P], name=mhc, age=36,
+            // birthDate=01/01/1970]",
+            // mhc3.toString());
+            //
+            //
+            // ////
+            //
+            //
+            // List<Dog> dogs = personTable.dogs.fetch(facade, mhc);
+            // assertEquals("Person [id=IdPerson [idPerson=10, dni=8P], name=mhc, age=36,
+            // birthDate=01/01/1970]",
+            // dogs.toString());
 
-        public void insert(E entity) {
-
-            for (Generator<?> ag : table.getAutoGens()) {
-                if (ag.isBeforeInsert()) {
-                    Object autoGeneratedVal = ag.generate(facade);
-                    ag.getColumn().getAccessor().set(entity, autoGeneratedVal);
-                }
-            }
-
-            IQueryObject q = o.insert(table, entity);
-            facade.update(q);
-
-            for (Generator<?> ag : table.getAutoGens()) {
-                if (!ag.isBeforeInsert()) {
-                    Object autoGeneratedVal = ag.generate(facade);
-                    ag.getColumn().getAccessor().set(entity, autoGeneratedVal);
-                }
-            }
-        }
-
-        public void update(E entity) {
-            IQueryObject q = o.update(table, entity);
-            facade.update(q);
-        }
-
-        public void delete(E entity) {
-            IQueryObject q = o.delete(table, entity);
-            facade.update(q);
-        }
-
-        // ===========================================
-
-        public void storeAll(Iterable<E> entities) {
-            for (E entity : entities) {
-                store(entity);
-            }
-        }
-
-        public void insertAll(Iterable<E> entities) {
-            for (E entity : entities) {
-                insert(entity);
-            }
-        }
-
-        public void updateAll(Iterable<E> entities) {
-            for (E entity : entities) {
-                update(entity);
-            }
-        }
-
-        public void deleteAll(Iterable<E> entities) {
-            for (E entity : entities) {
-                delete(entity);
-            }
-        }
-
-        // ===========================================
-
-        public Query<E> query() {
-            return o.query(table);
-        }
-
-        public <C> Query<C> scalarQuery(Column<E, C> column) {
-            return o.query(column);
-        }
-
-        // ===========================================
-
-        // TODO
-        @SuppressWarnings("unchecked")
-        public List<E> query(IQueryObject restriction, Order<E>... orders) {
-            Query<E> q = o.query(table);
-            q.append("select * from {} where {}", table, restriction);
-            if (orders.length > 0) {
-                q.append(Relational.list(orders));
-            }
-            return q.getExecutor(facade).load();
-        }
-
-        // TODO
-        public E queryUnique(IQueryObject restrictions) {
-            Query<E> q = o.query(table);
-            q.append("select * from {} where {}", table, restrictions);
-            return q.getExecutor(facade).loadUnique();
-        }
-
-        // TODO query by example
-        @SuppressWarnings("unchecked")
-        public List<E> query(E example, Order<E>... orders) {
-            List<IQueryObject> restrictions = new ArrayList<>();
-            for (Column<E, ?> column : table.getColumns()) {
-                Column<E, Object> c = (Column<E, Object>) column;
-                Object value = c.getAccessor().get(example);
-                restrictions.add(c.eq(value));
-            }
-            return query(Relational.and(restrictions), orders);
-        }
-
-        // TODO query by example
-        @SuppressWarnings("unchecked")
-        public E queryUnique(E example) {
-            List<IQueryObject> restrictions = new ArrayList<>();
-            for (Column<E, ?> column : table.getColumns()) {
-                Column<E, Object> c = (Column<E, Object>) column;
-                Object value = c.getAccessor().get(example);
-                restrictions.add(c.eq(value));
-            }
-            return queryUnique(Relational.and(restrictions));
-        }
-    }
-
-    // TODO
-    public static class Order<E> implements IQueryObject {
-
-        final Column<E, ?> column;
-        final String order;
-
-        private Order(Column<E, ?> column, String order) {
-            super();
-            this.column = column;
-            this.order = order;
-        }
-
-        public static <E> Order<E> asc(Column<E, ?> column) {
-            return new Order<>(column, " asc");
-        }
-
-        public static <E> Order<E> desc(Column<E, ?> column) {
-            return new Order<>(column, " desc");
-        }
-
-        @Override
-        public String toString() {
-            return column + order;
-        }
-
-        @Override
-        public String getQuery() {
-            return toString();
-        }
-
-        @Override
-        public Object[] getArgs() {
-            return new Object[] {};
-        }
-
-        @Override
-        public List<Object> getArgsList() {
-            return Collections.emptyList();
+            facade.commit();
+        } catch (Throwable e) {
+            facade.rollback();
+            throw e;
         }
     }
 
@@ -291,10 +185,10 @@ public class CompositionTest {
         public final Column<Dog, ESex> sex = addColumn(ESex.class, "sex", "sex", new EnumColumnHandler<>(ESex.class));
         public final Column<Dog, Long> idJefe = addPkColumn(Long.class, "idJefe", "id_jefe");
 
-        // TODO
-        private static final PersonTable personRef = new PersonTable();
-        public final OneToMany<Dog, Person> jefe = new OneToMany<>(this, personRef,
-                new JoinColumn<>(idJefe, personRef.idPerson));
+        // // TODO
+        // private static final PersonTable personRef = new PersonTable("p");
+        // public final ManyToOne<Dog, Person> jefe = new ManyToOne<>(this, personRef,
+        // new JoinColumn<>(idJefe, personRef.idPerson));
 
         public DogTable(String alias) {
             super(Dog.class, "dogs", alias);
@@ -308,11 +202,16 @@ public class CompositionTest {
 
     public static class PersonTable extends Table<Person> {
 
-        public final Column<Person, Long> idPerson = addPkColumn(Long.class, "id.idPerson", "id_person");
-        public final Column<Person, String> dni = addColumn(String.class, "id.dni", "dni");
-        public final Column<Person, String> name = addColumn(String.class, "name", "name");
-        public final Column<Person, Integer> age = addColumn(Integer.class, "age", "age");
-        public final Column<Person, Date> birthDate = addColumn(Date.class, "birthDate", "birth_date");
+        public final Column<Person, Long> idPerson = addPkColumn(Long.class, "id.idPerson");
+        public final Column<Person, String> dni = addColumn(String.class, "id.dni");
+        public final Column<Person, String> name = addColumn(String.class, "name");
+        public final Column<Person, Integer> age = addColumn(Integer.class, "age");
+        public final Column<Person, Date> birthDate = addColumn(Date.class, "birthDate");
+
+        // // TODO
+        // private static final DogTable dogRef = new DogTable("d");
+        // public final OneToMany<Person, Dog> dogs = new OneToMany<>(this, dogRef,
+        // new JoinColumn<>(idPerson, dogRef.idJefe));
 
         public PersonTable(String alias) {
             super(Person.class, "persons", alias);
@@ -332,7 +231,7 @@ public class CompositionTest {
 
         Integer idDog;
         String name;
-        boolean alive;
+        Boolean alive;
         ESex sex;
         Long idJefe;
 
@@ -340,7 +239,7 @@ public class CompositionTest {
             super();
         }
 
-        public Dog(Integer idDog, String name, boolean alive, ESex sex, Long idJefe) {
+        public Dog(Integer idDog, String name, Boolean alive, ESex sex, Long idJefe) {
             super();
             this.idDog = idDog;
             this.name = name;
@@ -365,8 +264,12 @@ public class CompositionTest {
             this.name = name;
         }
 
-        public boolean isAlive() {
+        public Boolean getAlive() {
             return alive;
+        }
+
+        public void setAlive(Boolean alive) {
+            this.alive = alive;
         }
 
         public void setAlive(boolean alive) {
@@ -488,7 +391,9 @@ public class CompositionTest {
 
         @Override
         public String toString() {
-            return "Person [id=" + id + ", name=" + name + ", age=" + age + ", birthDate=" + birthDate + "]";
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+            return "Person [id=" + id + ", name=" + name + ", age=" + age + ", birthDate=" + sdf.format(birthDate)
+                    + "]";
         }
 
     }
