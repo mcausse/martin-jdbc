@@ -60,7 +60,7 @@ public class CompositionTest {
             Person mhc = new Person(new IdPerson(null, "8P"), "mhc", 36, new Date(0L));
             assertEquals("Person [id=IdPerson [idPerson=null, dni=8P], name=mhc, age=36, birthDate=01/01/1970]",
                     mhc.toString());
-            entityManager.insert(personTable, mhc);
+            entityManager.store(personTable, mhc);
             assertEquals("Person [id=IdPerson [idPerson=10, dni=8P], name=mhc, age=36, birthDate=01/01/1970]",
                     mhc.toString());
 
@@ -69,8 +69,8 @@ public class CompositionTest {
 
             assertEquals("Dog [idDog=null, name=chucho, alive=true, sex=FEMALE, idJefe=10]", chucho.toString());
             assertEquals("Dog [idDog=null, name=din, alive=false, sex=MALE, idJefe=10]", din.toString());
-            entityManager.insert(dogTable, chucho);
-            entityManager.insert(dogTable, din);
+            entityManager.store(dogTable, chucho);
+            entityManager.store(dogTable, din);
             assertEquals("Dog [idDog=100, name=chucho, alive=true, sex=FEMALE, idJefe=10]", chucho.toString());
             assertEquals("Dog [idDog=101, name=din, alive=false, sex=MALE, idJefe=10]", din.toString());
 
@@ -106,7 +106,7 @@ public class CompositionTest {
                     entityManager.query(dogTable, example).toString());
 
             din.setSex(ESex.FEMALE);
-            entityManager.update(dogTable, din);
+            entityManager.store(dogTable, din);
 
             assertEquals(
                     "[Dog [idDog=100, name=chucho, alive=true, sex=FEMALE, idJefe=10], Dog [idDog=101, name=din, alive=false, sex=FEMALE, idJefe=10]]", //
@@ -140,10 +140,10 @@ public class CompositionTest {
 
             Dog chucho = new Dog(null, "chucho", true, ESex.FEMALE, mhc.getId().getIdPerson());
             Dog din = new Dog(null, "din", false, ESex.FEMALE, mhc.getId().getIdPerson());
-            entityManager.insert(dogTable, chucho);
-            entityManager.insert(dogTable, din);
+            entityManager.store(dogTable, chucho);
+            entityManager.store(dogTable, din);
             din.setSex(ESex.MALE);
-            entityManager.update(dogTable, din);
+            entityManager.store(dogTable, din);
 
             // TODO
             // ////

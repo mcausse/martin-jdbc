@@ -2,11 +2,15 @@ package org.lenteja.mapper;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.lenteja.jdbc.DataAccesFacade;
+import org.lenteja.jdbc.exception.LechugaException;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.mapper.autogen.Generator;
+import org.lenteja.mapper.autogen.ScalarMappers;
 import org.lenteja.mapper.query.Operations;
 import org.lenteja.mapper.query.Order;
 import org.lenteja.mapper.query.Query;
@@ -22,8 +26,128 @@ public class EntityManager {
         this.facade = facade;
     }
 
+    /**
+     * fa un {@link #insert(Object)} o un {@link #update(Object)}, segons convingui.
+     *
+     * <pre>
+     * si almenys una PK és Autogen:
+     *         si alguna PK no-Autogen té valor null => error
+     *         insert: alguna PK val null
+     *         update: cap PK val null
+     * sino
+     *         si almenys una PK està a null =&gt; error
+     *
+     *         si exist()
+     *             update()
+     *         sino
+     *             insert()
+     *         fisi
+     * fisi
+     * </pre>
+     */
+    @SuppressWarnings("unchecked")
     public <E> void store(Table<E> table, E entity) {
-        // TODO
+
+        /**
+         * si una propietat PK és primitiva, el seu valor mai serà null (p.ex. serà 0) i
+         * l'store() no funcionarà. Si es té una PK primitiva, usar insert()/update() en
+         * comptes d'store().
+         */
+        for (Column<E, ?> p : table.getPkColumns()) {
+            if (p.getColumnClass().isPrimitive()) {
+                throw new LechugaException(
+                        "PK column is mapped as of primitive type: use insert()/update() instead of store(): "
+                                + entity.getClass().getSimpleName() + "#" + p.getColumnName());
+            }
+        }
+
+        boolean algunaPkAutogen = false;
+        {
+            List<Generator<?>> autogens = table.getAutoGens();
+            for (Generator<?> g : autogens) {
+                if (g.getColumn().isPk()) {
+                    algunaPkAutogen = true;
+                    break;
+                }
+            }
+        }
+
+        Set<Column<E, ?>> pks = new LinkedHashSet<>(table.getPkColumns());
+
+        /**
+         * si almenys una PK és Autogen:
+         */
+        if (algunaPkAutogen) {
+
+            Set<Column<E, ?>> autogens = new LinkedHashSet<>();
+            for (Generator<?> g : table.getAutoGens()) {
+                autogens.add((Column<E, ?>) g.getColumn());
+            }
+            Set<Column<E, ?>> pksNoAutoGens = new LinkedHashSet<>(pks);
+            pksNoAutoGens.removeAll(autogens);
+
+            /**
+             * si alguna PK no-Autogen té valor null => error
+             */
+            for (Column<E, ?> c : pksNoAutoGens) {
+                if (c.getAccessor().get(entity) == null) {
+                    throw new LechugaException("una propietat PK no-autogenerada té valor null en store(): "
+                            + entity.getClass().getSimpleName() + "#" + c.getColumnName());
+                }
+            }
+
+            boolean algunaPkValNull = false;
+            for (Column<E, ?> c : pks) {
+                if (c.getAccessor().get(entity) == null) {
+                    algunaPkValNull = true;
+                    break;
+                }
+            }
+
+            if (algunaPkValNull) {
+                /**
+                 * insert: alguna PK val null
+                 */
+                insert(table, entity);
+            } else {
+                /**
+                 * update: cap PK val null
+                 */
+                update(table, entity);
+            }
+
+        } else {
+
+            /**
+             * <pre>
+             *         si almenys una PK està a null =&gt; error
+             *
+             *         si exist()
+             *             update()
+             *         sino
+             *             insert()
+             *         fisi
+             * </pre>
+             */
+            for (Column<E, ?> c : pks) {
+                if (c.getAccessor().get(entity) == null) {
+                    throw new LechugaException("una propietat PK no-autogenerada té valor null en store(): "
+                            + entity.getClass().getSimpleName() + "#" + c.getColumnName());
+                }
+            }
+
+            if (exists(table, entity)) {
+                update(table, entity);
+            } else {
+                insert(table, entity);
+            }
+        }
+    }
+
+    public <E> boolean exists(Table<E> table, E entity) {
+        IQueryObject q = o.exists(table, entity);
+        long count = facade.loadUnique(q, ScalarMappers.LONG);
+        return count > 0L;
     }
 
     public <E> void insert(Table<E> table, E entity) {
@@ -94,7 +218,6 @@ public class EntityManager {
 
     // ===========================================
 
-    // TODO
     /**
      * @param orders
      *            usar {@link Sort#by(Order...)}
@@ -117,14 +240,12 @@ public class EntityManager {
         return query(table, restriction, Collections.emptyList());
     }
 
-    // TODO
     public <E> E queryUnique(Table<E> table, IQueryObject restrictions) {
         Query<E> q = o.query(table);
         q.append("select * from {} where {}", table, restrictions);
         return q.getExecutor(facade).loadUnique();
     }
 
-    // TODO query by example
     /**
      * @param orders
      *            usar {@link Sort#by(Order...)}
@@ -146,7 +267,6 @@ public class EntityManager {
         return query(table, example, Collections.emptyList());
     }
 
-    // TODO query by example
     @SuppressWarnings("unchecked")
     public <E> E queryUnique(Table<E> table, E example) {
         List<IQueryObject> restrictions = new ArrayList<>();

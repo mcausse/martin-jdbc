@@ -32,8 +32,6 @@ public class Table<E> implements Aliasable, Mapable<E> {
         this.autoGens.add(generator);
     }
 
-    // TODO CoC addXXX
-
     protected <T> Column<E, T> addColumn(Class<T> columnClass, String propertyPath, String columnName) {
         Column<E, T> c = new Column<>(this, columnClass, propertyPath, columnName, false,
                 Handlers.getHandlerFor(columnClass));
@@ -126,6 +124,16 @@ public class Table<E> implements Aliasable, Mapable<E> {
 
     public List<Generator<?>> getAutoGens() {
         return autoGens;
+    }
+
+    public List<Column<E, ?>> getPkColumns() {
+        List<Column<E, ?>> r = new ArrayList<>();
+        for (Column<E, ?> c : columns) {
+            if (c.isPk()) {
+                r.add(c);
+            }
+        }
+        return r;
     }
 
     @Override

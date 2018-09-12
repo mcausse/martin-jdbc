@@ -85,4 +85,22 @@ public class Operations {
         }
         return q;
     }
+
+    public <E> IQueryObject exists(Table<E> table, E entity) {
+        QueryObject q = new QueryObject();
+        q.append("select count(*) from ");
+        q.append(table.getTableName());
+        q.append(" where ");
+        {
+            StringJoiner j = new StringJoiner(" and ");
+            for (Column<E, ?> c : table.getColumns()) {
+                if (c.isPk()) {
+                    j.add(c.getColumnName() + "=?");
+                    q.addArg(c.storeValue(entity));
+                }
+            }
+            q.append(j.toString());
+        }
+        return q;
+    }
 }
