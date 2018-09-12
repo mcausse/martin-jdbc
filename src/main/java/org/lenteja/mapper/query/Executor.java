@@ -3,6 +3,9 @@ package org.lenteja.mapper.query;
 import java.util.List;
 
 import org.lenteja.jdbc.DataAccesFacade;
+import org.lenteja.jdbc.extractor.Pager;
+import org.lenteja.jdbc.extractor.ResultSetExtractor;
+import org.lenteja.jdbc.extractor.ResultSetPagedExtractor;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.mapper.Mapable;
 
@@ -31,8 +34,9 @@ public class Executor<E> {
         return facade.load(qo, mapable);
     }
 
-    // TODO
-    // public void loadPage(Pager<E> pager) {
-    // facade.loadPage(qo, mapable, pager);
-    // }
+    public Pager<E> loadPage(Pager<E> pager) {
+        ResultSetExtractor<Pager<E>> extractor = new ResultSetPagedExtractor<E>(mapable, pager.getPageSize(),
+                pager.getNumPage());
+        return facade.extract(qo, extractor);
+    }
 }

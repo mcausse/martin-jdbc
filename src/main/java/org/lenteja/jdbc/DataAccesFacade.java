@@ -7,6 +7,7 @@ import javax.sql.DataSource;
 
 import org.lenteja.jdbc.exception.EmptyResultException;
 import org.lenteja.jdbc.exception.TooManyResultsException;
+import org.lenteja.jdbc.extractor.ResultSetExtractor;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.mapper.Mapable;
 
@@ -20,7 +21,7 @@ public interface DataAccesFacade {
 
     int update(IQueryObject q);
 
-    // TODO <T> T extract(IQueryObject q, ResultSetExtractor<T> extractor);
+    <T> T extract(IQueryObject q, ResultSetExtractor<T> extractor);
 
     void begin();
 

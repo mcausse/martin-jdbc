@@ -12,6 +12,7 @@ import javax.sql.DataSource;
 import org.lenteja.jdbc.exception.EmptyResultException;
 import org.lenteja.jdbc.exception.LechugaException;
 import org.lenteja.jdbc.exception.TooManyResultsException;
+import org.lenteja.jdbc.extractor.ResultSetExtractor;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.mapper.Mapable;
 import org.slf4j.Logger;
@@ -248,31 +249,28 @@ public class JdbcDataAccesFacade implements DataAccesFacade {
         }
     }
 
-    // TODO
-    // @Override
-    // public <T> T extract(final IQueryObject q, final ResultSetExtractor<T>
-    // extractor) {
-    // LOG.debug("{}", q);
-    // Connection c;
-    // PreparedStatement ps = null;
-    // ResultSet rs = null;
-    // try {
-    // c = getConnection();
-    // ps = c.prepareStatement(q.getSql(), ResultSet.TYPE_SCROLL_INSENSITIVE,
-    // ResultSet.CONCUR_READ_ONLY);
-    // Object[] args = q.getArgs();
-    // for (int i = 0; i < args.length; i++) {
-    // ps.setObject(i + 1, args[i]);
-    // }
-    // rs = ps.executeQuery();
-    //
-    // return extractor.extract(rs);
-    //
-    // } catch (final SQLException e) {
-    // throw new LechugaException(q.toString(), e);
-    // } finally {
-    // closeResources(rs, ps);
-    // }
-    // }
+    @Override
+    public <T> T extract(final IQueryObject q, final ResultSetExtractor<T> extractor) {
+        LOG.debug("{}", q);
+        Connection c;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            c = getConnection();
+            ps = c.prepareStatement(q.getQuery(), ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            Object[] args = q.getArgs();
+            for (int i = 0; i < args.length; i++) {
+                ps.setObject(i + 1, args[i]);
+            }
+            rs = ps.executeQuery();
+
+            return extractor.extract(rs);
+
+        } catch (final SQLException e) {
+            throw new LechugaException(q.toString(), e);
+        } finally {
+            closeResources(rs, ps);
+        }
+    }
 
 }
