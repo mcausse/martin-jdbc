@@ -15,7 +15,6 @@ import org.lenteja.mapper.Column;
 import org.lenteja.mapper.EntityManager;
 import org.lenteja.mapper.Table;
 import org.lenteja.mapper.query.Order;
-import org.lenteja.mapper.query.Relational;
 
 public class TablaValoresTest {
 
@@ -66,7 +65,7 @@ public class TablaValoresTest {
                     ) //
             );
 
-            List<Valores> all = entityManager.query(vt, Relational.all(), Order.by(Order.asc(vt.key)));
+            List<Valores> all = entityManager.query(vt, Order.by(Order.asc(vt.key)));
             assertEquals("[Valores [key=1, val=one], Valores [key=2, val=two], Valores [key=3, val=three]]",
                     all.toString());
 
