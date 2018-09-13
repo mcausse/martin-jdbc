@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.lenteja.jdbc.exception.JdbcException;
+import org.lenteja.jdbc.query.IQueryObject;
+import org.lenteja.jdbc.query.QueryObject;
 import org.lenteja.mapper.autogen.Generator;
 
 public class Table<E> implements Aliasable, Mapable<E> {
@@ -125,6 +127,19 @@ public class Table<E> implements Aliasable, Mapable<E> {
 
     public List<Generator<?>> getAutoGens() {
         return autoGens;
+    }
+
+    public IQueryObject all() {
+        QueryObject q = new QueryObject();
+        int i = 0;
+        for (Column<E, ?> c : columns) {
+            if (i > 0) {
+                q.append(",");
+            }
+            q.append(c.getAliasedName());
+            i++;
+        }
+        return q;
     }
 
     public List<Column<E, ?>> getPkColumns() {

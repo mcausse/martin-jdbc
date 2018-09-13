@@ -5,12 +5,14 @@ import static org.junit.Assert.assertEquals;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.hsqldb.jdbc.JDBCDataSource;
 import org.junit.Before;
 import org.junit.Test;
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.JdbcDataAccesFacade;
+import org.lenteja.jdbc.extractor.MapResultSetExtractor;
 import org.lenteja.jdbc.script.SqlScriptExecutor;
 import org.lenteja.mapper.Column;
 import org.lenteja.mapper.EntityManager;
@@ -120,6 +122,52 @@ public class CompositionTest {
 
             assertEquals("[Dog [idDog=100, name=chucho, alive=true, sex=FEMALE, idJefe=10]]", //
                     entityManager.query(dogTable, example).toString());
+
+            ////
+
+            Dog faria = new Dog(null, "faria", false, ESex.FEMALE, mhc.getId().getIdPerson());
+            entityManager.insert(dogTable, faria);
+
+            {
+
+                DogTable dt = new DogTable("d");
+                PersonTable pt = new PersonTable("p");
+
+                Dog chucho2 = entityManager.queryFor(dt) //
+                        .append("select {} ", dt.all()) //
+                        .append("from {} join {} ", pt, dt) //
+                        .append("on {} ", pt.idPerson.eq(dt.idJefe)) //
+                        .append("where {} ", Relational.and( //
+                                pt.dni.isNotNull(), //
+                                pt.dni.eq("8P"), //
+                                dt.sex.in(ESex.FEMALE, ESex.MALE), //
+                                dt.alive.eq(true) //
+                        )) //
+                        .getExecutor(facade) //
+                        .loadUnique() //
+                ;
+
+                // select d.id_dog,d.name,d.is_alive,d.sex,d.id_jefe from persons p join dogs d
+                // on p.id_person=d.id_jefe where p.dni IS NOT NULL and p.dni=? and d.sex in
+                // (?,?) and d.is_alive=? -- [8P(String), FEMALE(String), MALE(String),
+                // true(Boolean)]
+
+                assertEquals("Dog [idDog=100, name=chucho, alive=true, sex=FEMALE, idJefe=10]", //
+                        chucho2.toString());
+            }
+
+            {
+                List<Map<String, Object>> result = entityManager.queryFor(dogTable) //
+                        .append("select {} from {} ", dogTable.all(), dogTable) //
+                        .getExecutor(facade) //
+                        .extract(new MapResultSetExtractor()) //
+                ;
+
+                assertEquals( //
+                        "[{ID_DOG=100, NAME=chucho, IS_ALIVE=true, SEX=FEMALE, ID_JEFE=10}, " + //
+                                "{ID_DOG=102, NAME=faria, IS_ALIVE=false, SEX=FEMALE, ID_JEFE=10}]", //
+                        result.toString());
+            }
 
             facade.commit();
         } catch (Throwable e) {

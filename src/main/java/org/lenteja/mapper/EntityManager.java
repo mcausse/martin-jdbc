@@ -218,6 +218,10 @@ public class EntityManager {
 
     // ===========================================
 
+    // // TODO
+    // publFSic <E> E loadById()
+    // // TODO
+
     /**
      * @param orders usar {@link Sort#by(Order...)}
      */

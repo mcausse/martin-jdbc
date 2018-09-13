@@ -39,4 +39,9 @@ public class Executor<E> {
                 pager.getNumPage());
         return facade.extract(qo, extractor);
     }
+
+    public <T> T extract(ResultSetExtractor<T> extractor) {
+        return facade.extract(qo, extractor);
+    }
+
 }
