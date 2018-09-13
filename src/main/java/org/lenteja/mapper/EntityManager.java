@@ -219,8 +219,7 @@ public class EntityManager {
     // ===========================================
 
     /**
-     * @param orders
-     *            usar {@link Sort#by(Order...)}
+     * @param orders usar {@link Sort#by(Order...)}
      */
     public <E> List<E> query(Table<E> table, IQueryObject restriction, List<Order<E>> orders) {
         Query<E> q = o.query(table);
@@ -251,8 +250,7 @@ public class EntityManager {
     }
 
     /**
-     * @param orders
-     *            usar {@link Sort#by(Order...)}
+     * @param orders usar {@link Sort#by(Order...)}
      */
     @SuppressWarnings("unchecked")
     public <E> List<E> query(Table<E> table, E example, List<Order<E>> orders) {

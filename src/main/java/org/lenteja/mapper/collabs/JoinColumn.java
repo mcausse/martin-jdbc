@@ -3,6 +3,11 @@ package org.lenteja.mapper.collabs;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.mapper.Column;
 
+/**
+ * @param <S> (S)elf entity type
+ * @param <R> (R)eferenced entity type
+ * @param <C> (C)olumn type
+ */
 public class JoinColumn<S, R, C> {
 
     public final Column<S, C> selfColumn;

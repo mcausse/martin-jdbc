@@ -1,17 +1,17 @@
 package org.lenteja.mapper;
 
-public class DefaultConventions {
+public class Conventions {
 
-    public String tableNameOf(Class<?> entityClass) {
+    public static String tableNameOf(Class<?> entityClass) {
         return camelCaseToSqlCase(entityClass.getSimpleName());
     }
 
-    public String columnNameOf(String propertyName) {
+    public static String columnNameOf(String propertyName) {
         return camelCaseToSqlCase(propertyName);
     }
 
     // això va mooolt més ràpid que fent-ho amb regexp
-    protected String camelCaseToSqlCase(final String s) {
+    protected static String camelCaseToSqlCase(final String s) {
         final StringBuffer strb = new StringBuffer(s.length() + 5);
         strb.append(s.charAt(0));
         for (int i = 1; i < s.length(); i++) {
