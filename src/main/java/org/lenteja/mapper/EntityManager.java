@@ -26,6 +26,22 @@ public class EntityManager {
         this.facade = facade;
     }
 
+    // TODO testar
+    @SuppressWarnings("unchecked")
+    public <E, ID> E loadById(Table<E> table, ID id) {
+        List<IQueryObject> where = new ArrayList<>();
+        for (Column<E, ?> c : table.getColumns()) {
+            if (c.isPk()) {
+                Object pkValue = c.getAccessor().get(id, 1);
+                Column<E, Object> c2 = (Column<E, Object>) c;
+                where.add(c2.eq(pkValue));
+            }
+        }
+
+        Query<E> q = queryFor(table).append("select {} from {} where {}", table.all(), table, Relational.and(where));
+        return q.getExecutor(facade).loadUnique();
+    }
+
     /**
      * fa un {@link #insert(Object)} o un {@link #update(Object)}, segons convingui.
      *

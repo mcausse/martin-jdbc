@@ -169,6 +169,15 @@ public class CompositionTest {
                         result.toString());
             }
 
+            {
+                Person mhc2 = entityManager.loadById(personTable, new IdPerson(10L, "8P"));
+                assertEquals("Person [id=IdPerson [idPerson=10, dni=8P], name=mhc, age=36, birthDate=01/01/1970]",
+                        mhc2.toString());
+
+                Dog chucho2 = entityManager.loadById(dogTable, 100L);
+                assertEquals("Dog [idDog=100, name=chucho, alive=true, sex=FEMALE, idJefe=10]", chucho2.toString());
+            }
+
             facade.commit();
         } catch (Throwable e) {
             facade.rollback();
@@ -240,7 +249,7 @@ public class CompositionTest {
         public final Column<Dog, String> name = addColumn(String.class, "name", "name");
         public final Column<Dog, Boolean> alive = addColumn(Boolean.class, "alive", "is_alive");
         public final Column<Dog, ESex> sex = addColumn(ESex.class, "sex", "sex", new EnumColumnHandler<>(ESex.class));
-        public final Column<Dog, Long> idJefe = addPkColumn(Long.class, "idJefe", "id_jefe");
+        public final Column<Dog, Long> idJefe = addColumn(Long.class, "idJefe", "id_jefe");
 
         public DogTable(String alias) {
             super(Dog.class, "dogs", alias);

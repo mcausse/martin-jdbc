@@ -8,7 +8,7 @@ import org.lenteja.mapper.query.Order;
 import org.lenteja.mapper.query.Query;
 
 // TODO testar
-public class GenericDao<E> {
+public class GenericDao<E, ID> {
 
     final DataAccesFacade facade;
     final Table<E> table;
@@ -19,6 +19,10 @@ public class GenericDao<E> {
         this.facade = facade;
         this.table = table;
         this.em = new EntityManager(facade);
+    }
+
+    public E loadById(ID id) {
+        return em.loadById(table, id);
     }
 
     public void store(E entity) {
