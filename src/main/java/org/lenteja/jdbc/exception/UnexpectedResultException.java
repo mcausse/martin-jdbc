@@ -1,6 +1,6 @@
 package org.lenteja.jdbc.exception;
 
-public class UnexpectedResultException extends RuntimeException {
+public class UnexpectedResultException extends JdbcException {
 
     private static final long serialVersionUID = 6193212451419056030L;
 

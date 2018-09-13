@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.lenteja.jdbc.DataAccesFacade;
-import org.lenteja.jdbc.exception.LechugaException;
+import org.lenteja.jdbc.exception.JdbcException;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.mapper.autogen.Generator;
 import org.lenteja.mapper.autogen.ScalarMappers;
@@ -55,7 +55,7 @@ public class EntityManager {
          */
         for (Column<E, ?> p : table.getPkColumns()) {
             if (p.getColumnClass().isPrimitive()) {
-                throw new LechugaException(
+                throw new JdbcException(
                         "PK column is mapped as of primitive type: use insert()/update() instead of store(): "
                                 + entity.getClass().getSimpleName() + "#" + p.getColumnName());
             }
@@ -91,7 +91,7 @@ public class EntityManager {
              */
             for (Column<E, ?> c : pksNoAutoGens) {
                 if (c.getAccessor().get(entity) == null) {
-                    throw new LechugaException("una propietat PK no-autogenerada té valor null en store(): "
+                    throw new JdbcException("una propietat PK no-autogenerada té valor null en store(): "
                             + entity.getClass().getSimpleName() + "#" + c.getColumnName());
                 }
             }
@@ -131,7 +131,7 @@ public class EntityManager {
              */
             for (Column<E, ?> c : pks) {
                 if (c.getAccessor().get(entity) == null) {
-                    throw new LechugaException("una propietat PK no-autogenerada té valor null en store(): "
+                    throw new JdbcException("una propietat PK no-autogenerada té valor null en store(): "
                             + entity.getClass().getSimpleName() + "#" + c.getColumnName());
                 }
             }
@@ -208,11 +208,11 @@ public class EntityManager {
 
     // ===========================================
 
-    public <E> Query<E> query(Table<E> table) {
+    public <E> Query<E> queryFor(Table<E> table) {
         return o.query(table);
     }
 
-    public <C> Query<C> scalarQuery(Column<?, C> column) {
+    public <C> Query<C> scalarQueryFor(Column<?, C> column) {
         return o.query(column);
     }
 

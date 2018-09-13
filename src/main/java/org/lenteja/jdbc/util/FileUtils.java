@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 
-import org.lenteja.jdbc.exception.LechugaException;
+import org.lenteja.jdbc.exception.JdbcException;
 
 public class FileUtils {
 
@@ -17,7 +17,7 @@ public class FileUtils {
         try {
             reader = new InputStreamReader(is, charSetName);
         } catch (final UnsupportedEncodingException e) {
-            throw new LechugaException(e);
+            throw new JdbcException(e);
         }
         return readFromReader(reader);
     }
@@ -25,7 +25,7 @@ public class FileUtils {
     public static InputStream loadFileFromClasspath(final String fileName) {
         final InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName);
         if (is == null) {
-            throw new LechugaException("could not open file: " + fileName);
+            throw new JdbcException("could not open file: " + fileName);
         }
         return is;
     }
@@ -43,7 +43,7 @@ public class FileUtils {
             }
             reader.close();
         } catch (final IOException e) {
-            throw new LechugaException(e);
+            throw new JdbcException(e);
         }
         return strb.toString();
     }

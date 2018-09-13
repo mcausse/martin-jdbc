@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import org.hsqldb.jdbc.JDBCDataSource;
 import org.junit.Before;
@@ -17,6 +18,9 @@ import org.lenteja.mapper.EnumColumnHandler;
 import org.lenteja.mapper.Table;
 import org.lenteja.mapper.autogen.impl.HsqldbIdentity;
 import org.lenteja.mapper.autogen.impl.HsqldbSequence;
+import org.lenteja.mapper.collabs.JoinColumn;
+import org.lenteja.mapper.collabs.ManyToOne;
+import org.lenteja.mapper.collabs.OneToMany;
 import org.lenteja.mapper.query.ELike;
 import org.lenteja.mapper.query.Order;
 import org.lenteja.mapper.query.Relational;
@@ -75,7 +79,7 @@ public class CompositionTest {
             assertEquals("Dog [idDog=101, name=din, alive=false, sex=MALE, idJefe=10]", din.toString());
 
             assertEquals("Dog [idDog=101, name=din, alive=false, sex=MALE, idJefe=10]", //
-                    entityManager.query(dogTable) //
+                    entityManager.queryFor(dogTable) //
                             .append("select * from {} ", dogTable) //
                             .append("where {}", dogTable.idDog.eq(101)) //
                             .getExecutor(facade) //
@@ -83,7 +87,7 @@ public class CompositionTest {
                             .toString() //
             );
             assertEquals("201", //
-                    entityManager.scalarQuery(dogTable.idDog) //
+                    entityManager.scalarQueryFor(dogTable.idDog) //
                             .append("select sum({}) as {} ", dogTable.idDog, dogTable.idDog) //
                             .append("from {} ", dogTable) //
                             .getExecutor(facade) //
@@ -145,30 +149,35 @@ public class CompositionTest {
             din.setSex(ESex.MALE);
             entityManager.store(dogTable, din);
 
-            // TODO
-            // ////
-            //
-            // Person mhc2 = dogTable.jefe.fetch(facade, chucho);
-            // Person mhc3 = dogTable.jefe.fetch(facade, din);
-            //
-            // assertEquals("Person [id=IdPerson [idPerson=10, dni=8P], name=mhc, age=36,
-            // birthDate=01/01/1970]",
-            // mhc.toString());
-            // assertEquals("Person [id=IdPerson [idPerson=10, dni=8P], name=mhc, age=36,
-            // birthDate=01/01/1970]",
-            // mhc2.toString());
-            // assertEquals("Person [id=IdPerson [idPerson=10, dni=8P], name=mhc, age=36,
-            // birthDate=01/01/1970]",
-            // mhc3.toString());
-            //
-            //
-            // ////
-            //
-            //
-            // List<Dog> dogs = personTable.dogs.fetch(facade, mhc);
-            // assertEquals("Person [id=IdPerson [idPerson=10, dni=8P], name=mhc, age=36,
-            // birthDate=01/01/1970]",
-            // dogs.toString());
+            ////
+
+            DogTable dogRef = new DogTable("d");
+            PersonTable personRef = new PersonTable("p");
+
+            ////
+
+            ManyToOne<Dog, Person> jefeOfDog = new ManyToOne<>(dogRef, personRef,
+                    new JoinColumn<>(dogRef.idJefe, personRef.idPerson));
+
+            Person mhc2 = jefeOfDog.fetch(facade, chucho);
+            Person mhc3 = jefeOfDog.fetch(facade, din);
+
+            assertEquals("Person [id=IdPerson [idPerson=10, dni=8P], name=mhc, age=36, birthDate=01/01/1970]",
+                    mhc.toString());
+            assertEquals("Person [id=IdPerson [idPerson=10, dni=8P], name=mhc, age=36, birthDate=01/01/1970]",
+                    mhc2.toString());
+            assertEquals("Person [id=IdPerson [idPerson=10, dni=8P], name=mhc, age=36, birthDate=01/01/1970]",
+                    mhc3.toString());
+
+            ////
+
+            final OneToMany<Person, Dog> dogsOfPerson = new OneToMany<>(personRef, dogRef,
+                    new JoinColumn<>(personRef.idPerson, dogRef.idJefe));
+
+            List<Dog> dogs = dogsOfPerson.fetch(facade, mhc);
+            assertEquals(
+                    "[Dog [idDog=100, name=chucho, alive=true, sex=FEMALE, idJefe=10], Dog [idDog=101, name=din, alive=false, sex=MALE, idJefe=10]]",
+                    dogs.toString());
 
             facade.commit();
         } catch (Throwable e) {
@@ -184,11 +193,6 @@ public class CompositionTest {
         public final Column<Dog, Boolean> alive = addColumn(Boolean.class, "alive", "is_alive");
         public final Column<Dog, ESex> sex = addColumn(ESex.class, "sex", "sex", new EnumColumnHandler<>(ESex.class));
         public final Column<Dog, Long> idJefe = addPkColumn(Long.class, "idJefe", "id_jefe");
-
-        // // TODO
-        // private static final PersonTable personRef = new PersonTable("p");
-        // public final ManyToOne<Dog, Person> jefe = new ManyToOne<>(this, personRef,
-        // new JoinColumn<>(idJefe, personRef.idPerson));
 
         public DogTable(String alias) {
             super(Dog.class, "dogs", alias);
@@ -207,11 +211,6 @@ public class CompositionTest {
         public final Column<Person, String> name = addColumn(String.class, "name");
         public final Column<Person, Integer> age = addColumn(Integer.class, "age");
         public final Column<Person, Date> birthDate = addColumn(Date.class, "birthDate");
-
-        // // TODO
-        // private static final DogTable dogRef = new DogTable("d");
-        // public final OneToMany<Person, Dog> dogs = new OneToMany<>(this, dogRef,
-        // new JoinColumn<>(idPerson, dogRef.idJefe));
 
         public PersonTable(String alias) {
             super(Person.class, "persons", alias);

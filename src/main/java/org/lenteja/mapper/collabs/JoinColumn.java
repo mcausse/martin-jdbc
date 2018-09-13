@@ -25,4 +25,13 @@ public class JoinColumn<S, R, C> {
         Column<R, Object> refc = (Column<R, Object>) refColumn;
         return refc.eq(selfc);
     }
+
+    public Column<S, C> getSelfColumn() {
+        return selfColumn;
+    }
+
+    public Column<R, C> getRefColumn() {
+        return refColumn;
+    }
+
 }

@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.lenteja.jdbc.exception.JdbcException;
 import org.lenteja.mapper.autogen.Generator;
 
 public class Table<E> implements Aliasable, Mapable<E> {
@@ -151,14 +152,15 @@ public class Table<E> implements Aliasable, Mapable<E> {
 
     @Override
     public E map(ResultSet rs) throws SQLException {
+        E r;
         try {
-            E r = entityClass.newInstance();
-            for (Column<E, ?> c : columns) {
-                c.loadValue(r, rs);
-            }
-            return r;
+            r = entityClass.newInstance();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new JdbcException(e);
         }
+        for (Column<E, ?> c : columns) {
+            c.loadValue(r, rs);
+        }
+        return r;
     }
 }

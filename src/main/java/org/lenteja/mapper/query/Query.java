@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.lenteja.jdbc.DataAccesFacade;
+import org.lenteja.jdbc.exception.JdbcException;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.query.QueryObject;
 import org.lenteja.jdbc.query.QueryObjectUtils;
@@ -64,7 +65,7 @@ public class Query<E> implements IQueryObject {
         } else if (param instanceof String) {
             return new QueryObject((String) param);
         } else {
-            throw new RuntimeException(param.getClass().getName());
+            throw new JdbcException(param.getClass().getName());
         }
     }
 

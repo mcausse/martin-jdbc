@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.query.IQueryObject;
+import org.lenteja.mapper.Column;
 import org.lenteja.mapper.Table;
 import org.lenteja.mapper.query.Operations;
 import org.lenteja.mapper.query.Relational;
@@ -25,12 +26,16 @@ public class OneToMany<S, R> {
         this.joinColumns = joinColumns;
     }
 
+    @SuppressWarnings("unchecked")
     public List<R> fetch(DataAccesFacade facade, S entity) {
         Operations o = new Operations();
 
         List<IQueryObject> restrictions = new ArrayList<>();
         for (JoinColumn<S, R, ?> jc : joinColumns) {
-            restrictions.add(jc.getRestriction());
+
+            Column<S, Object> selfc = (Column<S, Object>) jc.getSelfColumn();
+            Column<R, Object> refc = (Column<R, Object>) jc.getRefColumn();
+            restrictions.add(refc.eq(selfc.getAccessor().get(entity)));
         }
 
         return o.query(refTable) //

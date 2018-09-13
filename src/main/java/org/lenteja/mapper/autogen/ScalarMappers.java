@@ -6,7 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.lenteja.jdbc.ResultSetUtils;
-import org.lenteja.jdbc.exception.LechugaException;
+import org.lenteja.jdbc.exception.JdbcException;
 
 public class ScalarMappers {
 
@@ -58,7 +58,7 @@ public class ScalarMappers {
     @SuppressWarnings("unchecked")
     public static <T> ScalarHandler<T> getScalarMapperFor(Class<?> columnClass) {
         if (!scalarMappers.containsKey(columnClass)) {
-            throw new LechugaException("no scalar mapper defined for: " + columnClass.getName());
+            throw new JdbcException("no scalar mapper defined for: " + columnClass.getName());
         }
         return (ScalarHandler<T>) scalarMappers.get(columnClass);
     }
