@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.query.QueryObject;
-import org.lenteja.jdbc.util.FileUtils;
 
 public class SqlScriptExecutor {
 

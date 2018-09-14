@@ -7,25 +7,23 @@ import java.util.List;
 
 import org.lenteja.mapper.Mapable;
 
-public class ResultSetPagedExtractor<T> implements ResultSetExtractor<Pager<T>> {
+public class ResultSetPagedExtractor<T> implements ResultSetExtractor<PageResult<T>> {
 
     final Mapable<T> rowMapper;
-    final int pageSize;
-    final int numPage;
+    final Pager<T> pager;
 
-    public ResultSetPagedExtractor(Mapable<T> rowMapper, int pageSize, int numPage) {
+    public ResultSetPagedExtractor(Mapable<T> rowMapper, Pager<T> pager) {
         super();
         this.rowMapper = rowMapper;
-        this.pageSize = pageSize;
-        this.numPage = numPage;
+        this.pager = pager;
     }
 
     @Override
-    public Pager<T> extract(ResultSet rs) throws SQLException {
+    public PageResult<T> extract(ResultSet rs) throws SQLException {
         final List<T> r = new ArrayList<T>();
-        rs.absolute(pageSize * numPage);
+        rs.absolute(pager.getPageSize() * pager.getNumPage());
         int k = 0;
-        while (rs.next() && k < pageSize) {
+        while (rs.next() && k < pager.getPageSize()) {
             r.add(rowMapper.map(rs));
             k++;
         }
@@ -34,13 +32,13 @@ public class ResultSetPagedExtractor<T> implements ResultSetExtractor<Pager<T>> 
         final int totalRows = rs.getRow();
 
         int totalPages;
-        if (totalRows % pageSize == 0) {
-            totalPages = totalRows / pageSize;
+        if (totalRows % pager.getPageSize() == 0) {
+            totalPages = totalRows / pager.getPageSize();
         } else {
-            totalPages = totalRows / pageSize + 1;
+            totalPages = totalRows / pager.getPageSize() + 1;
         }
 
-        return new Pager<>(pageSize, numPage, totalRows, totalPages, r);
+        return new PageResult<T>(pager, totalRows, totalPages, r);
     }
 
 }

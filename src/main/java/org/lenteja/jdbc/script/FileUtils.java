@@ -1,4 +1,4 @@
-package org.lenteja.jdbc.util;
+package org.lenteja.jdbc.script;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -1,6 +1,7 @@
 package org.lenteja.mapper.collabs;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,8 @@ import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.mapper.Column;
 import org.lenteja.mapper.Table;
 import org.lenteja.mapper.query.Operations;
+import org.lenteja.mapper.query.Order;
+import org.lenteja.mapper.query.Query;
 import org.lenteja.mapper.query.Relational;
 
 public class OneToMany<S, R> {
@@ -26,9 +29,13 @@ public class OneToMany<S, R> {
         this.joinColumns = joinColumns;
     }
 
-    @SuppressWarnings("unchecked")
     public List<R> fetch(DataAccesFacade facade, S entity) {
-        Operations o = new Operations();
+        return fetch(facade, entity, Collections.emptyList());
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<R> fetch(DataAccesFacade facade, S entity, List<Order<R>> orders) {
+        Operations ops = new Operations();
 
         List<IQueryObject> restrictions = new ArrayList<>();
         for (JoinColumn<S, R, ?> jc : joinColumns) {
@@ -38,18 +45,31 @@ public class OneToMany<S, R> {
             restrictions.add(refc.eq(selfc.getAccessor().get(entity)));
         }
 
-        return o.query(refTable) //
+        Query<R> q = ops.query(refTable) //
                 .append("select * from {} ", refTable) //
-                .append("where {}", Relational.and(restrictions)) //
-                .getExecutor(facade) //
-                .load();
+                .append("where {}", Relational.and(restrictions));
+
+        if (!orders.isEmpty()) {
+            q.append(" order by ");
+            List<IQueryObject> qs = new ArrayList<>();
+            for (Order<R> o : orders) {
+                qs.add(o);
+            }
+            q.append(Relational.list(qs));
+        }
+        return q.getExecutor(facade).load();
     }
 
     public Map<S, List<R>> fetch(DataAccesFacade facade, Iterable<S> entities) {
+        return fetch(facade, entities, Collections.emptyList());
+    }
+
+    public Map<S, List<R>> fetch(DataAccesFacade facade, Iterable<S> entities, List<Order<R>> orders) {
         Map<S, List<R>> r = new LinkedHashMap<>();
         for (S e : entities) {
-            r.put(e, fetch(facade, e));
+            r.put(e, fetch(facade, e, orders));
         }
         return r;
     }
+
 }

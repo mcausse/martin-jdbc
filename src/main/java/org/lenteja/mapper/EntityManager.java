@@ -255,9 +255,9 @@ public class EntityManager {
         return q.getExecutor(facade).load();
     }
 
-    public <E> List<E> query(Table<E> table, List<Order<E>> orders) {
-        return query(table, Relational.all(), orders);
-    }
+    // public <E> List<E> query(Table<E> table, List<Order<E>> orders) {
+    // return query(table, Relational.all(), orders);
+    // }
 
     public <E> List<E> query(Table<E> table, IQueryObject restriction) {
         return query(table, restriction, Collections.emptyList());

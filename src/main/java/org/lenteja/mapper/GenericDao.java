@@ -65,6 +65,10 @@ public class GenericDao<E, ID> {
         return em.queryFor(table);
     }
 
+    public Query<E> queryFor(Table<E> aliasedTable) {
+        return em.queryFor(aliasedTable);
+    }
+
     public <C> Query<C> scalarQueryFor(Column<?, C> column) {
         return em.scalarQueryFor(column);
     }
@@ -73,9 +77,9 @@ public class GenericDao<E, ID> {
         return em.query(table, restriction, orders);
     }
 
-    public List<E> query(List<Order<E>> orders) {
-        return em.query(table, orders);
-    }
+    // public List<E> query(List<Order<E>> orders) {
+    // return em.query(table, orders);
+    // }
 
     public List<E> query(IQueryObject restriction) {
         return em.query(table, restriction);
