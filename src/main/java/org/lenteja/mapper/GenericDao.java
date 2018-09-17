@@ -7,7 +7,6 @@ import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.mapper.query.Order;
 import org.lenteja.mapper.query.Query;
 
-// TODO testar
 public class GenericDao<E, ID> {
 
     final DataAccesFacade facade;
