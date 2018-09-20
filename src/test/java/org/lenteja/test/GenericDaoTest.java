@@ -109,6 +109,22 @@ public class GenericDaoTest {
                     .load() //
             ;
             assertEquals(2, mhcDogs.size());
+            assertEquals( //
+                    "[Dog [idDog=100, name=chucho, alive=true, sex=FEMALE, idJefe=10], " + //
+                            "Dog [idDog=101, name=din, alive=false, sex=MALE, idJefe=10]]", //
+                    mhcDogs.toString());
+
+            {
+                List<Integer> mhcDogsIds = ddao.scalarQueryFor(d.idDog) //
+                        .append("select {} from {} ", d.idDog, d) //
+                        .append("where {} ", d.idJefe.eq(mhc.getId().getIdPerson())) //
+                        .append("order by {} ", Order.asc(d.idDog)) //
+                        .getExecutor(facade) //
+                        .load() //
+                ;
+                assertEquals(2, mhcDogsIds.size());
+                assertEquals("[100, 101]", mhcDogsIds.toString());
+            }
 
             mhcDogs = pdao.getDogsOfPerson().fetch(facade, mhc);
             List<Dog> memDogs = pdao.getDogsOfPerson().fetch(facade, mem);
