@@ -8,7 +8,7 @@ import java.util.List;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.query.QueryObject;
 import org.lenteja.mapper.query.ELike;
-import org.lenteja.mapper.query.Relational;
+import org.lenteja.mapper.query.Restrictions;
 import org.lenteja.mapper.reflect.Accessor;
 
 public class Column<E, T> implements Aliasable, Mapable<T> {
@@ -181,12 +181,12 @@ public class Column<E, T> implements Aliasable, Mapable<T> {
     }
 
     public IQueryObject notIn(List<T> values) {
-        return Relational.not(in(values));
+        return Restrictions.not(in(values));
     }
 
     @SuppressWarnings("unchecked")
     public IQueryObject notIn(T... values) {
-        return Relational.not(in(Arrays.asList(values)));
+        return Restrictions.not(in(Arrays.asList(values)));
     }
 
     public IQueryObject between(T value1, T value2) {

@@ -13,7 +13,7 @@ import org.lenteja.mapper.Table;
 import org.lenteja.mapper.query.Operations;
 import org.lenteja.mapper.query.Order;
 import org.lenteja.mapper.query.Query;
-import org.lenteja.mapper.query.Relational;
+import org.lenteja.mapper.query.Restrictions;
 
 public class OneToMany<S, R> {
 
@@ -47,7 +47,7 @@ public class OneToMany<S, R> {
 
         Query<R> q = ops.query(refTable) //
                 .append("select * from {} ", refTable) //
-                .append("where {}", Relational.and(restrictions));
+                .append("where {}", Restrictions.and(restrictions));
 
         if (!orders.isEmpty()) {
             q.append(" order by ");
@@ -55,7 +55,7 @@ public class OneToMany<S, R> {
             for (Order<R> o : orders) {
                 qs.add(o);
             }
-            q.append(Relational.list(qs));
+            q.append(Restrictions.list(qs));
         }
         return q.getExecutor(facade).load();
     }

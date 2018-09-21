@@ -1,6 +1,8 @@
 package org.lenteja.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.List;
@@ -10,12 +12,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.JdbcDataAccesFacade;
+import org.lenteja.jdbc.exception.EmptyResultException;
+import org.lenteja.jdbc.exception.TooManyResultsException;
 import org.lenteja.jdbc.script.SqlScriptExecutor;
 import org.lenteja.mapper.Column;
 import org.lenteja.mapper.EntityManager;
 import org.lenteja.mapper.Table;
 import org.lenteja.mapper.query.Order;
-import org.lenteja.mapper.query.Relational;
+import org.lenteja.mapper.query.Restrictions;
 
 public class TablaValoresTest {
 
@@ -66,9 +70,24 @@ public class TablaValoresTest {
                     ) //
             );
 
-            List<Valores> all = entityManager.query(vt, Relational.all(), Order.by(Order.asc(vt.key)));
+            List<Valores> all = entityManager.query(vt, Restrictions.all(), Order.by(Order.asc(vt.key)));
             assertEquals("[Valores [key=1, val=one], Valores [key=2, val=two], Valores [key=3, val=three]]",
                     all.toString());
+
+            assertEquals("Valores [key=1, val=one]", entityManager.loadById(vt, "1").toString());
+
+            try {
+                entityManager.loadById(vt, "xxx");
+                fail();
+            } catch (Exception e) {
+                assertTrue(e instanceof EmptyResultException);
+            }
+            try {
+                entityManager.queryUnique(vt, Restrictions.all());
+                fail();
+            } catch (Exception e) {
+                assertTrue(e instanceof TooManyResultsException);
+            }
 
             facade.commit();
         } catch (Throwable e) {

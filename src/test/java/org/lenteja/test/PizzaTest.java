@@ -16,7 +16,7 @@ import org.lenteja.mapper.Table;
 import org.lenteja.mapper.query.ELike;
 import org.lenteja.mapper.query.Operations;
 import org.lenteja.mapper.query.Query;
-import org.lenteja.mapper.query.Relational;
+import org.lenteja.mapper.query.Restrictions;
 
 public class PizzaTest {
 
@@ -97,7 +97,7 @@ public class PizzaTest {
             assertEquals("pizzas p", p_.getAliasedName());
             assertEquals("p.price", p_.price.getAliasedName());
 
-            IQueryObject q = Relational.and( //
+            IQueryObject q = Restrictions.and( //
                     p_.id.eq(100L), //
                     p_.name.ilike(ELike.CONTAINS, "alo"), //
                     p_.price.between(5.0, 18.5), //
@@ -127,7 +127,7 @@ public class PizzaTest {
 
             Query<Pizza> q = o.query(p);
             q.append("select sum({}) from {} ", p.price, p);
-            q.append("where {} ", Relational.and( //
+            q.append("where {} ", Restrictions.and( //
                     p.id.lt(100L), //
                     p.name.ilike(ELike.CONTAINS, "oma"), //
                     p.type.in(EPizzaType.REGULAR, EPizzaType.DELUX) //

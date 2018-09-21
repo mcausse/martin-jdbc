@@ -6,8 +6,8 @@ import java.util.List;
 /**
  * Perfoms the same as the following regexp: <tt>
 * (([^;]*?)?('.*?')?(/\\*(.|\\n)*?\\*\\/)?(--.*?\\n)?)*;\\s*
-* </tt> , but preventing Regexp's <i>strange</i> errors, i.e. StackOverflowError
- * when working with large scripts.
+* </tt> , but preventing Regexp's StackOverflowErrors when working with large
+ * scripts.
  */
 public class SqlStatementParser {
 

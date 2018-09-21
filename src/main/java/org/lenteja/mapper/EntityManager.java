@@ -14,7 +14,7 @@ import org.lenteja.mapper.autogen.ScalarMappers;
 import org.lenteja.mapper.query.Operations;
 import org.lenteja.mapper.query.Order;
 import org.lenteja.mapper.query.Query;
-import org.lenteja.mapper.query.Relational;
+import org.lenteja.mapper.query.Restrictions;
 
 public class EntityManager {
 
@@ -37,7 +37,7 @@ public class EntityManager {
             }
         }
 
-        Query<E> q = queryFor(table).append("select {} from {} where {}", table.all(), table, Relational.and(where));
+        Query<E> q = queryFor(table).append("select {} from {} where {}", table.all(), table, Restrictions.and(where));
         return q.getExecutor(facade).loadUnique();
     }
 
@@ -245,7 +245,7 @@ public class EntityManager {
             for (Order<E> o : orders) {
                 qs.add(o);
             }
-            q.append(Relational.list(qs));
+            q.append(Restrictions.list(qs));
         }
         return q.getExecutor(facade).load();
     }
@@ -273,7 +273,7 @@ public class EntityManager {
                 restrictions.add(c.eq(value));
             }
         }
-        return query(table, Relational.and(restrictions), orders);
+        return query(table, Restrictions.and(restrictions), orders);
     }
 
     public <E> List<E> query(Table<E> table, E example) {
@@ -290,6 +290,6 @@ public class EntityManager {
                 restrictions.add(c.eq(value));
             }
         }
-        return queryUnique(table, Relational.and(restrictions));
+        return queryUnique(table, Restrictions.and(restrictions));
     }
 }

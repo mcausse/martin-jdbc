@@ -6,7 +6,7 @@ import java.util.List;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.query.QueryObject;
 
-public class Relational {
+public class Restrictions {
 
     protected static IQueryObject composition(String op, List<IQueryObject> qs) {
         QueryObject r = new QueryObject();

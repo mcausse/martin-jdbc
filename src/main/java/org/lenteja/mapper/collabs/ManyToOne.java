@@ -10,7 +10,7 @@ import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.mapper.Column;
 import org.lenteja.mapper.Table;
 import org.lenteja.mapper.query.Operations;
-import org.lenteja.mapper.query.Relational;
+import org.lenteja.mapper.query.Restrictions;
 
 public class ManyToOne<S, R> {
 
@@ -47,8 +47,8 @@ public class ManyToOne<S, R> {
         return o.query(refTable) //
                 .append("select * from {} ", refTable) //
                 .append("join {} ", selfTable) //
-                .append("on {} ", Relational.and(onRestrictions)) //
-                .append("where {}", Relational.and(whereRestrictions)) //
+                .append("on {} ", Restrictions.and(onRestrictions)) //
+                .append("where {}", Restrictions.and(whereRestrictions)) //
                 .getExecutor(facade) //
                 .loadUnique();
     }

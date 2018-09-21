@@ -19,7 +19,7 @@ import org.lenteja.mapper.collabs.ManyToOne;
 import org.lenteja.mapper.collabs.OneToMany;
 import org.lenteja.mapper.query.ELike;
 import org.lenteja.mapper.query.Order;
-import org.lenteja.mapper.query.Relational;
+import org.lenteja.mapper.query.Restrictions;
 
 public class CompositionTest {
 
@@ -92,7 +92,7 @@ public class CompositionTest {
 
             assertEquals(
                     "[Dog [idDog=100, name=chucho, alive=true, sex=FEMALE, idJefe=10], Dog [idDog=101, name=din, alive=false, sex=MALE, idJefe=10]]", //
-                    entityManager.query(dogTable, Relational.all(), Order.by(Order.asc(dogTable.idDog))).toString());
+                    entityManager.query(dogTable, Restrictions.all(), Order.by(Order.asc(dogTable.idDog))).toString());
 
             assertEquals("Dog [idDog=101, name=din, alive=false, sex=MALE, idJefe=10]", //
                     entityManager.queryUnique(dogTable, dogTable.name.ilike(ELike.CONTAINS, "i")).toString());
@@ -131,7 +131,7 @@ public class CompositionTest {
                         .append("select {} ", dt.all()) //
                         .append("from {} join {} ", pt, dt) //
                         .append("on {} ", pt.idPerson.eq(dt.idJefe)) //
-                        .append("where {} ", Relational.and( //
+                        .append("where {} ", Restrictions.and( //
                                 pt.dni.isNotNull(), //
                                 pt.dni.eq("8P"), //
                                 dt.sex.in(ESex.FEMALE, ESex.MALE), //
