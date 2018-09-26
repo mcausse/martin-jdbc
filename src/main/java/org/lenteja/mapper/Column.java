@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.query.QueryObject;
+import org.lenteja.mapper.handler.ColumnHandler;
 import org.lenteja.mapper.query.ELike;
 import org.lenteja.mapper.query.Restrictions;
 import org.lenteja.mapper.reflect.Accessor;

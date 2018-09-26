@@ -1,9 +1,9 @@
 package org.lenteja.test;
 
 import org.lenteja.mapper.Column;
-import org.lenteja.mapper.EnumColumnHandler;
 import org.lenteja.mapper.Table;
 import org.lenteja.mapper.autogen.impl.HsqldbIdentity;
+import org.lenteja.mapper.handler.EnumColumnHandler;
 
 public class DogTable extends Table<Dog> {
 

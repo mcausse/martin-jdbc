@@ -1,4 +1,4 @@
-package org.lenteja.mapper;
+package org.lenteja.mapper.handler;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

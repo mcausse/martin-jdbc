@@ -1,4 +1,4 @@
-package org.lenteja.mapper;
+package org.lenteja.mapper.handler;
 
 import java.math.BigDecimal;
 import java.util.Date;

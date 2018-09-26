@@ -9,6 +9,8 @@ import org.lenteja.jdbc.exception.JdbcException;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.query.QueryObject;
 import org.lenteja.mapper.autogen.Generator;
+import org.lenteja.mapper.handler.ColumnHandler;
+import org.lenteja.mapper.handler.Handlers;
 
 public class Table<E> implements Aliasable, Mapable<E> {
 
