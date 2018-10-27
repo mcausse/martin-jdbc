@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.hsqldb.jdbc.JDBCDataSource;
 import org.junit.Before;
@@ -12,6 +11,7 @@ import org.junit.Test;
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.JdbcDataAccesFacade;
 import org.lenteja.jdbc.extractor.MapResultSetExtractor;
+import org.lenteja.jdbc.extractor.TableResult;
 import org.lenteja.jdbc.script.SqlScriptExecutor;
 import org.lenteja.mapper.EntityManager;
 import org.lenteja.mapper.collabs.JoinColumn;
@@ -151,7 +151,7 @@ public class CompositionTest {
             }
 
             {
-                List<Map<String, Object>> result = entityManager.queryFor(dogTable) //
+                TableResult result = entityManager.queryFor(dogTable) //
                         .append("select {} from {} ", dogTable.all(), dogTable) //
                         .getExecutor(facade) //
                         .extract(new MapResultSetExtractor()) //
