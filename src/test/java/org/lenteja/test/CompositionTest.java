@@ -225,7 +225,7 @@ public class CompositionTest {
             OneToMany<Person, Dog> dogsOfPerson = new OneToMany<>(personRef, dogRef,
                     new JoinColumn<>(personRef.idPerson, dogRef.idJefe));
 
-            List<Dog> dogs = dogsOfPerson.fetch(facade, mhc);
+            List<Dog> dogs = dogsOfPerson.fetch(facade, mhc, Order.by(Order.asc(dogRef.idDog)));
             assertEquals(
                     "[Dog [idDog=100, name=chucho, alive=true, sex=FEMALE, idJefe=10], Dog [idDog=101, name=din, alive=false, sex=MALE, idJefe=10]]",
                     dogs.toString());

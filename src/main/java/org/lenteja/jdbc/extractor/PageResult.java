@@ -33,8 +33,8 @@ public class PageResult<T> {
 
     @Override
     public String toString() {
-        return "PageResult [pager=" + pager + ", totalRows=" + totalRows + ", totalPages=" + totalPages + ", page="
-                + page + "]";
+        return "PageResult [pager=" + pager + ", totalRows=" + getTotalRows() + ", totalPages=" + getTotalPages()
+                + ", page=" + getPage() + "]";
     }
 
 }

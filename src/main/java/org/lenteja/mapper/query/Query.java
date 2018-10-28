@@ -65,7 +65,8 @@ public class Query<E> implements IQueryObject {
         } else if (param instanceof String) {
             return new QueryObject((String) param);
         } else {
-            throw new JdbcException(param.getClass().getName());
+            throw new JdbcException("unknown replacement por parameter value: " + param.getClass().getName() + ": "
+                    + String.valueOf(param));
         }
     }
 

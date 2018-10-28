@@ -7,25 +7,6 @@ import java.sql.Timestamp;
 
 public class ResultSetUtils {
 
-    public static <T extends Enum<T>> T getEnum(final Class<T> enumClass, final ResultSet rs) throws SQLException {
-
-        final String v = rs.getString(1);
-        if (v == null) {
-            return null;
-        }
-        return Enum.valueOf(enumClass, v);
-    }
-
-    public static <T extends Enum<T>> T getEnum(final Class<T> enumClass, final ResultSet rs, String columnLabel)
-            throws SQLException {
-
-        final String v = rs.getString(columnLabel);
-        if (v == null) {
-            return null;
-        }
-        return Enum.valueOf(enumClass, v);
-    }
-
     public static Byte getByte(final ResultSet rs) throws SQLException {
         final byte v = rs.getByte(1);
         if (rs.wasNull()) {

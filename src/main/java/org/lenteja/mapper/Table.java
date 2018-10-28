@@ -144,6 +144,14 @@ public class Table<E> implements Aliasable, Mapable<E> {
         return q;
     }
 
+    public IQueryObject star() {
+        if (alias == null) {
+            return new QueryObject("*");
+        } else {
+            return new QueryObject(alias + ".*");
+        }
+    }
+
     public List<Column<E, ?>> getPkColumns() {
         List<Column<E, ?>> r = new ArrayList<>();
         for (Column<E, ?> c : columns) {

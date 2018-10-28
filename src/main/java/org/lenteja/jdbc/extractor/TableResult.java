@@ -24,7 +24,7 @@ public class TableResult {
 
     @Override
     public String toString() {
-        return rows.toString();
+        return getRows().toString();
     }
 
 }

@@ -1,4 +1,7 @@
 
+/* db de test */
+-- db de test
+
 drop table pizzas if exists;
      
         

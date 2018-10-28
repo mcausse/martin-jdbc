@@ -8,8 +8,4 @@ public class UnexpectedResultException extends JdbcException {
         super(message);
     }
 
-    public UnexpectedResultException(Exception e) {
-        super(e);
-    }
-
 }

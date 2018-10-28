@@ -1,6 +1,6 @@
 package org.lenteja.jdbc.query;
 
-public class QueryObjectUtils {
+public interface QueryObjectUtils {
 
     public static String toString(final IQueryObject q) {
         final StringBuilder r = new StringBuilder();

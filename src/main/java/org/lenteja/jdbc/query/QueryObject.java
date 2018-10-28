@@ -24,8 +24,8 @@ public class QueryObject implements IQueryObject {
     }
 
     public void append(IQueryObject qo) {
-        this.query.append(qo.getQuery());
-        this.params.addAll(qo.getArgsList());
+        append(qo.getQuery());
+        addArgs(qo.getArgsList());
     }
 
     public void addArg(Object paramValue) {
