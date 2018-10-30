@@ -9,24 +9,20 @@ import java.util.Map;
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.mapper.Column;
-import org.lenteja.mapper.Table;
 import org.lenteja.mapper.query.Operations;
 import org.lenteja.mapper.query.Order;
 import org.lenteja.mapper.query.Query;
 import org.lenteja.mapper.query.Restrictions;
 
-public class OneToMany<S, R> {
+public class ManyToMany<S, I, R> {
 
-    final Table<S> selfTable;
-    final Table<R> refTable;
-    final JoinColumn<S, R, ?>[] joinColumns;
+    final OneToMany<S, I> oneToMany;
+    final ManyToOne<I, R> manyToOne;
 
-    @SafeVarargs
-    public OneToMany(Table<S> selfTable, Table<R> refTable, JoinColumn<S, R, ?>... joinColumns) {
+    public ManyToMany(OneToMany<S, I> oneToMany, ManyToOne<I, R> manyToOne) {
         super();
-        this.selfTable = selfTable;
-        this.refTable = refTable;
-        this.joinColumns = joinColumns;
+        this.oneToMany = oneToMany;
+        this.manyToOne = manyToOne;
     }
 
     public List<R> fetch(DataAccesFacade facade, S entity) {
@@ -38,15 +34,24 @@ public class OneToMany<S, R> {
         Operations ops = new Operations();
 
         List<IQueryObject> restrictions = new ArrayList<>();
-        for (JoinColumn<S, R, ?> jc : joinColumns) {
-
+        for (JoinColumn<S, I, ?> jc : oneToMany.getJoinColumns()) {
             Column<S, Object> selfc = (Column<S, Object>) jc.getSelfColumn();
-            Column<R, Object> refc = (Column<R, Object>) jc.getRefColumn();
+            Column<I, Object> refc = (Column<I, Object>) jc.getRefColumn();
             restrictions.add(refc.eq(selfc.getAccessor().get(entity)));
         }
 
-        Query<R> q = ops.query(refTable) //
-                .append("select * from {} ", refTable) //
+        List<IQueryObject> onRestrictions = new ArrayList<>();
+        for (JoinColumn<I, R, ?> jc : manyToOne.getJoinColumns()) {
+            Column<I, Object> selfc = (Column<I, Object>) jc.getSelfColumn();
+            Column<R, Object> refc = (Column<R, Object>) jc.getRefColumn();
+            onRestrictions.add(refc.eq(selfc));
+        }
+
+        Query<R> q = ops.query(manyToOne.getRefTable()) //
+                .append("select {} ", manyToOne.getRefTable().star()) //
+                .append("from {} ", manyToOne.getSelfTable()) //
+                .append("join {} ", manyToOne.getRefTable()) //
+                .append("on {} ", Restrictions.and(onRestrictions)) //
                 .append("where {}", Restrictions.and(restrictions));
 
         if (!orders.isEmpty()) {
@@ -72,16 +77,12 @@ public class OneToMany<S, R> {
         return r;
     }
 
-    public Table<S> getSelfTable() {
-        return selfTable;
+    public OneToMany<S, I> getOneToMany() {
+        return oneToMany;
     }
 
-    public Table<R> getRefTable() {
-        return refTable;
-    }
-
-    public JoinColumn<S, R, ?>[] getJoinColumns() {
-        return joinColumns;
+    public ManyToOne<I, R> getManyToOne() {
+        return manyToOne;
     }
 
 }

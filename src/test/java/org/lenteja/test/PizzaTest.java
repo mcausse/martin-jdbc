@@ -153,7 +153,7 @@ public class PizzaTest {
         }
 
         public Pizza_(String alias) {
-            super(Pizza.class, "pizzas", alias);
+            super("pizzas", alias);
         }
     }
 

@@ -2,16 +2,18 @@
 /* db de test */
 -- db de test
 
+			drop table pizza_ingredients if exists;
+			drop table pizzas if exists;
+
 drop table pizzas if exists;
-     
-        
+
+
 create table pizzas (
 	 id_pizza integer,
 	 name varchar(100) not null,
 	 price numeric(5,2) not null,
 	 kind varchar(20) not null
 );
-
 
 
 /******************************/
@@ -58,6 +60,17 @@ create table valores (
 	 key varchar(20) primary key,
 	 val varchar(20) not null,
 );
+
+
+
+
+
+
+
+
+
+/******************************/
+
 
 
 

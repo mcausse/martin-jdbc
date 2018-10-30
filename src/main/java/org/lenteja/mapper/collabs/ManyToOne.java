@@ -60,4 +60,17 @@ public class ManyToOne<S, R> {
         }
         return r;
     }
+
+    public Table<S> getSelfTable() {
+        return selfTable;
+    }
+
+    public Table<R> getRefTable() {
+        return refTable;
+    }
+
+    public JoinColumn<S, R, ?>[] getJoinColumns() {
+        return joinColumns;
+    }
+
 }

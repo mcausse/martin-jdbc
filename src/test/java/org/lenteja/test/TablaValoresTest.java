@@ -102,7 +102,7 @@ public class TablaValoresTest {
         public final Column<Valores, String> val = addColumn(String.class, "val");
 
         public ValoresTable(String alias) {
-            super(Valores.class, "valores", alias);
+            super("valores", alias);
         }
 
         public ValoresTable() {
