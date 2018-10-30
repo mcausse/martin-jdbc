@@ -241,6 +241,16 @@ public class ManyToManyTest {
             assertEquals("[Ingredient [100/tomatoe], Ingredient [101/cheese], Ingredient [102/olivas]]",
                     manyToMany.fetch(facade, romana, Order.by(Order.asc(ingredients_.idIngredient))).toString());
 
+            assertEquals("{Pizza [100/margarita]=[Ingredient [100/tomatoe], Ingredient [101/cheese]], "
+                    + "Pizza [101/romana]=[Ingredient [100/tomatoe], Ingredient [101/cheese], Ingredient [102/olivas]]}",
+                    manyToMany.fetch(facade, Arrays.asList(margarita, romana),
+                            Order.by(Order.asc(ingredients_.idIngredient))).toString());
+
+            assertEquals("{Pizza [100/margarita]=[PizzaIngredients [100/100], PizzaIngredients [100/101]], "
+                    + "Pizza [101/romana]=[PizzaIngredients [101/100], PizzaIngredients [101/101], PizzaIngredients [101/102]]}",
+                    oneToMany.fetch(facade, Arrays.asList(margarita, romana),
+                            Order.by(Order.asc(pizzaIngredients_.idIngredient))).toString());
+
             facade.commit();
         } catch (Throwable e) {
             facade.rollback();

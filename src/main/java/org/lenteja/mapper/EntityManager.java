@@ -236,9 +236,9 @@ public class EntityManager {
     /**
      * @param orders usar {@link Sort#by(Order...)}
      */
-    public <E> List<E> query(Table<E> table, IQueryObject restriction, List<Order<E>> orders) {
+    public <E> List<E> query(Table<E> table, IQueryObject whereRestriction, List<Order<E>> orders) {
         Query<E> q = o.query(table);
-        q.append("select * from {} where {}", table, restriction);
+        q.append("select * from {} where {}", table, whereRestriction);
         if (!orders.isEmpty()) {
             q.append(" order by ");
             List<IQueryObject> qs = new ArrayList<>();
@@ -250,15 +250,17 @@ public class EntityManager {
         return q.getExecutor(facade).load();
     }
 
-    public <E> List<E> query(Table<E> table, IQueryObject restriction) {
-        return query(table, restriction, Collections.emptyList());
+    public <E> List<E> query(Table<E> table, IQueryObject whereRestriction) {
+        return query(table, whereRestriction, Collections.emptyList());
     }
 
-    public <E> E queryUnique(Table<E> table, IQueryObject restrictions) {
+    public <E> E queryUnique(Table<E> table, IQueryObject whereRestriction) {
         Query<E> q = o.query(table);
-        q.append("select * from {} where {}", table, restrictions);
+        q.append("select * from {} where {}", table, whereRestriction);
         return q.getExecutor(facade).loadUnique();
     }
+
+    // ===========================================
 
     /**
      * @param orders usar {@link Sort#by(Order...)}
@@ -292,4 +294,5 @@ public class EntityManager {
         }
         return queryUnique(table, Restrictions.and(restrictions));
     }
+
 }

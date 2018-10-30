@@ -34,22 +34,6 @@ public abstract class Table<E> implements Aliasable, Mapable<E> {
         this.autoGens = new ArrayList<>();
     }
 
-    // @Deprecated
-    // public Table(Class<E> entityClass, String tableName, String alias) {
-    // super();
-    //
-    // // TODO entityClass
-    // // Class<T> persistentClass = (Class<T>)
-    // // ((ParameterizedType)getClass().getGenericSuperclass())
-    // // .getActualTypeArguments()[0];
-    // this.entityClass = entityClass;
-    //
-    // this.tableName = tableName;
-    // this.columns = new ArrayList<>();
-    // this.alias = alias;
-    // this.autoGens = new ArrayList<>();
-    // }
-
     public Table(String tableName) {
         this(tableName, null);
     }
