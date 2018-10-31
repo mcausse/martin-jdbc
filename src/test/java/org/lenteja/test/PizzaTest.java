@@ -67,7 +67,7 @@ public class PizzaTest {
             assertEquals("[Pizza [idPizza=100, name=romana, price=12.9, type=DELUX]]",
                     q.getExecutor(facade).load().toString());
 
-            p = new Pizza_("z");
+            p = new Pizza_();
 
             Query<Double> scalar = o.query(p.price).append("select sum({}) as {} from {}", p.price, p.price, p);
             assertEquals(romana.getPrice(), scalar.getExecutor(facade).loadUnique());
@@ -89,13 +89,13 @@ public class PizzaTest {
 
         {
             Pizza_ p_ = new Pizza_();
-            assertEquals("pizzas", p_.getAliasedName());
-            assertEquals("price", p_.price.getAliasedName());
+            assertEquals("pizzas pizzas_", p_.getAliasedName());
+            assertEquals("pizzas_.price", p_.price.getAliasedName());
         }
         {
-            Pizza_ p_ = new Pizza_("p");
-            assertEquals("pizzas p", p_.getAliasedName());
-            assertEquals("p.price", p_.price.getAliasedName());
+            Pizza_ p_ = new Pizza_();
+            assertEquals("pizzas pizzas_", p_.getAliasedName());
+            assertEquals("pizzas_.price", p_.price.getAliasedName());
 
             IQueryObject q = Restrictions.and( //
                     p_.id.eq(100L), //
@@ -104,7 +104,7 @@ public class PizzaTest {
                     p_.type.in(EPizzaType.REGULAR, EPizzaType.DELUX) //
             );
             assertEquals(
-                    "p.id_pizza=? and upper(p.name) like upper(?) and p.price between ? and ? and p.kind in (?,?) -- [100(Long), %alo%(String), 5.0(Double), 18.5(Double), REGULAR(String), DELUX(String)]",
+                    "pizzas_.id_pizza=? and upper(pizzas_.name) like upper(?) and pizzas_.price between ? and ? and pizzas_.kind in (?,?) -- [100(Long), %alo%(String), 5.0(Double), 18.5(Double), REGULAR(String), DELUX(String)]",
                     q.toString());
         }
         {
@@ -134,8 +134,8 @@ public class PizzaTest {
             ));
 
             assertEquals(
-                    "select sum(price) from pizzas where id_pizza<? and upper(name) like upper(?) and kind in (?,?)  " + //
-                            "-- [100(Long), %oma%(String), REGULAR(String), DELUX(String)]", //
+                    "select sum(pizzas_.price) from pizzas pizzas_ where pizzas_.id_pizza<? and upper(pizzas_.name) like upper(?) and pizzas_.kind in (?,?) "
+                            + " -- [100(Long), %oma%(String), REGULAR(String), DELUX(String)]", //
                     q.toString());
         }
     }
@@ -149,11 +149,7 @@ public class PizzaTest {
                 new EnumColumnHandler<>(EPizzaType.class));
 
         public Pizza_() {
-            this(null);
-        }
-
-        public Pizza_(String alias) {
-            super("pizzas", alias);
+            super("pizzas");
         }
     }
 

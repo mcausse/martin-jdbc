@@ -48,7 +48,7 @@ public class ManyToMany<S, I, R> {
         }
 
         Query<R> q = ops.query(manyToOne.getRefTable()) //
-                .append("select {} ", manyToOne.getRefTable().star()) //
+                .append("select {} ", manyToOne.getRefTable().all()) //
                 .append("from {} ", manyToOne.getSelfTable()) //
                 .append("join {} ", manyToOne.getRefTable()) //
                 .append("on {} ", Restrictions.and(onRestrictions)) //

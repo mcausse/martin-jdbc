@@ -45,7 +45,7 @@ public class ManyToOne<S, R> {
         }
 
         return o.query(refTable) //
-                .append("select * from {} ", refTable) //
+                .append("select {} from {} ", refTable.all(), refTable) //
                 .append("join {} ", selfTable) //
                 .append("on {} ", Restrictions.and(onRestrictions)) //
                 .append("where {}", Restrictions.and(whereRestrictions)) //

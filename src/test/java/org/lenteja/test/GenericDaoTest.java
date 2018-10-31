@@ -53,8 +53,8 @@ public class GenericDaoTest {
         public PersonDao(DataAccesFacade facade) {
             super(facade, new PersonTable());
 
-            DogTable dogRef = new DogTable("d");
-            PersonTable personRef = new PersonTable("p");
+            DogTable dogRef = new DogTable();
+            PersonTable personRef = new PersonTable();
             this.dogsOfPerson = new OneToMany<>(personRef, dogRef, new JoinColumn<>(personRef.idPerson, dogRef.idJefe));
         }
 
@@ -71,8 +71,8 @@ public class GenericDaoTest {
         public DogDao(DataAccesFacade facade) {
             super(facade, new DogTable());
 
-            DogTable dogRef = new DogTable("d");
-            PersonTable personRef = new PersonTable("p");
+            DogTable dogRef = new DogTable();
+            PersonTable personRef = new PersonTable();
             this.jefeOfDog = new ManyToOne<>(dogRef, personRef, new JoinColumn<>(dogRef.idJefe, personRef.idPerson));
         }
 
@@ -88,7 +88,7 @@ public class GenericDaoTest {
         facade.begin();
         try {
 
-            DogTable d = new DogTable("d");
+            DogTable d = new DogTable();
 
             PersonDao pdao = new PersonDao(facade);
             DogDao ddao = new DogDao(facade);

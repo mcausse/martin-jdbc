@@ -13,6 +13,8 @@ import org.lenteja.mapper.Mapable;
 
 public class Query<E> implements IQueryObject {
 
+    public static final String REPLCE_SYM = "{}";
+
     final Mapable<E> mapable;
 
     final StringBuilder query;
@@ -36,7 +38,7 @@ public class Query<E> implements IQueryObject {
         int p = 0;
         int paramIndex = 0;
         while (true) {
-            int pos = queryFragment.indexOf("{}", p);
+            int pos = queryFragment.indexOf(REPLCE_SYM, p);
             if (pos < 0) {
                 break;
             }
@@ -47,7 +49,7 @@ public class Query<E> implements IQueryObject {
             this.query.append(paramResult.getQuery());
             this.params.addAll(paramResult.getArgsList());
 
-            p = pos + "{}".length();
+            p = pos + REPLCE_SYM.length();
         }
         this.query.append(queryFragment.substring(p));
 
@@ -65,7 +67,7 @@ public class Query<E> implements IQueryObject {
         } else if (param instanceof String) {
             return new QueryObject((String) param);
         } else {
-            throw new JdbcException("unknown replacement por parameter value: " + param.getClass().getName() + ": "
+            throw new JdbcException("unknown replacement for parameter value: " + param.getClass().getName() + ": "
                     + String.valueOf(param));
         }
     }

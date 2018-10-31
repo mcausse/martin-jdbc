@@ -124,8 +124,8 @@ public class CompositionTest {
 
             {
 
-                DogTable dt = new DogTable("d");
-                PersonTable pt = new PersonTable("p");
+                DogTable dt = new DogTable();
+                PersonTable pt = new PersonTable();
 
                 Dog chucho2 = entityManager.queryFor(dt) //
                         .append("select {} ", dt.all()) //
@@ -202,8 +202,8 @@ public class CompositionTest {
 
             ////
 
-            DogTable dogRef = new DogTable("d");
-            PersonTable personRef = new PersonTable("p");
+            DogTable dogRef = new DogTable();
+            PersonTable personRef = new PersonTable();
 
             ////
 

@@ -46,7 +46,7 @@ public class OneToMany<S, R> {
         }
 
         Query<R> q = ops.query(refTable) //
-                .append("select * from {} ", refTable) //
+                .append("select {} from {} ", refTable.all(), refTable) //
                 .append("where {}", Restrictions.and(restrictions));
 
         if (!orders.isEmpty()) {

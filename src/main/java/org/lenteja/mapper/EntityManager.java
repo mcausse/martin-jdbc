@@ -238,7 +238,7 @@ public class EntityManager {
      */
     public <E> List<E> query(Table<E> table, IQueryObject whereRestriction, List<Order<E>> orders) {
         Query<E> q = o.query(table);
-        q.append("select * from {} where {}", table, whereRestriction);
+        q.append("select {} from {} where {}", table.all(), table, whereRestriction);
         if (!orders.isEmpty()) {
             q.append(" order by ");
             List<IQueryObject> qs = new ArrayList<>();
@@ -256,7 +256,7 @@ public class EntityManager {
 
     public <E> E queryUnique(Table<E> table, IQueryObject whereRestriction) {
         Query<E> q = o.query(table);
-        q.append("select * from {} where {}", table, whereRestriction);
+        q.append("select {} from {} where {}", table.all(), table, whereRestriction);
         return q.getExecutor(facade).loadUnique();
     }
 

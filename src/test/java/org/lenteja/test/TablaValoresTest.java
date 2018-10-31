@@ -101,13 +101,10 @@ public class TablaValoresTest {
         public final Column<Valores, String> key = addPkColumn(String.class, "key");
         public final Column<Valores, String> val = addColumn(String.class, "val");
 
-        public ValoresTable(String alias) {
-            super("valores", alias);
+        public ValoresTable() {
+            super("valores");
         }
 
-        public ValoresTable() {
-            this(null);
-        }
     }
 
     public static class Valores {
