@@ -26,12 +26,11 @@ public class JoinColumn<S, R, C> {
         return refc.eq(selfc);
     }
 
-    public Column<S, C> getSelfColumn() {
-        return selfColumn;
-    }
-
-    public Column<R, C> getRefColumn() {
-        return refColumn;
+    @SuppressWarnings("unchecked")
+    public IQueryObject getRestriction(S entity) {
+        Column<S, Object> selfc = (Column<S, Object>) selfColumn;
+        Column<R, Object> refc = (Column<R, Object>) refColumn;
+        return refc.eq(selfc.getAccessor().get(entity));
     }
 
 }
