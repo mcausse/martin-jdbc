@@ -190,6 +190,11 @@ public class EntityManager {
         facade.update(q);
     }
 
+    public <E> void update(Table<E> table, E entity, Iterable<Column<E, ?>> columnsToUpdate) {
+        IQueryObject q = o.update(table, entity, columnsToUpdate);
+        facade.update(q);
+    }
+
     public <E> void delete(Table<E> table, E entity) {
         IQueryObject q = o.delete(table, entity);
         facade.update(q);

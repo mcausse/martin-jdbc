@@ -35,19 +35,10 @@ public class TableGeneratorTest {
 
     @Test
     public void testName() throws Exception {
-
-        // final TableMeta meta;
-        //
-        // facade.begin();
-        // try {
-        // QueryObject q = new QueryObject("select * from pizzas");
-        // meta = facade.extract(q, new MetaTableExtractor(facade));
-        // } finally {
-        // facade.rollback();
-        // }
-
         TableGenerator g = new TableGenerator(facade);
         System.out.println(g.generate("Pizza", "pizzas"));
+        System.out.println(g.generate("Person", "persons"));
+        System.out.println(g.generate("Dog", "dogs"));
     }
 
 }

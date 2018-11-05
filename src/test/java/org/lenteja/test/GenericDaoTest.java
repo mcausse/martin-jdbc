@@ -98,8 +98,11 @@ public class GenericDaoTest {
             pdao.storeAll(Arrays.asList(mhc, mem));
 
             Dog chucho = new Dog(null, "chucho", true, ESex.FEMALE, mhc.getId().getIdPerson());
-            Dog din = new Dog(null, "din", false, ESex.MALE, mhc.getId().getIdPerson());
+            Dog din = new Dog(null, "dino", false, ESex.MALE, mhc.getId().getIdPerson());
             ddao.storeAll(Arrays.asList(chucho, din));
+
+            din.setName("din");
+            ddao.update(din, Arrays.asList(d.name));
 
             List<Dog> mhcDogs = ddao.queryFor(d) //
                     .append("select {} from {} ", d.all(), d) //

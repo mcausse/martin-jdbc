@@ -40,6 +40,10 @@ public class GenericDao<E, ID> {
         em.update(table, entity);
     }
 
+    public void update(E entity, Iterable<Column<E, ?>> columnsToUpdate) {
+        em.update(table, entity, columnsToUpdate);
+    }
+
     public void delete(E entity) {
         em.delete(table, entity);
     }
