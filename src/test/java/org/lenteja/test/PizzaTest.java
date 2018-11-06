@@ -11,10 +11,12 @@ import org.lenteja.jdbc.JdbcDataAccesFacade;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.script.SqlScriptExecutor;
 import org.lenteja.mapper.Column;
+import org.lenteja.mapper.EntityManager;
 import org.lenteja.mapper.Table;
 import org.lenteja.mapper.handler.EnumColumnHandler;
 import org.lenteja.mapper.query.ELike;
 import org.lenteja.mapper.query.Operations;
+import org.lenteja.mapper.query.Order;
 import org.lenteja.mapper.query.Query;
 import org.lenteja.mapper.query.Restrictions;
 
@@ -36,6 +38,48 @@ public class PizzaTest {
         try {
             SqlScriptExecutor sql = new SqlScriptExecutor(facade);
             sql.runFromClasspath("films.sql");
+            facade.commit();
+        } catch (Exception e) {
+            facade.rollback();
+            throw e;
+        }
+    }
+
+    @Test
+    public void testNativeCrud() throws Exception {
+
+        facade.begin();
+        try {
+
+            Pizza_ p = new Pizza_();
+
+            EntityManager ep = new EntityManager(facade);
+
+            Pizza romana = new Pizza(100L, "romana", 12.5, EPizzaType.DELUX);
+
+            ep.queryFor(null) //
+                    .append("insert into {} ({}) values ({})", p, p.all(), p.insertValues(romana)) //
+                    .getExecutor(facade) //
+                    .update() //
+            ;
+
+            ep.queryFor(null) //
+                    .append("update {} set {} where {}", p, p.name.eq("rooomana"), p.name.eq("romana")) //
+                    .getExecutor(facade) //
+                    .update() //
+            ;
+
+            assertEquals("Pizza [idPizza=100, name=rooomana, price=12.5, type=DELUX]", //
+                    ep.queryFor(p) //
+                            .append("select {} ", p.star()) //
+                            .append("from {} ", p) //
+                            .append("where {} ", Restrictions.all()) //
+                            .append("order by {} ", Order.asc(p.id)) //
+                            .getExecutor(facade) //
+                            .loadUnique() //
+                            .toString() //
+            );
+
             facade.commit();
         } catch (Exception e) {
             facade.rollback();
@@ -88,12 +132,12 @@ public class PizzaTest {
     public void testName() throws Exception {
 
         {
-            Pizza_ p_ = new Pizza_();
+            Pizza_ p_ = new Pizza_("pizzas_");
             assertEquals("pizzas pizzas_", p_.getAliasedName());
             assertEquals("pizzas_.price", p_.price.getAliasedName());
         }
         {
-            Pizza_ p_ = new Pizza_();
+            Pizza_ p_ = new Pizza_("pizzas_");
             assertEquals("pizzas pizzas_", p_.getAliasedName());
             assertEquals("pizzas_.price", p_.price.getAliasedName());
 
@@ -134,7 +178,7 @@ public class PizzaTest {
             ));
 
             assertEquals(
-                    "select sum(pizzas_.price) from pizzas pizzas_ where pizzas_.id_pizza<? and upper(pizzas_.name) like upper(?) and pizzas_.kind in (?,?) "
+                    "select sum(price) from pizzas where id_pizza<? and upper(name) like upper(?) and kind in (?,?) "
                             + " -- [100(Long), %oma%(String), REGULAR(String), DELUX(String)]", //
                     q.toString());
         }
@@ -148,8 +192,12 @@ public class PizzaTest {
         public final Column<Pizza, EPizzaType> type = addColumn(EPizzaType.class, "type", "kind",
                 new EnumColumnHandler<>(EPizzaType.class));
 
+        public Pizza_(String alias) {
+            super("pizzas", alias);
+        }
+
         public Pizza_() {
-            super("pizzas");
+            this(null);
         }
     }
 

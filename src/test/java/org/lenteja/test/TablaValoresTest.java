@@ -18,6 +18,7 @@ import org.lenteja.jdbc.script.SqlScriptExecutor;
 import org.lenteja.mapper.Column;
 import org.lenteja.mapper.EntityManager;
 import org.lenteja.mapper.Table;
+import org.lenteja.mapper.query.ELike;
 import org.lenteja.mapper.query.Order;
 import org.lenteja.mapper.query.Restrictions;
 
@@ -89,6 +90,15 @@ public class TablaValoresTest {
                 assertTrue(e instanceof TooManyResultsException);
             }
 
+            Valores example = new Valores(null, "tiene o");
+            ValoresTable sensAlias = new ValoresTable(null);
+            entityManager.update(sensAlias, example, Arrays.asList(sensAlias.val),
+                    sensAlias.val.ilike(ELike.CONTAINS, "o"));
+
+            all = entityManager.query(vt, Restrictions.all(), Order.by(Order.asc(vt.key)));
+            assertEquals("[Valores [key=1, val=tiene o], Valores [key=2, val=tiene o], Valores [key=3, val=three]]",
+                    all.toString());
+
             facade.commit();
         } catch (Throwable e) {
             facade.rollback();
@@ -105,6 +115,9 @@ public class TablaValoresTest {
             super("valores");
         }
 
+        public ValoresTable(String alias) {
+            super("valores", alias);
+        }
     }
 
     public static class Valores {

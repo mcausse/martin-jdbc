@@ -60,7 +60,7 @@ public class Operations {
         return update(table, entity, columnsToUpdate, wherePredicate);
     }
 
-    public <E> IQueryObject update(Table<E> table, E entity, Iterable<Column<E, ?>> columnsToUpdate,
+    public <E> IQueryObject update(Table<E> table, E example, Iterable<Column<E, ?>> columnsToUpdate,
             IQueryObject wherePredicate) {
 
         QueryObject q = new QueryObject();
@@ -74,7 +74,7 @@ public class Operations {
                     throw new RuntimeException("cannot update PK column: " + c.getColumnName());
                 } else {
                     j.add(c.getColumnName() + "=?");
-                    q.addArg(c.storeValue(entity));
+                    q.addArg(c.storeValue(example));
                 }
             }
             q.append(j.toString());

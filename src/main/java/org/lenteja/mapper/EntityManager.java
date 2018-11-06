@@ -195,9 +195,9 @@ public class EntityManager {
         facade.update(q);
     }
 
-    public <E> void update(Table<E> table, E entity, Iterable<Column<E, ?>> columnsToUpdate,
+    public <E> void update(Table<E> table, E example, Iterable<Column<E, ?>> columnsToUpdate,
             IQueryObject wherePredicate) {
-        IQueryObject q = o.update(table, entity, columnsToUpdate, wherePredicate);
+        IQueryObject q = o.update(table, example, columnsToUpdate, wherePredicate);
         facade.update(q);
     }
 
