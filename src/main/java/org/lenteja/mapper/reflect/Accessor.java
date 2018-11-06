@@ -71,8 +71,7 @@ public class Accessor {
             }
             return o;
         } catch (Exception e) {
-            throw new RuntimeException(this.beanClass.getName() + "#" + this.propertyPath + " for instance: " + bean,
-                    e);
+            throw new RuntimeException("invoking setter of " + beanClass.getName() + "#" + this.propertyPath, e);
         }
     }
 
@@ -90,7 +89,8 @@ public class Accessor {
             }
             propertyPathList.get(propertyPathList.size() - 1).getWriteMethod().invoke(o, propertyValue);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("invoking setter of " + beanClass.getName() + "#" + this.propertyPath
+                    + " with value '" + propertyValue + "'", e);
         }
     }
 

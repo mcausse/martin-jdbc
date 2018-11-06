@@ -69,6 +69,7 @@ public class Operations {
     }
 
     public <E> IQueryObject update(Table<E> table, E entity, Iterable<Column<E, ?>> columnsToUpdate) {
+
         QueryObject q = new QueryObject();
         q.append("update ");
         q.append(table.getTableName());
@@ -134,4 +135,5 @@ public class Operations {
         }
         return q;
     }
+
 }

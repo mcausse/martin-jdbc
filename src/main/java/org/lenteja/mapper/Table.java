@@ -34,6 +34,12 @@ public abstract class Table<E> implements Aliasable, Mapable<E> {
         this.autoGens = new ArrayList<>();
     }
 
+    // TODO
+    // public Table<E> aliase(String alias) {
+    //
+    // getcl
+    // }
+
     public Table(String tableName) {
         this(tableName, tableName + "_");
     }
