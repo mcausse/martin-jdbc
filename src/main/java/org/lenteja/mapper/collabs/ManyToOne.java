@@ -24,6 +24,13 @@ public class ManyToOne<S, R> {
         this.selfTable = selfTable;
         this.refTable = refTable;
         this.joinColumns = joinColumns;
+
+        // validar que la part dreta de joinColumns siguin columnes PK
+        for (JoinColumn<S, R, ?> jc : joinColumns) {
+            if (!jc.refColumn.isPk()) {
+                throw new RuntimeException("required a PK column, but received: " + jc.refColumn.toString());
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")

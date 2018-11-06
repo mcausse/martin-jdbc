@@ -20,6 +20,7 @@ import org.lenteja.mapper.collabs.JoinColumn;
 import org.lenteja.mapper.collabs.ManyToOne;
 import org.lenteja.mapper.collabs.OneToMany;
 import org.lenteja.mapper.handler.StringDateHandler;
+import org.lenteja.mapper.query.Order;
 
 public class ExpTest {
 
@@ -100,7 +101,13 @@ public class ExpTest {
         }
 
         public List<Tex> getFases(Exp exp) {
-            return oneToMany.fetch(getFacade(), exp);
+            return oneToMany.fetch(getFacade(), exp, //
+                    Order.by( //
+                            Order.asc(TexDao.TABLE.idEns), //
+                            Order.asc(TexDao.TABLE.anyExp), //
+                            Order.asc(TexDao.TABLE.numExp) //
+                    ) //
+            );
         }
 
     }

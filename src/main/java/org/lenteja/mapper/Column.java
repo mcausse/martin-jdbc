@@ -216,4 +216,10 @@ public class Column<E, T> implements Aliasable, Mapable<T> {
         return r;
     }
 
+    @Override
+    public String toString() {
+        return "Column [parentTable=" + parentTable + ", columnClass=" + columnClass + ", columnName=" + columnName
+                + ", isPk=" + isPk + ", handler=" + handler + ", accessor=" + accessor + "]";
+    }
+
 }

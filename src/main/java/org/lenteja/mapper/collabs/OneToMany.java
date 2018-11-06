@@ -26,11 +26,22 @@ public class OneToMany<S, R> {
         this.selfTable = selfTable;
         this.refTable = refTable;
         this.joinColumns = joinColumns;
+
+        // validar que la part esquerra de joinColumns siguin columnes PK
+        for (JoinColumn<S, R, ?> jc : joinColumns) {
+            if (!jc.selfColumn.isPk()) {
+                throw new RuntimeException("required a PK column, but received: " + jc.selfColumn.toString());
+            }
+        }
     }
 
     public List<R> fetch(DataAccesFacade facade, S entity) {
         return fetch(facade, entity, Collections.emptyList());
     }
+
+    // TODO fetchLazy ?
+    // TODO store ?
+    // TODO delete ?
 
     public List<R> fetch(DataAccesFacade facade, S entity, List<Order<R>> orders) {
         Operations ops = new Operations();
