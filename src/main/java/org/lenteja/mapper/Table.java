@@ -173,6 +173,16 @@ public abstract class Table<E> implements Aliasable, Mapable<E> {
         return r;
     }
 
+    public List<Column<E, ?>> getNonPkColumns() {
+        List<Column<E, ?>> r = new ArrayList<>();
+        for (Column<E, ?> c : columns) {
+            if (!c.isPk()) {
+                r.add(c);
+            }
+        }
+        return r;
+    }
+
     @Override
     public String getAliasedName() {
         if (alias == null) {
