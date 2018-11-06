@@ -35,15 +35,31 @@ public class OneToMany<S, R> {
         }
     }
 
+    public List<R> fetchLazy(DataAccesFacade facade, S entity) {
+        return fetchLazy(facade, entity);
+    }
+
+    public List<R> fetchLazy(DataAccesFacade facade, S entity, List<Order<R>> orders) {
+        Query<R> q = getFetchQuery(entity, orders);
+        return new EntitiesLazyList<>(q.getExecutor(facade));
+    }
+
     public List<R> fetch(DataAccesFacade facade, S entity) {
         return fetch(facade, entity, Collections.emptyList());
     }
 
-    // TODO fetchLazy ?
+    // TODO i no es poden posar les relacions OneToMany-ManyToOne a la Table ????
+
+    // XXX fetchLazy ?
     // TODO store ?
     // TODO delete ?
 
     public List<R> fetch(DataAccesFacade facade, S entity, List<Order<R>> orders) {
+        Query<R> q = getFetchQuery(entity, orders);
+        return q.getExecutor(facade).load();
+    }
+
+    protected Query<R> getFetchQuery(S entity, List<Order<R>> orders) {
         Operations ops = new Operations();
 
         List<IQueryObject> restrictions = new ArrayList<>();
@@ -63,7 +79,7 @@ public class OneToMany<S, R> {
             }
             q.append(Restrictions.list(qs));
         }
-        return q.getExecutor(facade).load();
+        return q;
     }
 
     public Map<S, List<R>> fetch(DataAccesFacade facade, Iterable<S> entities) {

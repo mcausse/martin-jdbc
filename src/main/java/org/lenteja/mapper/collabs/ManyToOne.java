@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.lenteja.jdbc.DataAccesFacade;
+import org.lenteja.jdbc.exception.EmptyResultException;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.mapper.Column;
 import org.lenteja.mapper.Table;
@@ -51,13 +52,17 @@ public class ManyToOne<S, R> {
             }
         }
 
-        return o.query(refTable) //
-                .append("select {} from {} ", refTable.all(), refTable) //
-                .append("join {} ", selfTable) //
-                .append("on {} ", Restrictions.and(onRestrictions)) //
-                .append("where {}", Restrictions.and(whereRestrictions)) //
-                .getExecutor(facade) //
-                .loadUnique();
+        try {
+            return o.query(refTable) //
+                    .append("select {} from {} ", refTable.all(), refTable) //
+                    .append("join {} ", selfTable) //
+                    .append("on {} ", Restrictions.and(onRestrictions)) //
+                    .append("where {}", Restrictions.and(whereRestrictions)) //
+                    .getExecutor(facade) //
+                    .loadUnique();
+        } catch (EmptyResultException e) {
+            return null;
+        }
     }
 
     public Map<S, R> fetch(DataAccesFacade facade, Iterable<S> entities) {

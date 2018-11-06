@@ -100,6 +100,31 @@ public class Operations {
         return q;
     }
 
+    // TODO que els 2 metodes de sobre cridin a aquest, que és el més complet
+    public <E> IQueryObject update(Table<E> table, E entity, Iterable<Column<E, ?>> columnsToUpdate,
+            IQueryObject wherePredicate) {
+
+        QueryObject q = new QueryObject();
+        q.append("update ");
+        q.append(table.getTableName());
+        q.append(" set ");
+        {
+            StringJoiner j = new StringJoiner(", ");
+            for (Column<E, ?> c : columnsToUpdate) {
+                if (c.isPk()) {
+                    throw new RuntimeException("cannot update PK column: " + c.getColumnName());
+                } else {
+                    j.add(c.getColumnName() + "=?");
+                    q.addArg(c.storeValue(entity));
+                }
+            }
+            q.append(j.toString());
+        }
+        q.append(" where ");
+        q.append(wherePredicate);
+        return q;
+    }
+
     public <E> IQueryObject delete(Table<E> table, E entity) {
         QueryObject q = new QueryObject();
         q.append("delete from ");

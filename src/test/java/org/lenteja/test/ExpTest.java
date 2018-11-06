@@ -1,6 +1,8 @@
 package org.lenteja.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
@@ -16,6 +18,7 @@ import org.lenteja.mapper.GenericDao;
 import org.lenteja.mapper.Table;
 import org.lenteja.mapper.TableGenerator;
 import org.lenteja.mapper.autogen.impl.HsqldbIdentity;
+import org.lenteja.mapper.collabs.EntitiesLazyList;
 import org.lenteja.mapper.collabs.JoinColumn;
 import org.lenteja.mapper.collabs.ManyToOne;
 import org.lenteja.mapper.collabs.OneToMany;
@@ -79,6 +82,17 @@ public class ExpTest {
             assertEquals("Exp [id=ExpId [idEns=8200, anyExp=2018, numExp=10], name=exp1, fecIni=20181111]",
                     texDao.getExpedient(fase1).toString());
 
+            // XXX test de OneToMany lazy !!!
+            {
+                List<Tex> fases = expDao.getFasesLaziely(exp);
+                assertFalse(((EntitiesLazyList<?>) fases).isInitializated());
+                assertEquals(
+                        "[Tex [idTex=100, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase1], "
+                                + "Tex [idTex=101, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase2]]",
+                        fases.toString());
+                assertTrue(((EntitiesLazyList<?>) fases).isInitializated());
+            }
+
             facade.commit();
         } catch (Throwable e) {
             facade.rollback();
@@ -102,6 +116,16 @@ public class ExpTest {
 
         public List<Tex> getFases(Exp exp) {
             return oneToMany.fetch(getFacade(), exp, //
+                    Order.by( //
+                            Order.asc(TexDao.TABLE.idEns), //
+                            Order.asc(TexDao.TABLE.anyExp), //
+                            Order.asc(TexDao.TABLE.numExp) //
+                    ) //
+            );
+        }
+
+        public List<Tex> getFasesLaziely(Exp exp) {
+            return oneToMany.fetchLazy(getFacade(), exp, //
                     Order.by( //
                             Order.asc(TexDao.TABLE.idEns), //
                             Order.asc(TexDao.TABLE.anyExp), //

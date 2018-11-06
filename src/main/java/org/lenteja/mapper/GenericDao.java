@@ -44,6 +44,10 @@ public class GenericDao<E, ID> {
         em.update(table, entity, columnsToUpdate);
     }
 
+    public void update(Table<E> table, E entity, Iterable<Column<E, ?>> columnsToUpdate, IQueryObject wherePredicate) {
+        em.update(table, entity, columnsToUpdate, wherePredicate);
+    }
+
     public void delete(E entity) {
         em.delete(table, entity);
     }
