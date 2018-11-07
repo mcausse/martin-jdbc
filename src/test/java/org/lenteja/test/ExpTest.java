@@ -275,16 +275,16 @@ public class ExpTest {
 
             Tex fase1 = new Tex(null, null, "fase1");
             Tex fase2 = new Tex(null, null, "fase2");
-            texDao.manyToOne.storeChildAndParent(facade, fase1, exp);
-            texDao.manyToOne.storeChildAndParent(facade, fase2, exp, false /* ja esta guardat */);
+            texDao.manyToOne.storeParentAndChild(facade, fase1, exp);
+            texDao.manyToOne.storeParentAndChild(facade, fase2, exp, false /* ja esta guardat */);
 
             ExpId expId2 = new ExpId(8200L, 2018, null);
             Exp exp2 = new Exp(expId2, "exp2", "20181111");
 
             Tex fase12 = new Tex(null, null, "fase12");
             Tex fase22 = new Tex(null, null, "fase22");
-            texDao.manyToOne.storeChildAndParent(facade, fase12, exp2);
-            texDao.manyToOne.storeChildAndParent(facade, fase22, exp2, false /* ja esta guardat */);
+            texDao.manyToOne.storeParentAndChild(facade, fase12, exp2);
+            texDao.manyToOne.storeParentAndChild(facade, fase22, exp2, false /* ja esta guardat */);
 
             //////////
 
@@ -292,7 +292,7 @@ public class ExpTest {
             assertEquals("Exp [id=ExpId [idEns=8200, anyExp=2018, numExp=10], name=exp1, fecIni=20181111]",
                     e.toString());
 
-            texDao.manyToOne.storeChildAndParent(facade, fase1, null);
+            texDao.manyToOne.storeParentAndChild(facade, fase1, null);
 
             e = texDao.manyToOne.fetch(facade, fase1);
             assertNull(e);
@@ -304,7 +304,7 @@ public class ExpTest {
 
             // assigna a l'altre expedient
 
-            texDao.manyToOne.storeChildAndParent(facade, fase1, exp2);
+            texDao.manyToOne.storeParentAndChild(facade, fase1, exp2);
 
             texDao.refresh(fase1);
 

@@ -76,49 +76,49 @@ public class ManyToOne<S, R> {
 
     /**
      * <ul>
-     * <li>guarda child si es demana, i si es pot (pot ser null)
-     * <li>actualitza les FK del parent
-     * <li>guarda el parent
+     * <li>guarda parent/ref si es demana, i si es pot (pot ser null)
+     * <li>actualitza les FK del child/self
+     * <li>guarda el child/self
      */
-    public void storeChildAndParent(DataAccesFacade facade, S parentEntity, R child) {
-        storeChildAndParent(facade, parentEntity, child, true);
+    public void storeParentAndChild(DataAccesFacade facade, S child, R parent) {
+        storeParentAndChild(facade, child, parent, true);
     }
 
     /**
      * <ul>
-     * <li>guarda child si es demana, i si es pot (pot ser null)
-     * <li>actualitza les FK del parent
-     * <li>guarda el parent
+     * <li>guarda parent/ref si es demana, i si es pot (pot ser null)
+     * <li>actualitza les FK del child/self
+     * <li>guarda el child/self
      */
-    public void storeChildAndParent(DataAccesFacade facade, S parentEntity, R child, boolean storeChild) {
+    public void storeParentAndChild(DataAccesFacade facade, S child, R parent, boolean storeParentToo) {
 
         EntityManager em = new EntityManager(facade);
 
-        if (child == null) {
+        if (parent == null) {
             /**
              * actualitza FKs del parent a null per a desfer la relació
              */
             for (JoinColumn<S, R, ?> jc : joinColumns) {
-                jc.selfColumn.getAccessor().set(parentEntity, null);
+                jc.selfColumn.getAccessor().set(child, null);
             }
 
         } else {
 
-            if (storeChild) {
-                em.store(refTable, child);
+            if (storeParentToo) {
+                em.store(refTable, parent);
             }
 
             /**
              * actualitza FKs del parent
              */
             for (JoinColumn<S, R, ?> jc : joinColumns) {
-                Object value = jc.refColumn.getAccessor().get(child);
-                jc.selfColumn.getAccessor().set(parentEntity, value);
+                Object value = jc.refColumn.getAccessor().get(parent);
+                jc.selfColumn.getAccessor().set(child, value);
             }
 
         }
 
-        em.store(selfTable, parentEntity);
+        em.store(selfTable, child);
     }
 
     public Table<S> getSelfTable() {
