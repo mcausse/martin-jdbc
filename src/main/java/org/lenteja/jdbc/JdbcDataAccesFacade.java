@@ -235,16 +235,18 @@ public class JdbcDataAccesFacade implements DataAccesFacade {
 
     @Override
     public int update(final IQueryObject q) {
-        LOG.debug("{}", q);
         Connection c;
         PreparedStatement ps = null;
+        int affectedRows = -1;
         try {
             c = getConnection();
             ps = prepareStatement(c, q);
-            return ps.executeUpdate();
+            affectedRows = ps.executeUpdate();
+            return affectedRows;
         } catch (final SQLException e) {
             throw new JdbcException(q.toString(), e);
         } finally {
+            LOG.debug("{} => {}", q, affectedRows);
             closeResources(null, ps);
         }
     }

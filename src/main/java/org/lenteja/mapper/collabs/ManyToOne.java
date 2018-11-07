@@ -9,6 +9,7 @@ import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.exception.EmptyResultException;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.mapper.Column;
+import org.lenteja.mapper.EntityManager;
 import org.lenteja.mapper.Table;
 import org.lenteja.mapper.query.Operations;
 import org.lenteja.mapper.query.Restrictions;
@@ -71,6 +72,53 @@ public class ManyToOne<S, R> {
             r.put(e, fetch(facade, e));
         }
         return r;
+    }
+
+    /**
+     * <ul>
+     * <li>guarda child si es demana, i si es pot (pot ser null)
+     * <li>actualitza les FK del parent
+     * <li>guarda el parent
+     */
+    public void storeChildAndParent(DataAccesFacade facade, S parentEntity, R child) {
+        storeChildAndParent(facade, parentEntity, child, true);
+    }
+
+    /**
+     * <ul>
+     * <li>guarda child si es demana, i si es pot (pot ser null)
+     * <li>actualitza les FK del parent
+     * <li>guarda el parent
+     */
+    public void storeChildAndParent(DataAccesFacade facade, S parentEntity, R child, boolean storeChild) {
+
+        EntityManager em = new EntityManager(facade);
+
+        if (child == null) {
+            /**
+             * actualitza FKs del parent a null per a desfer la relació
+             */
+            for (JoinColumn<S, R, ?> jc : joinColumns) {
+                jc.selfColumn.getAccessor().set(parentEntity, null);
+            }
+
+        } else {
+
+            if (storeChild) {
+                em.store(refTable, child);
+            }
+
+            /**
+             * actualitza FKs del parent
+             */
+            for (JoinColumn<S, R, ?> jc : joinColumns) {
+                Object value = jc.refColumn.getAccessor().get(child);
+                jc.selfColumn.getAccessor().set(parentEntity, value);
+            }
+
+        }
+
+        em.store(selfTable, parentEntity);
     }
 
     public Table<S> getSelfTable() {

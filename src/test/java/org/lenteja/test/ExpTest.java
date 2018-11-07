@@ -2,6 +2,7 @@ package org.lenteja.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -130,7 +131,7 @@ public class ExpTest {
     }
 
     @Test
-    public void testOrphansDELETE() throws Exception {
+    public void testOneToManyOrphansDELETE() throws Exception {
 
         ExpDao expDao = new ExpDao(facade);
         TexDao texDao = new TexDao(facade);
@@ -195,7 +196,7 @@ public class ExpTest {
     }
 
     @Test
-    public void testOrphansNULL() throws Exception {
+    public void testOneToManyOrphansNULL() throws Exception {
 
         ExpDao expDao = new ExpDao(facade);
         TexDao texDao = new TexDao(facade);
@@ -243,6 +244,53 @@ public class ExpTest {
                                 + "Tex [idTex=104, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase jou]]" //
                         , texDao.query(Restrictions.all(), Order.by(Order.asc(TexDao.TABLE.idTex))).toString());
             }
+
+            facade.commit();
+        } catch (Throwable e) {
+            facade.rollback();
+            throw e;
+        }
+    }
+
+    @Test
+    public void testManyToOne() throws Exception {
+
+        TexDao texDao = new TexDao(facade);
+
+        facade.begin();
+        try {
+
+            ExpId expId = new ExpId(8200L, 2018, null);
+            Exp exp = new Exp(expId, "exp1", "20181111");
+
+            Tex fase1 = new Tex(null, null, "fase1");
+            Tex fase2 = new Tex(null, null, "fase2");
+            texDao.manyToOne.storeChildAndParent(facade, fase1, exp);
+            texDao.manyToOne.storeChildAndParent(facade, fase2, exp, false /* ja esta guardat */);
+
+            ExpId expId2 = new ExpId(8200L, 2018, null);
+            Exp exp2 = new Exp(expId2, "exp2", "20181111");
+
+            Tex fase12 = new Tex(null, null, "fase12");
+            Tex fase22 = new Tex(null, null, "fase22");
+            texDao.manyToOne.storeChildAndParent(facade, fase12, exp2);
+            texDao.manyToOne.storeChildAndParent(facade, fase22, exp2, false /* ja esta guardat */);
+
+            //////////
+
+            Exp e = texDao.manyToOne.fetch(facade, fase1);
+            assertEquals("Exp [id=ExpId [idEns=8200, anyExp=2018, numExp=10], name=exp1, fecIni=20181111]",
+                    e.toString());
+
+            texDao.manyToOne.storeChildAndParent(facade, fase1, null);
+
+            e = texDao.manyToOne.fetch(facade, fase1);
+            assertNull(e);
+
+            texDao.refresh(fase1);
+
+            e = texDao.manyToOne.fetch(facade, fase1);
+            assertNull(e);
 
             facade.commit();
         } catch (Throwable e) {
