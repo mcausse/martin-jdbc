@@ -22,8 +22,10 @@ import org.lenteja.mapper.collabs.EntitiesLazyList;
 import org.lenteja.mapper.collabs.JoinColumn;
 import org.lenteja.mapper.collabs.ManyToOne;
 import org.lenteja.mapper.collabs.OneToMany;
+import org.lenteja.mapper.collabs.OneToMany.StoreOrphansStrategy;
 import org.lenteja.mapper.handler.StringDateHandler;
 import org.lenteja.mapper.query.Order;
+import org.lenteja.mapper.query.Restrictions;
 
 public class ExpTest {
 
@@ -102,6 +104,135 @@ public class ExpTest {
                                 + "Tex [idTex=101, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase2]]",
                         fases.toString());
                 assertTrue(((EntitiesLazyList<?>) fases).isInitializated());
+            }
+
+            // XXX test de OneToMany store !!!!!!!!!!!!
+            {
+                List<Tex> fases = expDao.getFasesLaziely(exp);
+                fases.add(new Tex(null, null, "fase jou"));
+                fases.remove(0);
+
+                int orphansRemoved = expDao.oneToMany.storeChilds(facade, exp, fases, StoreOrphansStrategy.NULL);
+
+                assertEquals(1, orphansRemoved);
+
+                assertEquals("[Tex [idTex=101, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase2], "
+                        + "Tex [idTex=104, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase jou]]",
+                        expDao.getFases(exp).toString());
+
+            }
+
+            facade.commit();
+        } catch (Throwable e) {
+            facade.rollback();
+            throw e;
+        }
+    }
+
+    @Test
+    public void testOrphansDELETE() throws Exception {
+
+        ExpDao expDao = new ExpDao(facade);
+        TexDao texDao = new TexDao(facade);
+
+        facade.begin();
+        try {
+
+            ExpId expId = new ExpId(8200L, 2018, null);
+            Exp exp = new Exp(expId, "exp1", "20181111");
+            expDao.store(exp);
+
+            Tex fase1 = new Tex(null, null, "fase1");
+            Tex fase2 = new Tex(null, null, "fase2");
+            expDao.oneToMany.storeChilds(facade, exp, Arrays.asList(fase1, fase2));
+
+            {
+                ExpId expId2 = new ExpId(8200L, 2018, null);
+                Exp exp2 = new Exp(expId2, "exp2", "20181111");
+                expDao.store(exp2);
+
+                Tex fase12 = new Tex(null, null, "fase12");
+                Tex fase22 = new Tex(null, null, "fase22");
+                expDao.oneToMany.storeChilds(facade, exp2, Arrays.asList(fase12, fase22));
+            }
+
+            // XXX test de OneToMany store !!!!!!!!!!!!
+            {
+                List<Tex> fases = expDao.getFasesLaziely(exp);
+                fases.add(new Tex(null, null, "fase jou"));
+                fases.remove(0);
+
+                int orphansRemoved = expDao.oneToMany.storeChilds(facade, exp, fases, StoreOrphansStrategy.DELETE);
+
+                assertEquals(1, orphansRemoved);
+
+                assertEquals("[Tex [idTex=101, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase2], "
+                        + "Tex [idTex=104, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase jou]]",
+                        expDao.getFases(exp).toString());
+
+                assertEquals( //
+                        "[Tex [idTex=101, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase2], " //
+                                + "Tex [idTex=102, expId=ExpId [idEns=8200, anyExp=2018, numExp=11], faseName=fase12], " //
+                                + "Tex [idTex=103, expId=ExpId [idEns=8200, anyExp=2018, numExp=11], faseName=fase22], " //
+                                + "Tex [idTex=104, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase jou]]", //
+                        texDao.query(Restrictions.all(), Order.by(Order.asc(TexDao.TABLE.idTex))).toString());
+            }
+
+            facade.commit();
+        } catch (Throwable e) {
+            facade.rollback();
+            throw e;
+        }
+    }
+
+    @Test
+    public void testOrphansNULL() throws Exception {
+
+        ExpDao expDao = new ExpDao(facade);
+        TexDao texDao = new TexDao(facade);
+
+        facade.begin();
+        try {
+
+            ExpId expId = new ExpId(8200L, 2018, null);
+            Exp exp = new Exp(expId, "exp1", "20181111");
+            expDao.store(exp);
+
+            Tex fase1 = new Tex(null, null, "fase1");
+            Tex fase2 = new Tex(null, null, "fase2");
+            expDao.oneToMany.storeChilds(facade, exp, Arrays.asList(fase1, fase2));
+
+            {
+                ExpId expId2 = new ExpId(8200L, 2018, null);
+                Exp exp2 = new Exp(expId2, "exp2", "20181111");
+                expDao.store(exp2);
+
+                Tex fase12 = new Tex(null, null, "fase12");
+                Tex fase22 = new Tex(null, null, "fase22");
+                expDao.oneToMany.storeChilds(facade, exp2, Arrays.asList(fase12, fase22));
+            }
+
+            // XXX test de OneToMany store !!!!!!!!!!!!
+            {
+                List<Tex> fases = expDao.getFasesLaziely(exp);
+                fases.add(new Tex(null, null, "fase jou"));
+                fases.remove(0);
+
+                int orphansRemoved = expDao.oneToMany.storeChilds(facade, exp, fases, StoreOrphansStrategy.NULL);
+
+                assertEquals(1, orphansRemoved);
+
+                assertEquals("[Tex [idTex=101, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase2], "
+                        + "Tex [idTex=104, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase jou]]",
+                        expDao.getFases(exp).toString());
+
+                assertEquals( //
+                        "[Tex [idTex=100, expId=ExpId [idEns=null, anyExp=null, numExp=null], faseName=fase1], " //
+                                + "Tex [idTex=101, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase2], " //
+                                + "Tex [idTex=102, expId=ExpId [idEns=8200, anyExp=2018, numExp=11], faseName=fase12], " //
+                                + "Tex [idTex=103, expId=ExpId [idEns=8200, anyExp=2018, numExp=11], faseName=fase22], " //
+                                + "Tex [idTex=104, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase jou]]" //
+                        , texDao.query(Restrictions.all(), Order.by(Order.asc(TexDao.TABLE.idTex))).toString());
             }
 
             facade.commit();

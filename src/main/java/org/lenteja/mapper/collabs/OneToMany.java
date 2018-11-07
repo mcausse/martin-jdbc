@@ -5,9 +5,13 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.query.IQueryObject;
+import org.lenteja.jdbc.query.QueryObject;
+import org.lenteja.mapper.Column;
+import org.lenteja.mapper.EntityManager;
 import org.lenteja.mapper.Table;
 import org.lenteja.mapper.query.Operations;
 import org.lenteja.mapper.query.Order;
@@ -36,7 +40,7 @@ public class OneToMany<S, R> {
     }
 
     public List<R> fetchLazy(DataAccesFacade facade, S entity) {
-        return fetchLazy(facade, entity);
+        return fetchLazy(facade, entity, Collections.emptyList());
     }
 
     public List<R> fetchLazy(DataAccesFacade facade, S entity, List<Order<R>> orders) {
@@ -53,6 +57,128 @@ public class OneToMany<S, R> {
     // XXX fetchLazy ?
     // TODO store ?
     // TODO delete ?
+
+    public static enum StoreOrphansStrategy {
+        DELETE, NULL, NOTHING;
+    }
+
+    /**
+     * @return processed orphans number (depending of {@link StoreOrphansStrategy},
+     *         in the case of {@link StoreOrphansStrategy#NOTHING} always return 0).
+     */
+    public int storeChilds(DataAccesFacade facade, S parentEntity, Iterable<R> childs) {
+        return storeChilds(facade, parentEntity, childs, StoreOrphansStrategy.DELETE);
+    }
+
+    /**
+     * @return processed orphans number (depending of {@link StoreOrphansStrategy},
+     *         in the case of {@link StoreOrphansStrategy#NOTHING} always return 0).
+     */
+    @SuppressWarnings("unchecked")
+    public int storeChilds(DataAccesFacade facade, S parentEntity, Iterable<R> childs,
+            StoreOrphansStrategy orphansStrategy) {
+
+        /**
+         * informa les FK dels childs amb els valors PK del pare (seguint les
+         * joinColumns definides)
+         */
+        for (JoinColumn<S, R, ?> jc : joinColumns) {
+            Object parentPkValue = jc.selfColumn.getAccessor().get(parentEntity);
+            for (R child : childs) {
+                jc.refColumn.getAccessor().set(child, parentPkValue);
+            }
+        }
+
+        EntityManager em = new EntityManager(facade);
+        em.storeAll(refTable, childs);
+
+        /**
+         * delete orphans (other references, not included in this storation)
+         */
+        if (orphansStrategy == StoreOrphansStrategy.DELETE || orphansStrategy == StoreOrphansStrategy.NULL) {
+
+            QueryObject where;
+            {
+                List<IQueryObject> eqs = new ArrayList<>();
+                for (JoinColumn<S, R, ?> jc : joinColumns) {
+                    Column<R, Object> refc = (Column<R, Object>) jc.refColumn;
+                    Object v = jc.selfColumn.getAccessor().get(parentEntity);
+                    eqs.add(refc.eq(v));
+                }
+                where = new QueryObject();
+                where.append(Restrictions.and(eqs));
+            }
+
+            QueryObject notInq;
+            {
+                notInq = new QueryObject();
+                StringJoiner pklist = new StringJoiner(",");
+                for (Column<R, ?> pkc : refTable.getPkColumns()) {
+                    pklist.add(pkc.getAliasedName());
+                }
+                notInq.append(pklist.toString());
+            }
+
+            QueryObject notIn;
+            {
+                notIn = new QueryObject();
+                StringJoiner rows = new StringJoiner(",");
+                for (R child : childs) {
+                    StringJoiner row = new StringJoiner(",");
+                    for (Column<R, ?> pkc : refTable.getPkColumns()) {
+                        row.add("?");
+                        notIn.addArg(pkc.storeValue(child));
+                    }
+                    rows.add("(" + row.toString() + ")");
+                }
+                notIn.append(rows.toString());
+            }
+
+            if (orphansStrategy == StoreOrphansStrategy.DELETE) {
+                /**
+                 * delete from TEX tex where (tex.ID_ENS=? and tex.ANY_EXP=? and tex.NUM_EXP=?)
+                 * and (tex.ID_TEX) not in ((?),(?)) -- [8200(Long), 2018(Integer), 10(Long),
+                 * 101(Long), 104(Long)]
+                 */
+                int orphansRemoved = em.queryFor(null) //
+                        .append("delete from {} ", refTable) //
+                        .append("where ({}) ", where) //
+                        .append("and ({}) not in ({}) ", notInq, notIn) //
+                        .getExecutor(facade) //
+                        .update() //
+                ;
+                return orphansRemoved;
+            } else if (orphansStrategy == StoreOrphansStrategy.NULL) {
+
+                QueryObject setNull;
+                {
+                    setNull = new QueryObject();
+                    StringJoiner pklist = new StringJoiner(",");
+                    for (JoinColumn<S, R, ?> jc : joinColumns) {
+                        pklist.add(jc.refColumn.getAliasedName() + "=?");
+                        setNull.addArg(null);
+                    }
+                    setNull.append(pklist.toString());
+                }
+
+                int orphansRemoved = em.queryFor(null) //
+                        .append("update {} ", refTable) //
+                        .append("set {} ", setNull) //
+                        .append("where ({}) ", where) //
+                        .append("and ({}) not in ({}) ", notInq, notIn) //
+                        .getExecutor(facade) //
+                        .update() //
+                ;
+                return orphansRemoved;
+            } else {
+                throw new RuntimeException();
+            }
+        } else if (orphansStrategy == StoreOrphansStrategy.NOTHING) {
+            return 0;
+        } else {
+            throw new RuntimeException();
+        }
+    }
 
     public List<R> fetch(DataAccesFacade facade, S entity, List<Order<R>> orders) {
         Query<R> q = getFetchQuery(entity, orders);

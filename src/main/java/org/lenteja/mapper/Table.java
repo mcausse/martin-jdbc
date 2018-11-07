@@ -177,6 +177,19 @@ public abstract class Table<E> implements Aliasable, Mapable<E> {
         return q;
     }
 
+    // public IQueryObject columnsList(Iterable<Column<E,?>>columns) {
+    // QueryObject q = new QueryObject();
+    // int i = 0;
+    // for (Column<E, ?> c : columns) {
+    // if (i > 0) {
+    // q.append(",");
+    // }
+    // q.append(c.getAliasedName());
+    // i++;
+    // }
+    // return q;
+    // }
+
     public List<Column<E, ?>> getPkColumns() {
         List<Column<E, ?>> r = new ArrayList<>();
         for (Column<E, ?> c : columns) {
