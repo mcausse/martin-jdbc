@@ -176,6 +176,15 @@ public class ExpTest {
                                 + "Tex [idTex=103, expId=ExpId [idEns=8200, anyExp=2018, numExp=11], faseName=fase22], " //
                                 + "Tex [idTex=104, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase jou]]", //
                         texDao.query(Restrictions.all(), Order.by(Order.asc(TexDao.TABLE.idTex))).toString());
+
+                int removed = expDao.oneToMany.deleteChilds(facade, exp);
+                assertEquals(2, removed);
+
+                assertEquals( //
+                        "[Tex [idTex=102, expId=ExpId [idEns=8200, anyExp=2018, numExp=11], faseName=fase12], " //
+                                + "Tex [idTex=103, expId=ExpId [idEns=8200, anyExp=2018, numExp=11], faseName=fase22]]" //
+                        , texDao.query(Restrictions.all(), Order.by(Order.asc(TexDao.TABLE.idTex))).toString());
+
             }
 
             facade.commit();

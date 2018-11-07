@@ -52,14 +52,63 @@ public class OneToMany<S, R> {
         return fetch(facade, entity, Collections.emptyList());
     }
 
-    // TODO i no es poden posar les relacions OneToMany-ManyToOne a la Table ????
+    public List<R> fetch(DataAccesFacade facade, S entity, List<Order<R>> orders) {
+        Query<R> q = getFetchQuery(entity, orders);
+        return q.getExecutor(facade).load();
+    }
 
-    // XXX fetchLazy ?
-    // TODO store ?
-    // TODO delete ?
+    protected Query<R> getFetchQuery(S entity, List<Order<R>> orders) {
+        Operations ops = new Operations();
+
+        List<IQueryObject> restrictions = new ArrayList<>();
+        for (JoinColumn<S, R, ?> jc : joinColumns) {
+            restrictions.add(jc.getRestriction(entity));
+        }
+
+        Query<R> q = ops.query(refTable) //
+                .append("select {} from {} ", refTable.all(), refTable) //
+                .append("where {}", Restrictions.and(restrictions));
+
+        if (!orders.isEmpty()) {
+            q.append(" order by ");
+            List<IQueryObject> qs = new ArrayList<>();
+            for (Order<R> o : orders) {
+                qs.add(o);
+            }
+            q.append(Restrictions.list(qs));
+        }
+        return q;
+    }
+
+    public Map<S, List<R>> fetch(DataAccesFacade facade, Iterable<S> entities) {
+        return fetch(facade, entities, Collections.emptyList());
+    }
+
+    public Map<S, List<R>> fetch(DataAccesFacade facade, Iterable<S> entities, List<Order<R>> orders) {
+        Map<S, List<R>> r = new LinkedHashMap<>();
+        for (S e : entities) {
+            r.put(e, fetch(facade, e, orders));
+        }
+        return r;
+    }
+
+    // TODO i no es poden posar les relacions OneToMany-ManyToOne a la Table ????
+    // sembla q no, dóna error de referències circulars en instanciar... i si és
+    // static ??
 
     public static enum StoreOrphansStrategy {
-        DELETE, NULL, NOTHING;
+        /**
+         * delete orphans
+         */
+        DELETE,
+        /**
+         * set foreign keys as null of orphans
+         */
+        NULL,
+        /**
+         * do nothing (don't kill the orphans)
+         */
+        NOTHING;
     }
 
     /**
@@ -70,6 +119,7 @@ public class OneToMany<S, R> {
         return storeChilds(facade, parentEntity, childs, StoreOrphansStrategy.DELETE);
     }
 
+    // TODO el param StoreOrphansStrategy hauria de ser un membre d'instància
     /**
      * @return processed orphans number (depending of {@link StoreOrphansStrategy},
      *         in the case of {@link StoreOrphansStrategy#NOTHING} always return 0).
@@ -180,44 +230,33 @@ public class OneToMany<S, R> {
         }
     }
 
-    public List<R> fetch(DataAccesFacade facade, S entity, List<Order<R>> orders) {
-        Query<R> q = getFetchQuery(entity, orders);
-        return q.getExecutor(facade).load();
-    }
+    /**
+     * @return the number of deleted childs
+     */
+    @SuppressWarnings("unchecked")
+    public int deleteChilds(DataAccesFacade facade, S parentEntity) {
 
-    protected Query<R> getFetchQuery(S entity, List<Order<R>> orders) {
-        Operations ops = new Operations();
-
-        List<IQueryObject> restrictions = new ArrayList<>();
-        for (JoinColumn<S, R, ?> jc : joinColumns) {
-            restrictions.add(jc.getRestriction(entity));
-        }
-
-        Query<R> q = ops.query(refTable) //
-                .append("select {} from {} ", refTable.all(), refTable) //
-                .append("where {}", Restrictions.and(restrictions));
-
-        if (!orders.isEmpty()) {
-            q.append(" order by ");
-            List<IQueryObject> qs = new ArrayList<>();
-            for (Order<R> o : orders) {
-                qs.add(o);
+        QueryObject where;
+        {
+            List<IQueryObject> eqs = new ArrayList<>();
+            for (JoinColumn<S, R, ?> jc : joinColumns) {
+                Column<R, Object> refc = (Column<R, Object>) jc.refColumn;
+                Object v = jc.selfColumn.getAccessor().get(parentEntity);
+                eqs.add(refc.eq(v));
             }
-            q.append(Restrictions.list(qs));
+            where = new QueryObject();
+            where.append(Restrictions.and(eqs));
         }
-        return q;
-    }
 
-    public Map<S, List<R>> fetch(DataAccesFacade facade, Iterable<S> entities) {
-        return fetch(facade, entities, Collections.emptyList());
-    }
+        EntityManager em = new EntityManager(facade);
 
-    public Map<S, List<R>> fetch(DataAccesFacade facade, Iterable<S> entities, List<Order<R>> orders) {
-        Map<S, List<R>> r = new LinkedHashMap<>();
-        for (S e : entities) {
-            r.put(e, fetch(facade, e, orders));
-        }
-        return r;
+        int childsRemoved = em.queryFor(null) //
+                .append("delete from {} ", refTable) //
+                .append("where ({}) ", where) //
+                .getExecutor(facade) //
+                .update() //
+        ;
+        return childsRemoved;
     }
 
     public Table<S> getSelfTable() {
