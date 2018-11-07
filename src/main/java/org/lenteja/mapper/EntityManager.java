@@ -27,6 +27,31 @@ public class EntityManager {
     }
 
     @SuppressWarnings("unchecked")
+    public <E> void refresh(Table<E> table, E entity) {
+
+        List<IQueryObject> where = new ArrayList<>();
+        for (Column<E, ?> c : table.getColumns()) {
+            if (c.isPk()) {
+                Object pkValue = c.getAccessor().get(entity);
+                Column<E, Object> c2 = (Column<E, Object>) c;
+                where.add(c2.eq(pkValue));
+            }
+        }
+
+        E r = queryUnique(table, Restrictions.and(where));
+
+        /**
+         * refresca
+         */
+        for (Column<E, ?> c : table.getColumns()) {
+            if (!c.isPk()) {
+                Object value = c.getAccessor().get(r);
+                c.getAccessor().set(entity, value);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
     public <E, ID> E loadById(Table<E> table, ID id) {
         List<IQueryObject> where = new ArrayList<>();
         for (Column<E, ?> c : table.getColumns()) {
@@ -37,8 +62,7 @@ public class EntityManager {
             }
         }
 
-        Query<E> q = queryFor(table).append("select {} from {} where {}", table.all(), table, Restrictions.and(where));
-        return q.getExecutor(facade).loadUnique();
+        return queryUnique(table, Restrictions.and(where));
     }
 
     /**

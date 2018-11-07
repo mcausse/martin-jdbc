@@ -207,6 +207,7 @@ public class ExpTest {
             ExpId expId = new ExpId(8200L, 2018, null);
             Exp exp = new Exp(expId, "exp1", "20181111");
             expDao.store(exp);
+            expDao.refresh(exp); // <= per exemple
 
             Tex fase1 = new Tex(null, null, "fase1");
             Tex fase2 = new Tex(null, null, "fase2");
@@ -225,10 +226,19 @@ public class ExpTest {
             // XXX test de OneToMany store !!!!!!!!!!!!
             {
                 List<Tex> fases = expDao.getFasesLaziely(exp);
-                fases.add(new Tex(null, null, "fase jou"));
+                Tex novaFase = new Tex(null, null, "fase jou");
+                fases.add(novaFase);
                 fases.remove(0);
 
+                assertEquals("Tex [idTex=null, expId=null, faseName=fase jou]", novaFase.toString());
+
                 int orphansRemoved = expDao.oneToMany.storeChilds(facade, exp, fases, StoreOrphansStrategy.NULL);
+
+                assertEquals("Tex [idTex=104, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase jou]",
+                        novaFase.toString());
+                texDao.refresh(novaFase);
+                assertEquals("Tex [idTex=104, expId=ExpId [idEns=8200, anyExp=2018, numExp=10], faseName=fase jou]",
+                        novaFase.toString());
 
                 assertEquals(1, orphansRemoved);
 
@@ -291,6 +301,16 @@ public class ExpTest {
 
             e = texDao.manyToOne.fetch(facade, fase1);
             assertNull(e);
+
+            // assigna a l'altre expedient
+
+            texDao.manyToOne.storeChildAndParent(facade, fase1, exp2);
+
+            texDao.refresh(fase1);
+
+            e = texDao.manyToOne.fetch(facade, fase1);
+            assertEquals("Exp [id=ExpId [idEns=8200, anyExp=2018, numExp=11], name=exp2, fecIni=20181111]",
+                    e.toString());
 
             facade.commit();
         } catch (Throwable e) {

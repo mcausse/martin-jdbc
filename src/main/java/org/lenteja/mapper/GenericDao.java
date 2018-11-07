@@ -20,6 +20,10 @@ public class GenericDao<E, ID> {
         this.em = new EntityManager(facade);
     }
 
+    public void refresh(E entity) {
+        em.refresh(table, entity);
+    }
+
     public E loadById(ID id) {
         return em.loadById(table, id);
     }
