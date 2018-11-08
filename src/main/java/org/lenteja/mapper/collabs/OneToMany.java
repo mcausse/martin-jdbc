@@ -125,15 +125,14 @@ public class OneToMany<S, R> {
      *         in the case of {@link StoreOrphansStrategy#NOTHING} always return 0).
      */
     @SuppressWarnings("unchecked")
-    public int storeChilds(DataAccesFacade facade, S parentEntity, Iterable<R> childs,
-            StoreOrphansStrategy orphansStrategy) {
+    public int storeChilds(DataAccesFacade facade, S parent, Iterable<R> childs, StoreOrphansStrategy orphansStrategy) {
 
         /**
          * informa les FK dels childs amb els valors PK del pare (seguint les
          * joinColumns definides)
          */
         for (JoinColumn<S, R, ?> jc : joinColumns) {
-            Object parentPkValue = jc.selfColumn.getAccessor().get(parentEntity);
+            Object parentPkValue = jc.selfColumn.getAccessor().get(parent);
             for (R child : childs) {
                 jc.refColumn.getAccessor().set(child, parentPkValue);
             }
@@ -143,7 +142,7 @@ public class OneToMany<S, R> {
         em.storeAll(refTable, childs);
 
         /**
-         * delete orphans (other references, not included in this storation)
+         * delete orphans (other references not included in this storation)
          */
         if (orphansStrategy == StoreOrphansStrategy.DELETE || orphansStrategy == StoreOrphansStrategy.NULL) {
 
@@ -152,7 +151,7 @@ public class OneToMany<S, R> {
                 List<IQueryObject> eqs = new ArrayList<>();
                 for (JoinColumn<S, R, ?> jc : joinColumns) {
                     Column<R, Object> refc = (Column<R, Object>) jc.refColumn;
-                    Object v = jc.selfColumn.getAccessor().get(parentEntity);
+                    Object v = jc.selfColumn.getAccessor().get(parent);
                     eqs.add(refc.eq(v));
                 }
                 where = new QueryObject();
@@ -185,6 +184,7 @@ public class OneToMany<S, R> {
             }
 
             if (orphansStrategy == StoreOrphansStrategy.DELETE) {
+
                 /**
                  * delete from TEX tex where (tex.ID_ENS=? and tex.ANY_EXP=? and tex.NUM_EXP=?)
                  * and (tex.ID_TEX) not in ((?),(?)) -- [8200(Long), 2018(Integer), 10(Long),
@@ -198,6 +198,7 @@ public class OneToMany<S, R> {
                         .update() //
                 ;
                 return orphansRemoved;
+
             } else if (orphansStrategy == StoreOrphansStrategy.NULL) {
 
                 QueryObject setNull;
@@ -220,6 +221,7 @@ public class OneToMany<S, R> {
                         .update() //
                 ;
                 return orphansRemoved;
+
             } else {
                 throw new RuntimeException();
             }
