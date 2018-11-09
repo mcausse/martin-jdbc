@@ -9,9 +9,9 @@ import org.lenteja.mapper.query.Query;
 
 public class GenericDao<E, ID> {
 
-    final DataAccesFacade facade;
-    final Table<E> table;
-    final EntityManager em;
+    protected final DataAccesFacade facade;
+    protected final Table<E> table;
+    protected final EntityManager em;
 
     public GenericDao(DataAccesFacade facade, Table<E> table) {
         super();
@@ -122,6 +122,10 @@ public class GenericDao<E, ID> {
 
     public EntityManager getEntityManager() {
         return em;
+    }
+
+    public Table<E> getTable() {
+        return table;
     }
 
 }

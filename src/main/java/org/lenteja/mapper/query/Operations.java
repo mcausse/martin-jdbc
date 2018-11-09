@@ -106,7 +106,7 @@ public class Operations {
         QueryObject q = new QueryObject();
         q.append("delete from ");
         q.append(table.getTableName());
-        q.append(" where");
+        q.append(" where ");
         q.append(wherePredicate);
         return q;
     }
