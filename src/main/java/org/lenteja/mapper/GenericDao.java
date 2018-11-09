@@ -56,6 +56,10 @@ public class GenericDao<E, ID> {
         em.delete(table, entity);
     }
 
+    public void delete(IQueryObject wherePredicate) {
+        em.delete(table, wherePredicate);
+    }
+
     public void storeAll(Iterable<E> entities) {
         em.storeAll(table, entities);
     }

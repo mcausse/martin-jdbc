@@ -23,8 +23,8 @@ public class TransactionalServiceProxyfier implements InvocationHandler {
 
     @SuppressWarnings("unchecked")
     public static <T> T proxyfy(DataAccesFacade facade, T target, Class<? super T> serviceInterface) {
-        return (T) Proxy.newProxyInstance(serviceInterface.getClassLoader(),
-                new Class<?>[] { serviceInterface }, new TransactionalServiceProxyfier(target, facade));
+        return (T) Proxy.newProxyInstance(serviceInterface.getClassLoader(), new Class<?>[] { serviceInterface },
+                new TransactionalServiceProxyfier(target, facade));
     }
 
     @Override

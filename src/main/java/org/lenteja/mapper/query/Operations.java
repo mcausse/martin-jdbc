@@ -102,6 +102,15 @@ public class Operations {
         return q;
     }
 
+    public <E> IQueryObject delete(Table<E> table, IQueryObject wherePredicate) {
+        QueryObject q = new QueryObject();
+        q.append("delete from ");
+        q.append(table.getTableName());
+        q.append(" where");
+        q.append(wherePredicate);
+        return q;
+    }
+
     public <E> IQueryObject exists(Table<E> table, E entity) {
         QueryObject q = new QueryObject();
         q.append("select count(*) from ");

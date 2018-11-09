@@ -3,6 +3,8 @@ package org.lenteja.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.util.Arrays;
+
 import org.hsqldb.jdbc.JDBCDataSource;
 import org.junit.Before;
 import org.junit.Test;
@@ -81,7 +83,55 @@ public class PizzaTest {
             );
 
             facade.commit();
-        } catch (Exception e) {
+        } catch (Throwable e) {
+            facade.rollback();
+            throw e;
+        }
+    }
+
+    @Test
+    public void testAntiNativeCrud() throws Exception {
+
+        facade.begin();
+        try {
+
+            Pizza_ p = new Pizza_();
+
+            EntityManager ep = new EntityManager(facade);
+
+            Pizza romana = new Pizza(100L, "romana", 12.5, EPizzaType.DELUX);
+
+            // ep.queryFor(null) //
+            // .append("insert into {} ({}) values ({})", p, p.all(),
+            // p.insertValues(romana)) //
+            // .getExecutor(facade) //
+            // .update() //
+            // ;
+            ep.insert(p, romana);
+
+            // ep.queryFor(null) //
+            // .append("update {} set {} where {}", p, p.name.eq("rooomana"),
+            // p.name.eq("romana")) //
+            // .getExecutor(facade) //
+            // .update() //
+            // ;
+
+            romana.setName("rooomana");
+            ep.update(p, romana, Arrays.asList(p.name), p.name.eq("romana"));
+
+            assertEquals("Pizza [idPizza=100, name=rooomana, price=12.5, type=DELUX]", //
+                    // ep.queryFor(p) //
+                    // .append("select {} ", p.star()) //
+                    // .append("from {} ", p) //
+                    // .append("where {} ", Restrictions.all()) //
+                    // .append("order by {} ", Order.asc(p.id)) //
+                    // .getExecutor(facade) //
+                    // .loadUnique() //
+                    // .toString() //
+                    ep.queryUnique(p, Restrictions.all()).toString());
+
+            facade.commit();
+        } catch (Throwable e) {
             facade.rollback();
             throw e;
         }
@@ -122,7 +172,7 @@ public class PizzaTest {
             assertNull(scalar.getExecutor(facade).loadUnique());
 
             facade.commit();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             facade.rollback();
             throw e;
         }

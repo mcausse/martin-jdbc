@@ -230,6 +230,11 @@ public class EntityManager {
         facade.update(q);
     }
 
+    public <E> void delete(Table<E> table, IQueryObject wherePredicate) {
+        IQueryObject q = o.delete(table, wherePredicate);
+        facade.update(q);
+    }
+
     // ===========================================
 
     public <E> void storeAll(Table<E> table, Iterable<E> entities) {
