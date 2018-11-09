@@ -53,7 +53,7 @@ public class PizzaTest {
         facade.begin();
         try {
 
-            Pizza_ p = new Pizza_();
+            Pizza_ p = new Pizza_(null);
 
             EntityManager ep = new EntityManager(facade);
 
@@ -95,7 +95,7 @@ public class PizzaTest {
         facade.begin();
         try {
 
-            Pizza_ p = new Pizza_();
+            Pizza_ p = new Pizza_(null);
 
             EntityManager ep = new EntityManager(facade);
 
@@ -182,12 +182,12 @@ public class PizzaTest {
     public void testName() throws Exception {
 
         {
-            Pizza_ p_ = new Pizza_("pizzas_");
+            Pizza_ p_ = new Pizza_();
             assertEquals("pizzas pizzas_", p_.getAliasedName());
             assertEquals("pizzas_.price", p_.price.getAliasedName());
         }
         {
-            Pizza_ p_ = new Pizza_("pizzas_");
+            Pizza_ p_ = new Pizza_();
             assertEquals("pizzas pizzas_", p_.getAliasedName());
             assertEquals("pizzas_.price", p_.price.getAliasedName());
 
@@ -217,7 +217,7 @@ public class PizzaTest {
         }
         {
             Operations o = new Operations();
-            Pizza_ p = new Pizza_();
+            Pizza_ p = new Pizza_(null);
 
             Query<Pizza> q = o.query(p);
             q.append("select sum({}) from {} ", p.price, p);
@@ -242,12 +242,12 @@ public class PizzaTest {
         public final Column<Pizza, EPizzaType> type = addColumn(EPizzaType.class, "type", "kind",
                 new EnumColumnHandler<>(EPizzaType.class));
 
-        public Pizza_(String alias) {
-            super("pizzas", alias);
+        public Pizza_() {
+            super("pizzas");
         }
 
-        public Pizza_() {
-            this(null);
+        public Pizza_(String alias) {
+            super("pizzas", alias);
         }
     }
 
