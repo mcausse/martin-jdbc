@@ -44,4 +44,8 @@ public class Executor<E> {
         return facade.extract(qo, extractor);
     }
 
+    public IQueryObject getQuery() {
+        return qo;
+    }
+
 }

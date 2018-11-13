@@ -1,24 +1,32 @@
 package org.lenteja.test;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
 
+import org.junit.Test;
+import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.query.IQueryObject;
+import org.lenteja.jdbc.query.QueryObject;
 import org.lenteja.mapper.Column;
+import org.lenteja.mapper.Mapable;
 import org.lenteja.mapper.Table;
+import org.lenteja.mapper.query.Executor;
 import org.lenteja.mapper.query.Order;
+import org.lenteja.mapper.query.Restrictions;
 
 /**
  * <pre>
     begin() select() from<A>(A) {join<B>(B) on<A,B>()} {where()} [groupBy() [having()]] [orderBy()]
  * </pre>
- * 
+ *
  * L'algoritme pinta recursiu. Per cada producció "n" (token), essent el primer
  * token sempre "begin()":
- * 
+ *
  * <pre>
     interface A {
         nexts(A) a();
@@ -31,23 +39,24 @@ import org.lenteja.mapper.query.Order;
         nexts(nextK) nextK()
     }
  * </pre>
- * 
+ *
  * @author mhoms
  *
  */
 public class DslGen {
 
-    public static void main(String[] args) {
+    @Test
+    public void testName() throws Exception {
 
-        Prod select = new Prod("select", "select(Column<?,?>... columns)", "selectAll()", "selectStar()");
+        Prod select = new Prod("select", "select(Column<?,?>... columns)", "select(Table<?>...tables)", "selectStar()");
         Prod from = new Prod("from", "from(Table<?> table)", "from(Select selectQuery)");
-        Prod join = new Prod("join", "join(Table<?> table)", "join(Select selectQuery)");
+        Prod join = new Prod("join", "join(Table<?> table)", "join(Select selectQuery, String alias)");
         Prod on = new Prod("on", "on(IQueryObject... restrictions)");
         Prod where = new Prod("where", "where(IQueryObject... restrictions)");
         Prod groupBy = new Prod("groupBy", "groupBy(Column<?,?>... columns)");
         Prod having = new Prod("having", "having(IQueryObject... restrictions)");
         Prod orderBy = new Prod("orderBy", "orderBy(List<Order<?>> orders)");
-        Prod END = new Prod("execute", "Object execute()");
+        Prod END = new Prod("execute", "<E>Executor<E> getExecutor(DataAccesFacade facade, Mapable<E> mapable)");
 
         // Prod update = new Prod("update", "update(Table<?> table)");
         // Prod set = new Prod("set", "set(IQueryObject... restrictions)");
@@ -64,6 +73,7 @@ public class DslGen {
         // updateWhere.setPrefix("Update");
 
         select.addNext(from);
+        select.setPrefix("S");
         from.addNext(join);
         from.addNext(where);
         from.addNext(groupBy);
@@ -84,6 +94,31 @@ public class DslGen {
         having.addNext(END);
         orderBy.addNext(END);
 
+        generateDsl("Select", roots);
+
+        //
+
+        // new DslGen().new Impl().selectAll().from(new DogTable()).execute();
+
+        DogTable dt = new DogTable();
+        PersonTable pt = new PersonTable();
+        IQueryObject q = new DslGen().new Select() //
+                .select(dt, pt) //
+                .from(dt).join(pt).on(dt.idJefe.eq(pt.idPerson)) //
+                .where(dt.alive.eq(true)) //
+                // .orderBy(Order.by(Order.asc(dt.idDog))) //
+                .getExecutor(null, dt) //
+                .getQuery() //
+        ;
+
+        assertEquals("select dogs_.id_dog,dogs_.name,dogs_.is_alive,dogs_.sex,dogs_.id_jefe,"
+                + "persons_.id_person,persons_.dni,persons_.name,persons_.age,persons_.birth_date "
+                + "from dogs dogs_ join persons persons_ on dogs_.id_jefe=persons_.id_person "
+                + "where dogs_.is_alive=? -- [true(Boolean)]", q.toString());
+    }
+
+    private static void generateDsl(String rootName, List<Prod> roots) {
+
         Set<Prod> explored = new HashSet<>();
         Set<String> generatedClassNames = new HashSet<>();
         Set<String> methodDefs = new HashSet<>();
@@ -92,7 +127,7 @@ public class DslGen {
         }
 
         StringBuilder r = new StringBuilder();
-        r.append("public class Impl implements ");
+        r.append("public class " + rootName + " implements ");
         {
             StringJoiner j = new StringJoiner(",");
             for (String p : generatedClassNames) {
@@ -112,11 +147,6 @@ public class DslGen {
         r.append("}\n");
 
         System.out.println(r);
-
-        //
-
-        // new DslGen().new Impl().selectAll().from(new DogTable()).execute();
-
     }
 
     public static class Prod {
@@ -200,10 +230,10 @@ public class DslGen {
         }
     }
 
-    public interface Select {
+    public interface SSelect {
         public From select(Column<?, ?>... columns);
 
-        public From selectAll();
+        public From select(Table<?>... tables);
 
         public From selectStar();
     }
@@ -220,7 +250,7 @@ public class DslGen {
     public interface Join {
         public On join(Table<?> table);
 
-        public On join(Select selectQuery);
+        public On join(Select selectQuery, String alias);
     }
 
     public interface On {
@@ -256,75 +286,132 @@ public class DslGen {
     }
 
     public interface Execute {
-        public Object execute();
+        public <E> Executor<E> getExecutor(DataAccesFacade facade, Mapable<E> mapable);
     }
 
-    public class Impl
-            implements OrderBy, GroupBy, Execute, Where_GroupBy_OrderBy_Execute, OrderBy_Execute, Join, From, Having,
-            Having_OrderBy_Execute, Select, Join_Where_GroupBy_OrderBy_Execute, GroupBy_OrderBy_Execute, Where, On {
+    public class Select
+            implements OrderBy, GroupBy, Execute, Where_GroupBy_OrderBy_Execute, OrderBy_Execute, SSelect, Join, From,
+            Having, Having_OrderBy_Execute, Join_Where_GroupBy_OrderBy_Execute, GroupBy_OrderBy_Execute, Where, On {
+
+        final QueryObject qo = new QueryObject();
+
+        public QueryObject getQuery() {
+            return qo;
+        }
 
         @Override
-        public Object execute() {
-            return this;
+        public <E> Executor<E> getExecutor(DataAccesFacade facade, Mapable<E> mapable) {
+            return new Executor<E>(facade, qo, mapable);
         }
 
         @Override
         public Execute orderBy(List<Order<?>> orders) {
+            qo.append(" order by ");
+            qo.append(Restrictions.list(orders));
             return this;
         }
 
         @Override
         public Join_Where_GroupBy_OrderBy_Execute from(Table<?> table) {
+            qo.append(" from ");
+            qo.append(table.getAliasedName());
             return this;
         }
 
         @Override
-        public On join(Select selectQuery) {
-            return this;
-        }
-
-        @Override
-        public From select(Column<?, ?>... columns) {
-            return this;
-        }
-
-        @Override
-        public From selectStar() {
-            return this;
-        }
-
-        @Override
-        public On join(Table<?> table) {
-            return this;
-        }
-
-        @Override
-        public OrderBy_Execute having(IQueryObject... restrictions) {
-            return this;
-        }
-
-        @Override
-        public From selectAll() {
-            return this;
-        }
-
-        @Override
-        public Having_OrderBy_Execute groupBy(Column<?, ?>... columns) {
-            return this;
-        }
-
-        @Override
-        public GroupBy_OrderBy_Execute where(IQueryObject... restrictions) {
-            return this;
-        }
-
-        @Override
-        public Where_GroupBy_OrderBy_Execute on(IQueryObject... restrictions) {
+        public On join(Select selectQuery, String alias) {
+            qo.append(" join ");
+            qo.append(selectQuery.qo);
+            qo.append(alias);
             return this;
         }
 
         @Override
         public Join_Where_GroupBy_OrderBy_Execute from(Select selectQuery) {
+            return this;
+        }
+
+        @Override
+        public From select(Column<?, ?>... columns) {
+            qo.append("select ");
+            StringJoiner j = new StringJoiner(",");
+            for (Column<?, ?> c : columns) {
+                j.add(c.getAliasedName());
+            }
+            qo.append(j.toString());
+            return this;
+        }
+
+        @Override
+        public From selectStar() {
+            qo.append("select *");
+            return this;
+        }
+
+        @Override
+        public On join(Table<?> table) {
+            qo.append(" join ");
+            qo.append(table.getAliasedName());
+            return this;
+        }
+
+        @Override
+        public OrderBy_Execute having(IQueryObject... restrictions) {
+            qo.append(" having ");
+            StringJoiner j = new StringJoiner(" and ");
+            for (IQueryObject r : restrictions) {
+                j.add(r.getQuery());
+                qo.addArgs(r.getArgsList());
+            }
+            qo.append(j.toString());
+            return this;
+        }
+
+        @Override
+        public From select(Table<?>... tables) {
+            qo.append("select ");
+            StringJoiner j = new StringJoiner(",");
+            for (Table<?> t : tables) {
+                for (Column<?, ?> c : t.getColumns()) {
+                    j.add(c.getAliasedName());
+                }
+            }
+            qo.append(j.toString());
+            return this;
+        }
+
+        @Override
+        public Having_OrderBy_Execute groupBy(Column<?, ?>... columns) {
+            qo.append(" group by ");
+            StringJoiner j = new StringJoiner(",");
+            for (Column<?, ?> c : columns) {
+                j.add(c.getAliasedName());
+            }
+            qo.append(j.toString());
+            return this;
+        }
+
+        @Override
+        public GroupBy_OrderBy_Execute where(IQueryObject... restrictions) {
+            qo.append(" where ");
+            StringJoiner j = new StringJoiner(" and ");
+            for (IQueryObject r : restrictions) {
+                j.add(r.getQuery());
+                qo.addArgs(r.getArgsList());
+            }
+            qo.append(j.toString());
+            return this;
+        }
+
+        @Override
+        public Where_GroupBy_OrderBy_Execute on(IQueryObject... restrictions) {
+            qo.append(" on ");
+            StringJoiner j = new StringJoiner(" and ");
+            for (IQueryObject r : restrictions) {
+                j.add(r.getQuery());
+                qo.addArgs(r.getArgsList());
+            }
+            qo.append(j.toString());
             return this;
         }
 

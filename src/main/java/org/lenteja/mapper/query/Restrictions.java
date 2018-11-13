@@ -8,7 +8,7 @@ import org.lenteja.jdbc.query.QueryObject;
 
 public class Restrictions {
 
-    protected static IQueryObject composition(String op, List<IQueryObject> qs) {
+    protected static IQueryObject composition(String op, List<? extends IQueryObject> qs) {
         QueryObject r = new QueryObject();
         for (int i = 0; i < qs.size(); i++) {
             if (i > 0) {
@@ -19,15 +19,15 @@ public class Restrictions {
         return r;
     }
 
-    public static IQueryObject and(List<IQueryObject> qs) {
+    public static IQueryObject and(List<? extends IQueryObject> qs) {
         return composition(" and ", qs);
     }
 
-    public static IQueryObject or(List<IQueryObject> qs) {
+    public static IQueryObject or(List<? extends IQueryObject> qs) {
         return composition(" or ", qs);
     }
 
-    public static IQueryObject list(List<IQueryObject> qs) {
+    public static IQueryObject list(List<? extends IQueryObject> qs) {
         return composition(", ", qs);
     }
 
