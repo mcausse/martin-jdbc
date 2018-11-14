@@ -50,16 +50,39 @@ public class TicketsTest {
     }
 
     @Test
-    public void testNativeCrud() throws Exception {
+    public void test() throws Exception {
 
         facade.begin();
         try {
+
+            TicketDao ticketDao = new TicketDao(facade);
+
+            Ticket t1 = new Ticket();
+            t1.title = "no funka re";
+            t1.created = new Date(0L);
+
+            ticketDao.store(t1);
 
             facade.commit();
         } catch (Throwable e) {
             facade.rollback();
             throw e;
         }
+    }
+
+    public static interface Service {
+
+    }
+
+    public static class ServiceImpl implements Service {
+
+        final TicketDao ticketDao;
+
+        public ServiceImpl(DataAccesFacade facade) {
+            super();
+            ticketDao = new TicketDao(facade);
+        }
+
     }
 
     // TODO i fer un generador Table => entity+dao
@@ -162,36 +185,39 @@ public class TicketsTest {
         }
     }
 
+    // FIXME i adaptar Accessor per a accedir a propietats publiques (sense
+    // getter/setters), seria la polla
+
     public static class Ticket {
-        Integer idTicket;
-        String title;
-        Date created;
+        public Integer idTicket;
+        public String title;
+        public Date created;
     }
 
     public static class User {
-        Integer idUser;
-        String email;
+        public Integer idUser;
+        public String email;
     }
 
     public static class TicketUserId {
-        Integer idTicket;
-        Integer idUser;
+        public Integer idTicket;
+        public Integer idUser;
     }
 
     public static class TicketUser {
-        TicketUserId ticketUserId;
+        public TicketUserId ticketUserId;
     }
 
     public static class TicketMsg {
-        TicketUserId ticketUserId;
-        String message;
-        Date date;
+        public TicketUserId ticketUserId;
+        public String message;
+        public Date date;
     }
 
     public static class StateTrans {
-        TicketUserId ticketUserId;
-        ETicketState state;
-        Date date;
+        public TicketUserId ticketUserId;
+        public ETicketState state;
+        public Date date;
     }
 
     public static enum ETicketState {

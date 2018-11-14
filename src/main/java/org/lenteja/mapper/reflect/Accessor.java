@@ -4,8 +4,12 @@ import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+
+// FIXME i adaptar Accessor per a accedir a propietats publiques (sense
+// getter/setters), seria la polla
 
 public class Accessor {
 
@@ -13,7 +17,7 @@ public class Accessor {
     // id.login
     protected final String propertyPath;
     protected final String[] propertyNameParts;
-    protected final List<PropertyDescriptor> propertyPathList = new ArrayList<>();
+    protected final List<PropAccessor> propertyPathList = new ArrayList<>();
 
     public Accessor(Class<?> beanClass, String propertyPath) {
         super();
@@ -24,7 +28,15 @@ public class Accessor {
         try {
             Class<?> c = beanClass;
             for (String part : propertyNameParts) {
-                PropertyDescriptor pd = findProp(c, part);
+                PropAccessor pd = findGetSetProp(c, part);
+                if (pd == null) {
+
+                    pd = findFieldProp(c, part);
+
+                    if (pd == null) {
+                        throw new RuntimeException("property not found: '" + beanClass.getName() + "#" + part + "'");
+                    }
+                }
                 this.propertyPathList.add(pd);
                 c = pd.getPropertyType();
             }
@@ -33,7 +45,23 @@ public class Accessor {
         }
     }
 
-    protected static PropertyDescriptor findProp(Class<?> beanClass, String propertyName) {
+    /**
+     * @return null si no troba field
+     */
+    protected FieldAccessor findFieldProp(Class<?> beanClass, String propertyName) {
+
+        try {
+            Field field = beanClass.getField(propertyName);
+            return new FieldAccessor(beanClass, field);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * @return null si no troba getter/setter
+     */
+    protected static GetSetAccessor findGetSetProp(Class<?> beanClass, String propertyName) {
         BeanInfo info;
         try {
             info = Introspector.getBeanInfo(beanClass);
@@ -46,10 +74,88 @@ public class Accessor {
                 continue;
             }
             if (pd.getName().equals(propertyName)) {
-                return pd;
+                return new GetSetAccessor(pd);
             }
         }
-        throw new RuntimeException("property not found: '" + beanClass.getName() + "#" + propertyName + "'");
+        return null;
+    }
+
+    public static interface PropAccessor {
+
+        Class<?> getPropertyType();
+
+        void set(Object targetBean, Object value);
+
+        Object get(Object targetBean);
+
+    }
+
+    public static class GetSetAccessor implements PropAccessor {
+
+        final PropertyDescriptor pd;
+
+        public GetSetAccessor(PropertyDescriptor pd) {
+            super();
+            this.pd = pd;
+        }
+
+        @Override
+        public Class<?> getPropertyType() {
+            return pd.getPropertyType();
+        }
+
+        @Override
+        public void set(Object targetBean, Object value) {
+            try {
+                pd.getWriteMethod().invoke(targetBean, value);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public Object get(Object targetBean) {
+            try {
+                return pd.getReadMethod().invoke(targetBean);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public static class FieldAccessor implements PropAccessor {
+
+        final Class<?> targetClass;
+        final Field field;
+
+        public FieldAccessor(Class<?> targetClass, Field field) {
+            super();
+            this.targetClass = targetClass;
+            this.field = field;
+        }
+
+        @Override
+        public Class<?> getPropertyType() {
+            return field.getType();
+        }
+
+        @Override
+        public void set(Object targetBean, Object value) {
+            try {
+                field.set(targetBean, value);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public Object get(Object targetBean) {
+            try {
+                return field.get(targetBean);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public Object get(Object bean) {
@@ -64,7 +170,7 @@ public class Accessor {
         try {
             Object o = bean;
             for (int i = startIndex; i < propertyPathList.size(); i++) {
-                o = propertyPathList.get(i).getReadMethod().invoke(o);
+                o = propertyPathList.get(i).get(o);
                 if (o == null) {
                     return null;
                 }
@@ -79,15 +185,15 @@ public class Accessor {
         try {
             Object o = bean;
             for (int i = startIndex; i < propertyPathList.size() - 1; i++) {
-                PropertyDescriptor p = propertyPathList.get(i);
-                Object o2 = p.getReadMethod().invoke(o);
+                PropAccessor p = propertyPathList.get(i);
+                Object o2 = p.get(o);
                 if (o2 == null) {
                     o2 = p.getPropertyType().newInstance();
-                    p.getWriteMethod().invoke(o, o2);
+                    p.set(o, o2);
                 }
                 o = o2;
             }
-            propertyPathList.get(propertyPathList.size() - 1).getWriteMethod().invoke(o, propertyValue);
+            propertyPathList.get(propertyPathList.size() - 1).set(o, propertyValue);
         } catch (Exception e) {
             throw new RuntimeException("invoking setter of " + beanClass.getName() + "#" + this.propertyPath
                     + " with value '" + propertyValue + "'", e);
