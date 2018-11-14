@@ -34,6 +34,17 @@ public abstract class Table<E> implements Aliasable, Mapable<E> {
         this.autoGens = new ArrayList<>();
     }
 
+    // TODO usar i testar a full
+    // TODO msg d'excepció: la table {table} necessita un C'tor(String alias)
+    @SuppressWarnings("unchecked")
+    public <TE extends Table<E>> TE aliase(String alias) {
+        try {
+            return (TE) getClass().getConstructor(String.class).newInstance(alias);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public Table(String tableName) {
         this(tableName, tableName + "_");
     }
@@ -156,6 +167,22 @@ public abstract class Table<E> implements Aliasable, Mapable<E> {
             return new QueryObject(alias + ".*");
         }
     }
+
+    // @SuppressWarnings("unchecked")
+    // public IQueryObject columns(Column<E, ?>... cs) {
+    // QueryObject q = new QueryObject();
+    // int i = 0;
+    // for (Column<E, ?> c : cs) {
+    // if (i > 0) {
+    // q.append(",");
+    // }
+    // q.append(c.getAliasedName());
+    // i++;
+    // }
+    // return q;
+    // }
+
+    //////////
 
     public IQueryObject insertValues(E entity) {
         QueryObject q = new QueryObject();

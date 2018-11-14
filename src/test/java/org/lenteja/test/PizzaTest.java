@@ -183,13 +183,13 @@ public class PizzaTest {
 
         {
             Pizza_ p_ = new Pizza_();
-            assertEquals("pizzas pizzas_", p_.getAliasedName());
-            assertEquals("pizzas_.price", p_.price.getAliasedName());
+            assertEquals("pizzas", p_.getAliasedName());
+            assertEquals("price", p_.price.getAliasedName());
         }
         {
-            Pizza_ p_ = new Pizza_();
-            assertEquals("pizzas pizzas_", p_.getAliasedName());
-            assertEquals("pizzas_.price", p_.price.getAliasedName());
+            Pizza_ p_ = new Pizza_().aliase("p");
+            assertEquals("pizzas p", p_.getAliasedName());
+            assertEquals("p.price", p_.price.getAliasedName());
 
             IQueryObject q = Restrictions.and( //
                     p_.id.eq(100L), //
@@ -198,7 +198,7 @@ public class PizzaTest {
                     p_.type.in(EPizzaType.REGULAR, EPizzaType.DELUX) //
             );
             assertEquals(
-                    "pizzas_.id_pizza=? and upper(pizzas_.name) like upper(?) and pizzas_.price between ? and ? and pizzas_.kind in (?,?) -- [100(Long), %alo%(String), 5.0(Double), 18.5(Double), REGULAR(String), DELUX(String)]",
+                    "p.id_pizza=? and upper(p.name) like upper(?) and p.price between ? and ? and p.kind in (?,?) -- [100(Long), %alo%(String), 5.0(Double), 18.5(Double), REGULAR(String), DELUX(String)]",
                     q.toString());
         }
         {
@@ -232,6 +232,19 @@ public class PizzaTest {
                             + " -- [100(Long), %oma%(String), REGULAR(String), DELUX(String)]", //
                     q.toString());
         }
+
+        {
+            Operations o = new Operations();
+            Pizza_ p = new Pizza_("p");
+
+            Query<Pizza> q = o.query(p);
+            q.append("select {}, {}, sum({}) as {} ", p.name, p.type, p.price, p.price.getColumnName());
+            q.append("from {} ", p);
+            q.append("group by {}, {} ", p.name, p.type);
+
+            assertEquals("select p.name, p.kind, sum(p.price) as price from pizzas p group by p.name, p.kind  -- []", //
+                    q.toString());
+        }
     }
 
     public static class Pizza_ extends Table<Pizza> {
@@ -243,7 +256,7 @@ public class PizzaTest {
                 new EnumColumnHandler<>(EPizzaType.class));
 
         public Pizza_() {
-            super("pizzas");
+            this(null);
         }
 
         public Pizza_(String alias) {

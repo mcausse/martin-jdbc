@@ -55,7 +55,7 @@ public class DslGen {
         Prod where = new Prod("where", "where(IQueryObject... restrictions)");
         Prod groupBy = new Prod("groupBy", "groupBy(Column<?,?>... columns)");
         Prod having = new Prod("having", "having(IQueryObject... restrictions)");
-        Prod orderBy = new Prod("orderBy", "orderBy(List<Order<?>> orders)");
+        Prod orderBy = new Prod("orderBy", "orderBy(Order<?>... orders)");
         Prod END = new Prod("execute", "<E>Executor<E> getExecutor(DataAccesFacade facade, Mapable<E> mapable)");
 
         // Prod update = new Prod("update", "update(Table<?> table)");
@@ -100,21 +100,24 @@ public class DslGen {
 
         // new DslGen().new Impl().selectAll().from(new DogTable()).execute();
 
-        DogTable dt = new DogTable();
-        PersonTable pt = new PersonTable();
+        DogTable dt = new DogTable("dogs_");
+        PersonTable pt = new PersonTable("persons_");
+
         IQueryObject q = new DslGen().new Select() //
                 .select(dt, pt) //
                 .from(dt).join(pt).on(dt.idJefe.eq(pt.idPerson)) //
                 .where(dt.alive.eq(true)) //
-                // .orderBy(Order.by(Order.asc(dt.idDog))) //
+                .orderBy(Order.asc(dt.idDog)) //
                 .getExecutor(null, dt) //
                 .getQuery() //
         ;
 
+        // TODO és factible/val la pena?
+
         assertEquals("select dogs_.id_dog,dogs_.name,dogs_.is_alive,dogs_.sex,dogs_.id_jefe,"
                 + "persons_.id_person,persons_.dni,persons_.name,persons_.age,persons_.birth_date "
                 + "from dogs dogs_ join persons persons_ on dogs_.id_jefe=persons_.id_person "
-                + "where dogs_.is_alive=? -- [true(Boolean)]", q.toString());
+                + "where dogs_.is_alive=? order by dogs_.id_dog asc -- [true(Boolean)]", q.toString());
     }
 
     private static void generateDsl(String rootName, List<Prod> roots) {
@@ -282,7 +285,7 @@ public class DslGen {
     }
 
     public interface OrderBy {
-        public Execute orderBy(List<Order<?>> orders);
+        public Execute orderBy(Order<?>... orders);
     }
 
     public interface Execute {
@@ -305,7 +308,7 @@ public class DslGen {
         }
 
         @Override
-        public Execute orderBy(List<Order<?>> orders) {
+        public Execute orderBy(Order<?>... orders) {
             qo.append(" order by ");
             qo.append(Restrictions.list(orders));
             return this;

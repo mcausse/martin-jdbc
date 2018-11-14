@@ -19,6 +19,16 @@ public class Restrictions {
         return r;
     }
 
+    // public static IQueryObject subQueryAliasedAsTable(IQueryObject subquery,
+    // String alias) {
+    // QueryObject r = new QueryObject();
+    // r.append("(");
+    // r.append(subquery);
+    // r.append(") ");
+    // r.append(alias);
+    // return r;
+    // }
+
     public static IQueryObject and(List<? extends IQueryObject> qs) {
         return composition(" and ", qs);
     }

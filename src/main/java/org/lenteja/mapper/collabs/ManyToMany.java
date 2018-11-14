@@ -71,6 +71,8 @@ public class ManyToMany<S, I, R> {
         return r;
     }
 
+    // TODO mètodes store/delete
+
     public OneToMany<S, I> getOneToMany() {
         return oneToMany;
     }
