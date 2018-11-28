@@ -31,6 +31,10 @@ public class Executor<E> {
         return facade.loadUnique(qo, mapable);
     }
 
+    public E loadFirst() {
+        return facade.loadFirst(qo, mapable);
+    }
+
     public List<E> load() {
         return facade.load(qo, mapable);
     }

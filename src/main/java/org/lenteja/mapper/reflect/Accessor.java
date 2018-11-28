@@ -8,7 +8,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-// FIXME i adaptar Accessor per a accedir a propietats publiques (sense
+// XXX i adaptar Accessor per a accedir a propietats publiques (sense
 // getter/setters), seria la polla
 
 public class Accessor {

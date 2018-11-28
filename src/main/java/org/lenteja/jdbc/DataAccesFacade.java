@@ -17,6 +17,8 @@ public interface DataAccesFacade {
 
     <T> T loadUnique(IQueryObject q, Mapable<T> mapable) throws TooManyResultsException, EmptyResultException;
 
+    <T> T loadFirst(IQueryObject q, Mapable<T> mapable) throws EmptyResultException;
+
     <T> List<T> load(IQueryObject q, Mapable<T> mapable);
 
     int update(IQueryObject q);

@@ -212,6 +212,30 @@ public class JdbcDataAccesFacade implements DataAccesFacade {
     }
 
     @Override
+    public <T> T loadFirst(IQueryObject q, Mapable<T> mapable) throws EmptyResultException {
+        LOG.debug("{}", q);
+        Connection c;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            c = getConnection();
+            ps = prepareStatement(c, q);
+            rs = ps.executeQuery();
+            if (!rs.next()) {
+                throw new EmptyResultException(q.toString());
+            }
+            final T r = mapable.map(rs);
+            return r;
+        } catch (final EmptyResultException e) {
+            throw e;
+        } catch (final SQLException e) {
+            throw new JdbcException(q.toString(), e);
+        } finally {
+            closeResources(rs, ps);
+        }
+    }
+
+    @Override
     public <T> List<T> load(IQueryObject q, Mapable<T> mapable) {
         LOG.debug("{}", q);
         Connection c;
