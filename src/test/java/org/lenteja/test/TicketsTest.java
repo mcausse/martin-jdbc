@@ -25,7 +25,7 @@ import org.lenteja.mapper.autogen.impl.HsqldbSequence;
 import org.lenteja.mapper.handler.EnumColumnHandler;
 import org.lenteja.mapper.query.Order;
 import org.lenteja.mapper.query.Restrictions;
-import org.lenteja.test.TicketsTest.ServiceImpl.TicketDetail;
+import org.lenteja.test.TicketsTest.ServiceImpl.TicketDetailDto;
 
 public class TicketsTest {
 
@@ -72,13 +72,13 @@ public class TicketsTest {
 
         Ticket ticket1 = new Ticket();
         ticket1.title = "falla tot";
-        s.createNewTicket(ticket1, mhc);
+        s.createNewTicket(ticket1, mhc.idUser);
 
-        s.inviteUser(ticket1, eib);
+        s.inviteUser(ticket1.idTicket, eib.idUser);
 
         Action action = new Action();
         action.message = "encara passa?";
-        s.createNewAction(ticket1, eib, action);
+        s.createNewAction(ticket1.idTicket, eib.idUser, action);
 
         System.out.println(s.obtenirTicket(ticket1.idTicket));
 
@@ -94,13 +94,13 @@ public class TicketsTest {
 
     public static interface Service {
 
-        TicketDetail obtenirTicket(int idTicket);
+        TicketDetailDto obtenirTicket(int idTicket);
 
-        void inviteUser(Ticket ticket, User user);
+        void inviteUser(int idTicket, int idUser);
 
-        void createNewAction(Ticket ticket, User user, Action action);
+        void createNewAction(int idTicket, int idUser, Action action);
 
-        void createNewTicket(Ticket ticket, User creator);
+        void createNewTicket(Ticket ticket, int idUsercreator);
 
         void storeUser(User user);
 
@@ -129,25 +129,39 @@ public class TicketsTest {
 
         @TransactionalMethod
         @Override
-        public void createNewTicket(Ticket ticket, User creator) {
-            ticket.idUserCreated = creator.idUser;
+        public void createNewTicket(Ticket ticket, int idUsercreator) {
+
+            if (!userDao.existsById(idUsercreator)) {
+                throw new RuntimeException("user not found: " + idUsercreator);
+            }
+
+            ticket.idUserCreated = idUsercreator;
             ticket.created = new Date(0L);
             ticketDao.insert(ticket);
 
-            inviteUser(ticket, creator);
+            inviteUser(ticket.idTicket, idUsercreator);
+
             Action action = new Action();
             action.message = "ticket created";
             action.state = ETicketState.CREAT;
-            createNewAction(ticket, creator, action);
+            createNewAction(ticket.idTicket, idUsercreator, action);
         }
 
         @TransactionalMethod
         @Override
-        public void inviteUser(Ticket ticket, User user) {
+        public void inviteUser(int idTicket, int idUser) {
+
+            if (!ticketDao.existsById(idTicket)) {
+                throw new RuntimeException("ticket not found: " + idTicket);
+            }
+            if (!userDao.existsById(idUser)) {
+                throw new RuntimeException("user not found: " + idUser);
+            }
+
             TicketUser tue = new TicketUser();
             tue.ticketUserId = new TicketUserId();
-            tue.ticketUserId.idTicket = ticket.idTicket;
-            tue.ticketUserId.idUser = user.idUser;
+            tue.ticketUserId.idTicket = idTicket;
+            tue.ticketUserId.idUser = idUser;
             tue.joined = new Date(0L);
 
             TicketUserTable tu = new TicketUserTable();
@@ -157,17 +171,25 @@ public class TicketsTest {
 
         @TransactionalMethod
         @Override
-        public void createNewAction(Ticket ticket, User user, Action action) {
+        public void createNewAction(int idTicket, int idUser, Action action) {
+
+            if (!ticketDao.existsById(idTicket)) {
+                throw new RuntimeException("ticket not found: " + idTicket);
+            }
+            if (!userDao.existsById(idUser)) {
+                throw new RuntimeException("user not found: " + idUser);
+            }
+
             action.ticketUserId = new TicketUserId();
-            action.ticketUserId.idTicket = ticket.idTicket;
-            action.ticketUserId.idUser = user.idUser;
+            action.ticketUserId.idTicket = idTicket;
+            action.ticketUserId.idUser = idUser;
             action.date = new Date(0L);
             actionDao.insert(action);
         }
 
         @TransactionalMethod(readOnly = true)
         @Override
-        public TicketDetail obtenirTicket(int idTicket) {
+        public TicketDetailDto obtenirTicket(int idTicket) {
 
             Ticket ticket = ticketDao.loadById(idTicket);
             User userCreated = userDao.loadById(ticket.idUserCreated);
@@ -197,10 +219,10 @@ public class TicketsTest {
                     .append("order by {} ", Order.desc(a.moment)) //
                     .getExecutor(facade).loadFirst();
 
-            return new TicketDetail(ticket, userCreated, users, actions, state);
+            return new TicketDetailDto(ticket, userCreated, users, actions, state);
         }
 
-        public static class TicketDetail {
+        public static class TicketDetailDto {
 
             public final Ticket ticket;
             public final User userCreated;
@@ -208,7 +230,7 @@ public class TicketsTest {
             public final List<Action> actions;
             public final ETicketState state;
 
-            public TicketDetail(Ticket ticket, User userCreated, Map<Integer, User> users, List<Action> actions,
+            public TicketDetailDto(Ticket ticket, User userCreated, Map<Integer, User> users, List<Action> actions,
                     ETicketState state) {
                 super();
                 this.ticket = ticket;

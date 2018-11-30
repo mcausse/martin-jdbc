@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.exception.JdbcException;
+import org.lenteja.jdbc.exception.TooManyResultsException;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.mapper.autogen.Generator;
 import org.lenteja.mapper.autogen.ScalarMappers;
@@ -186,7 +187,19 @@ public class EntityManager {
     public <E> boolean exists(Table<E> table, E entity) {
         IQueryObject q = o.exists(table, entity);
         long count = facade.loadUnique(q, ScalarMappers.LONG);
-        return count > 0L;
+        if (count > 1) {
+            throw new TooManyResultsException(q.toString());
+        }
+        return count == 1L;
+    }
+
+    public <E> boolean existsById(Table<E> table, Object id) {
+        IQueryObject q = o.existsById(table, id);
+        long count = facade.loadUnique(q, ScalarMappers.LONG);
+        if (count > 1) {
+            throw new TooManyResultsException(q.toString());
+        }
+        return count == 1L;
     }
 
     public <E> void insert(Table<E> table, E entity) {

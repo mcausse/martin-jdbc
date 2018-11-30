@@ -52,6 +52,11 @@ public class Hores {
             fitxaManual("12/10/2018 07:40:00");
             fitxaManual("12/10/2018 15:00:00");
 
+            fitxaManual("15/10/2018 07:40:00");
+            fitxaManual("15/10/2018 17:35:00");
+            fitxaManual("16/10/2018 07:40:00");
+            fitxaManual("16/10/2018 17:35:00");
+
             fitxaManual("28/10/2018 08:00:00");
 
             fitxaManual("29/10/2018 08:00:00");

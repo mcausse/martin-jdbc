@@ -32,6 +32,10 @@ public class GenericDao<E, ID> {
         em.store(table, entity);
     }
 
+    public boolean existsById(ID id) {
+        return em.existsById(table, id);
+    }
+
     public boolean exists(E entity) {
         return em.exists(table, entity);
     }

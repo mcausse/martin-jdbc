@@ -7,6 +7,7 @@ import org.lenteja.jdbc.query.QueryObject;
 import org.lenteja.mapper.Column;
 import org.lenteja.mapper.Mapable;
 import org.lenteja.mapper.Table;
+import org.lenteja.mapper.handler.ColumnHandler;
 
 public class Operations {
 
@@ -122,6 +123,27 @@ public class Operations {
                 if (c.isPk()) {
                     j.add(c.getColumnName() + "=?");
                     q.addArg(c.storeValue(entity));
+                }
+            }
+            q.append(j.toString());
+        }
+        return q;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <E> IQueryObject existsById(Table<E> table, Object id) {
+        QueryObject q = new QueryObject();
+        q.append("select count(*) from ");
+        q.append(table.getTableName());
+        q.append(" where ");
+        {
+            StringJoiner j = new StringJoiner(" and ");
+            for (Column<E, ?> c : table.getColumns()) {
+                if (c.isPk()) {
+                    j.add(c.getColumnName() + "=?");
+                    Object value = c.getAccessor().get(id, 1);
+                    ColumnHandler<Object> handler = (ColumnHandler<Object>) c.getHandler();
+                    q.addArg(handler.getJdbcValue(value));
                 }
             }
             q.append(j.toString());
