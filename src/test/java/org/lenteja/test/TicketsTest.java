@@ -86,9 +86,9 @@ public class TicketsTest {
                 + "idUserCreated=100], userCreated=User [idUser=100, email=mhc@votr.com], "
                 + "users={100=User [idUser=100, email=mhc@votr.com], 101=User [idUser=101, email=eib@votr.com]}, "
                 + "actions=["
-                + "Action [idAction=10, ticketUserId=TicketUserId [idTicket=10, idUser=100], state=CREAT, message=ticket created, date=1970-01-01 01:00:00.0], "
+                + "Action [idAction=10, ticketUserId=TicketUserId [idTicket=10, idUser=100], state=OBERT, message=ticket created, date=1970-01-01 01:00:00.0], "
                 + "Action [idAction=11, ticketUserId=TicketUserId [idTicket=10, idUser=101], state=null, message=encara passa?, date=1970-01-01 01:00:00.0]]"
-                + ", state=CREAT]", s.obtenirTicket(ticket1.idTicket).toString());
+                + ", state=OBERT]", s.obtenirTicket(ticket1.idTicket).toString());
 
     }
 
@@ -143,7 +143,7 @@ public class TicketsTest {
 
             Action action = new Action();
             action.message = "ticket created";
-            action.state = ETicketState.CREAT;
+            action.state = ETicketState.OBERT;
             createNewAction(ticket.idTicket, idUsercreator, action);
         }
 
@@ -408,7 +408,7 @@ public class TicketsTest {
     }
 
     public static enum ETicketState {
-        CREAT, EN_CURS, RESOLT, REOBERT
+        OBERT, EN_CURS, EN_PROVES, PENDENT_PRO, TANCAT
     }
 
 }
