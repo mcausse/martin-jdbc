@@ -1,6 +1,7 @@
 package hores;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,8 +14,6 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 
-import org.junit.Test;
-import org.lenteja.jdbc.JdbcDataAccesFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +21,104 @@ import org.slf4j.LoggerFactory;
  * CucarachaDB - micro Key-Value Store
  */
 public class CucarachaDb {
+
+//    public abstract class S<E, ID> {
+//
+//        final CucarachaDb db;
+//        final Class<E> entityClass;
+//
+//        public S(CucarachaDb db, Class<E> entityClass) {
+//            super();
+//            this.db = db;
+//            this.entityClass = entityClass;
+//        }
+//
+//        protected abstract String serialKey(ID t);
+//
+//        protected abstract String serialValue(E entity);
+//
+//        protected abstract void deserialKey(E entity, String k);
+//
+//        protected abstract void deserialValue(E entity, String v);
+//
+//        public boolean exist(ID id) {
+//            String key = serialKey(id);
+//            return db.exist(key);
+//        }
+//
+//        public E get(String key) throws Exception {
+//            E r = entityClass.newInstance();
+//            deserialKey(r, key);
+//            String value = db.get(key);
+//            deserialValue(r, value);
+//            return r;
+//        }
+//
+////        public Map<String, String> find(Predicate<ID> keyPredicate, Predicate<E> valuePredicate) {
+////            return db.find(keyPredicate, valuePredicate);
+////        }
+//
+//        public void remove(ID id) {
+//            String key = serialKey(id);
+//            db.remove(key);
+//        }
+//
+//        public void put(E entity) {
+//            String key = serialKey(entity);
+//            String value = serialValue(entity);
+//            db.put(key, value);
+//        }
+//
+//    }
+//
+//    class ExpId {
+//        int anyExp;
+//        long numExp;
+//    }
+//
+//    class Exp {
+//        ExpId id;
+//        String name;
+//        float cost;
+//    }
+//
+//    class ExpS extends S<Exp> {
+//
+//        public ExpS(CucarachaDb db) {
+//            super(db);
+//        }
+//
+//        @Override
+//        public String serialKey(Exp t) {
+//            if (t.id == null) {
+//                throw new RuntimeException();
+//            }
+//            return t.id.anyExp + "/" + t.id.numExp;
+//        }
+//
+//        @Override
+//        public String serialValue(Exp t) {
+//            return "name=" + t.name + ",cost=" + t.cost;
+//        }
+//
+//        @Override
+//        public void deserialKey(Exp t, String k) {
+//            if (t.id == null) {
+//                t.id = new ExpId();
+//            }
+//            String[] ps = k.split("\\/");
+//            t.id.anyExp = Integer.parseInt(ps[0]);
+//            t.id.numExp = Long.parseLong(ps[1]);
+//        }
+//
+//        @Override
+//        public void deserialValue(Exp t, String v) {
+//            String[] ps = v.split("\\,");
+//            t.name = ps[0].split("\\=")[1];
+//            t.cost = Float.parseFloat(ps[1].split("\\=")[1]);
+//        }
+//
+//    }
 
     public static void main(String[] args) throws Throwable {
 
@@ -31,46 +128,27 @@ public class CucarachaDb {
         threadableSimpleTest(db);
 
         for (int i = 0; i < 50; i++) {
-            Thread t = new Thread(() -> {
-                try {
-                    threadableSimpleTest(db);
-                } catch (Throwable e) {
-                    throw new RuntimeException(e);
-                }
-            });
-
-            t.start();
+            new Thread(() -> threadableSimpleTest(db)).start();
         }
 
         System.out.println("OK");
     }
 
-    private static void threadableSimpleTest(CucarachaDb db) throws Throwable {
+    private static void threadableSimpleTest(CucarachaDb db) {
 
-        String prefix = String.valueOf(Thread.currentThread().getId());
+        String prefix = String.valueOf(Thread.currentThread().getId()) + ".";
 
-        db.beginTransaction();
-        try {
-
+        db.transactional(() -> {
             db.put(prefix + "08-2018/1", "name=chucho,age=9,sex=FEMALE");
             db.put(prefix + "08-2018/2", "name=faria,age=8,sex=FEMALE");
             db.put(prefix + "08-2018/3", "name=din,age=7,sex=MALE");
-            db.commit();
-        } catch (Throwable e) {
-            db.rollback();
-            throw e;
-        }
+        });
 
-        db.beginTransaction();
-        try {
+        db.readOnly(() -> {
             assertEquals("name=chucho,age=9,sex=FEMALE", db.get(prefix + "08-2018/1"));
             assertEquals("name=faria,age=8,sex=FEMALE", db.get(prefix + "08-2018/2"));
             assertEquals("name=din,age=7,sex=MALE", db.get(prefix + "08-2018/3"));
-            db.commit();
-        } catch (Throwable e) {
-            db.rollback();
-            throw e;
-        }
+        });
 
         db.beginTransaction();
         try {
@@ -80,7 +158,7 @@ public class CucarachaDb {
             assertEquals("{}", db.find(k -> k.startsWith(prefix), v -> false).toString());
 
             assertFalse(db.find(null, null).isEmpty());
-            
+
             db.commit();
         } catch (Throwable e) {
             db.rollback();
@@ -125,6 +203,7 @@ public class CucarachaDb {
         if (!this.file.exists()) {
             try {
                 this.file.createNewFile();
+                LOG.debug("created data file: " + this.file.toString());
             } catch (IOException e) {
                 throw new RuntimeException("creating file: " + this.file.toString(), e);
             }
@@ -143,6 +222,17 @@ public class CucarachaDb {
         } catch (Throwable e) {
             rollback();
             throw e;
+        }
+    }
+
+    public void readOnly(Runnable runnable) {
+        beginTransaction();
+        try {
+
+            runnable.run();
+
+        } finally {
+            rollback();
         }
     }
 
