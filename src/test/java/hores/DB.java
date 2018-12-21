@@ -1,5 +1,7 @@
 package hores;
 
+import static org.junit.Assert.*;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -13,6 +15,7 @@ import java.util.Random;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,8 +23,9 @@ import hores.DB.ChunkManager.RangedChunk;
 
 public class DB {
 
-    public static void main(String[] args) throws ChunkSizeException, IOException {
-
+    @Test
+    public void testName() throws Exception {
+        
         // serialize(str).length = 7 + str.length()
         System.out.println(serialize("").length);
         System.out.println(serialize("a").length);
@@ -72,21 +76,36 @@ public class DB {
             Random rnd = new Random(0L);
 
             cm.open();
-            for (int i = 0; i < 50; i++) {
+            for (int i = 0; i < 100; i++) {
 
                 long k = Math.abs(rnd.nextLong() % 100);
 
-                ChunkRanges<Long> crs = cm.loadChunkRanges();
-                ChunkRange<Long> range = cm.loadChunkRangeFor(crs, k);
+                {
+                    ChunkRanges<Long> crs = cm.loadChunkRanges();
+                    ChunkRange<Long> range = cm.loadChunkRangeFor(crs, k);
+                    Chunk<Long, String> chunk = cm.loadChunk(crs, range.numChunk);
 
-                Chunk<Long, String> chunk = cm.loadChunk(crs, range.numChunk);
-                chunk.props.put(k, "joujuasjaja" + k);
+                    chunk.props.put(k, "joujuasjaja" + k);
 
-                RangedChunk<Long, String> rc = new RangedChunk<>(range, chunk);
-                cm.storeChunkFor(crs, rc);
-                cm.storeChunkRanges(crs);
+                    RangedChunk<Long, String> rc = new RangedChunk<>(range, chunk);
+                    cm.storeChunkFor(crs, rc);
+                    cm.storeChunkRanges(crs);
+                }
+                
+                
+                {
+                    ChunkRanges<Long> crs = cm.loadChunkRanges();
+                    ChunkRange<Long> range = cm.loadChunkRangeFor(crs, k);
+                    Chunk<Long, String> chunk = cm.loadChunk(crs, range.numChunk);
+
+                    assertEquals("joujuasjaja" + k, chunk.props.get(k));
+
+                }
+
 
             }
+            ChunkRanges<Long> crs = cm.loadChunkRanges();
+            System.out.println("=> " + crs);
             cm.close();
 
         }
