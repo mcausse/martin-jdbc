@@ -25,7 +25,7 @@ public class DB {
 
     @Test
     public void testName() throws Exception {
-        
+
         // serialize(str).length = 7 + str.length()
         System.out.println(serialize("").length);
         System.out.println(serialize("a").length);
@@ -82,26 +82,21 @@ public class DB {
 
                 {
                     ChunkRanges<Long> crs = cm.loadChunkRanges();
-                    ChunkRange<Long> range = cm.loadChunkRangeFor(crs, k);
-                    Chunk<Long, String> chunk = cm.loadChunk(crs, range.numChunk);
+                    RangedChunk<Long, String> rangedChunk = cm.loadChunkRangeFor(crs, k);
 
-                    chunk.props.put(k, "joujuasjaja" + k);
+                    rangedChunk.chunk.props.put(k, "joujuasjaja" + k);
 
-                    RangedChunk<Long, String> rc = new RangedChunk<>(range, chunk);
-                    cm.storeChunkFor(crs, rc);
+                    cm.storeChunkFor(crs, rangedChunk);
                     cm.storeChunkRanges(crs);
                 }
-                
-                
+
                 {
                     ChunkRanges<Long> crs = cm.loadChunkRanges();
-                    ChunkRange<Long> range = cm.loadChunkRangeFor(crs, k);
-                    Chunk<Long, String> chunk = cm.loadChunk(crs, range.numChunk);
+                    RangedChunk<Long, String> rangedChunk = cm.loadChunkRangeFor(crs, k);
 
-                    assertEquals("joujuasjaja" + k, chunk.props.get(k));
+                    assertEquals("joujuasjaja" + k, rangedChunk.chunk.props.get(k));
 
                 }
-
 
             }
             ChunkRanges<Long> crs = cm.loadChunkRanges();
@@ -217,18 +212,16 @@ public class DB {
             }
         }
 
-        public ChunkRange<K> loadChunkRangeFor(ChunkRanges<K> crs, K key) throws IOException {
+        public RangedChunk<K, V> loadChunkRangeFor(ChunkRanges<K> crs, K key) throws IOException {
             ChunkRange<K> findFor = new ChunkRange<>();
             findFor.min = key;
             ChunkRange<K> range = crs.ranges.floor(findFor);
-            LOG.info("loaded: " + range);
-            return range;
-        }
 
-        public Chunk<K, V> loadChunk(ChunkRanges<K> crs, long numChunk) throws IOException {
-            Chunk<K, V> r = new Chunk<>();
-            r.numChunk = numChunk;
-            r.load(chunkRaf, crs.chunkMaxSizeInBytes);
+            Chunk<K, V> chunk = new Chunk<>();
+            chunk.numChunk = range.numChunk;
+            chunk.load(chunkRaf, crs.chunkMaxSizeInBytes);
+
+            RangedChunk<K, V> r = new RangedChunk<>(range, chunk);
             LOG.info("loaded: " + r);
             return r;
         }
@@ -311,7 +304,8 @@ public class DB {
 
         @Override
         public String toString() {
-            return "ChunkRanges [chunkMaxSizeInBytes=" + chunkMaxSizeInBytes + ", ranges=" + ranges + "]";
+            return "ChunkRanges(num=" + ranges.size() + ") [chunkMaxSizeInBytes=" + chunkMaxSizeInBytes + ", ranges="
+                    + ranges + "]";
         }
 
     }
@@ -367,7 +361,7 @@ public class DB {
 
         @Override
         public String toString() {
-            return "Chunk [" + numChunk + ": " + props + "]";
+            return "Chunk(num=" + props.size() + ") [" + numChunk + ": " + props + "]";
         }
 
     }
