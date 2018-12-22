@@ -1,6 +1,6 @@
 package hores;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -11,7 +11,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -19,9 +22,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import hores.DB.ChunkManager.RangedChunk;
+import hores.DB1.ChunkManager.RangedChunk;
 
-public class DB {
+public class DB1 {
 
     @Test
     public void testName() throws Exception {
@@ -82,17 +85,17 @@ public class DB {
 
                 {
                     ChunkRanges<Long> crs = cm.loadChunkRanges();
-                    RangedChunk<Long, String> rangedChunk = cm.loadChunkRangeFor(crs, k);
+                    RangedChunk<Long, String> rangedChunk = cm.loadRangedChunkFor(crs, k);
 
                     rangedChunk.chunk.props.put(k, "joujuasjaja" + k);
 
-                    cm.storeChunkFor(crs, rangedChunk);
+                    cm.storeRangedChunk(crs, rangedChunk);
                     cm.storeChunkRanges(crs);
                 }
 
                 {
                     ChunkRanges<Long> crs = cm.loadChunkRanges();
-                    RangedChunk<Long, String> rangedChunk = cm.loadChunkRangeFor(crs, k);
+                    RangedChunk<Long, String> rangedChunk = cm.loadRangedChunkFor(crs, k);
 
                     assertEquals("joujuasjaja" + k, rangedChunk.chunk.props.get(k));
 
@@ -100,19 +103,66 @@ public class DB {
 
             }
             ChunkRanges<Long> crs = cm.loadChunkRanges();
-            System.out.println("=> " + crs);
+            // System.out.println("=> " + crs);
+
+            List<RangedChunk<Long, String>> results = cm.loadRangedChunksFor(crs, 5L, 10L);
+            System.out.println(results);
+
+            cm.info();
             cm.close();
 
         }
+
+//        {
+//            ChunkManager<Long, String> cm = new ChunkManager<>("test");
+//            cm.recreate(256);
+//
+//            cm.open();
+//
+//            {
+//                ChunkRanges<Long> crs = cm.loadChunkRanges();
+//                RangedChunk<Long, String> rangedChunk = cm.loadRangedChunkFor(crs, k);
+//
+//                rangedChunk.chunk.props.put(2L, "2");
+//                rangedChunk.chunk.props.put(4L, "4");
+//                rangedChunk.chunk.props.put(8L, "8");
+//                rangedChunk.chunk.props.put(16L, "16");
+//
+//                cm.storeRangedChunk(crs, rangedChunk);
+//                cm.storeChunkRanges(crs);
+//            }
+//
+//            cm.info();
+//            cm.close();
+//
+//        }
     }
+
+    // static class DB2<K extends Comparable<K> & Serializable, V extends
+    // Serializable> {
+    //
+    // final ChunkManager<K, V> cman;
+    // final List<RangedChunk<K, V>> cache = new ArrayList<>();
+    //
+    // public DB2(String fileName) throws IOException {
+    // super();
+    // this.cman = new ChunkManager<>(fileName);
+    // }
+    //
+    // public void beginTransaction() {
+    //
+    // }
+    //
+    // }
 
     static class ChunkManager<K extends Comparable<K> & Serializable, V extends Serializable> {
 
         static final Logger LOG = LoggerFactory.getLogger(ChunkManager.class);
 
-        static final long DEFAULT_chunkMaxSizeInBytes = 1024l;
+        static final int DEFAULT_chunkMaxSizeInBytes = 1024;
 
         final String fileName;
+        // final File lockFile;
         final File indexFile;
         final File chunkFile;
 
@@ -122,6 +172,8 @@ public class DB {
         public ChunkManager(String fileName) throws IOException {
             super();
             this.fileName = fileName;
+
+            // this.lockFile = new File(fileName + ".lock");
             this.indexFile = new File(fileName + ".index");
             this.chunkFile = new File(fileName + ".chunks");
             if (!indexFile.exists() || !chunkFile.exists()) {
@@ -141,7 +193,10 @@ public class DB {
             this.chunkRaf = null;
         }
 
-        public void recreate(long chunkMaxSizeInBytes) throws IOException {
+        public void recreate(int chunkMaxSizeInBytes) throws IOException {
+            // if (lockFile.exists()) {
+            // lockFile.delete();
+            // }
             if (indexFile.exists()) {
                 indexFile.delete();
             }
@@ -160,7 +215,7 @@ public class DB {
             recreate(DEFAULT_chunkMaxSizeInBytes);
         }
 
-        protected void initStore(long chunkMaxSizeInBytes) throws IOException {
+        protected void initStore(int chunkMaxSizeInBytes) throws IOException {
 
             ChunkRanges<K> crs = new ChunkRanges<>();
             crs.chunkMaxSizeInBytes = chunkMaxSizeInBytes;
@@ -183,16 +238,27 @@ public class DB {
             crs.store(indexRaf);
         }
 
+        public void info() throws IOException {
+
+            ChunkRanges<K> crs = loadChunkRanges();
+
+            int numChunks = crs.ranges.size();
+            long indexBytes = indexFile.length();
+            long dataBytes = chunkFile.length();
+
+            LOG.info("*** " + numChunks + " chunks, index=" + indexBytes + "b, data=" + dataBytes + "b)");
+        }
+
         public ChunkRanges<K> loadChunkRanges() throws IOException {
             ChunkRanges<K> r = new ChunkRanges<>();
             r.load(indexRaf);
-            LOG.info("loaded ranges: " + r);
+            // LOG.info("loaded ranges: " + r);
             return r;
         }
 
         public void storeChunkRanges(ChunkRanges<K> ranges) throws IOException {
             ranges.store(indexRaf);
-            LOG.info("stored ranges: " + ranges);
+            // LOG.info("stored ranges: " + ranges);
         }
 
         public static class RangedChunk<K extends Comparable<K> & Serializable, V extends Serializable> {
@@ -208,11 +274,11 @@ public class DB {
 
             @Override
             public String toString() {
-                return "RangedChunk [range=" + range + ", chunk=" + chunk + "]";
+                return range + " => " + chunk;
             }
         }
 
-        public RangedChunk<K, V> loadChunkRangeFor(ChunkRanges<K> crs, K key) throws IOException {
+        public RangedChunk<K, V> loadRangedChunkFor(ChunkRanges<K> crs, K key) throws IOException {
             ChunkRange<K> findFor = new ChunkRange<>();
             findFor.min = key;
             ChunkRange<K> range = crs.ranges.floor(findFor);
@@ -222,23 +288,44 @@ public class DB {
             chunk.load(chunkRaf, crs.chunkMaxSizeInBytes);
 
             RangedChunk<K, V> r = new RangedChunk<>(range, chunk);
-            LOG.info("loaded: " + r);
+            // LOG.info("loaded: " + r);
             return r;
         }
 
-        public void storeChunkFor(ChunkRanges<K> crs, RangedChunk<K, V> rc) throws IOException {
+        public List<RangedChunk<K, V>> loadRangedChunksFor(ChunkRanges<K> crs, K start, K end) throws IOException {
+            ChunkRange<K> min = new ChunkRange<>();
+            min.min = start;
+            ChunkRange<K> minCr = crs.ranges.floor(min);
+
+            ChunkRange<K> max = new ChunkRange<>();
+            max.min = end;
+            ChunkRange<K> maxCr = crs.ranges.floor(max);
+
+            SortedSet<ChunkRange<K>> ranges = crs.ranges.subSet(minCr, true, maxCr, true);
+
+            List<RangedChunk<K, V>> r = new ArrayList<>();
+            for (ChunkRange<K> range : ranges) {
+                Chunk<K, V> chunk = new Chunk<>();
+                chunk.numChunk = range.numChunk;
+                chunk.load(chunkRaf, crs.chunkMaxSizeInBytes);
+                r.add(new RangedChunk<>(range, chunk));
+            }
+            return r;
+        }
+
+        public void storeRangedChunk(ChunkRanges<K> crs, RangedChunk<K, V> rc) throws IOException {
 
             try {
                 rc.chunk.store(chunkRaf, crs.chunkMaxSizeInBytes);
-                LOG.info("stored: " + rc);
+                // LOG.info("stored: " + rc);
             } catch (ChunkSizeException e) {
-                LOG.info("splitting: " + rc);
+                // LOG.info("splitting: " + rc);
                 RangedChunk<K, V> newChunk = splitChunk(crs, rc.range, rc.chunk);
                 RangedChunk<K, V> oldChunk = new RangedChunk<>(rc.range, rc.chunk);
-                LOG.info("splitting: " + oldChunk + " || " + newChunk);
+                // LOG.info("splitting: " + oldChunk + " || " + newChunk);
 
-                storeChunkFor(crs, oldChunk);
-                storeChunkFor(crs, newChunk);
+                storeRangedChunk(crs, oldChunk);
+                storeRangedChunk(crs, newChunk);
             }
         }
 
@@ -281,13 +368,13 @@ public class DB {
 
     static class ChunkRanges<K extends Comparable<K> & Serializable> {
 
-        long chunkMaxSizeInBytes;
+        int chunkMaxSizeInBytes;
         TreeSet<ChunkRange<K>> ranges = new TreeSet<>();
 
         @SuppressWarnings("unchecked")
         public void load(RandomAccessFile raf) throws IOException {
             raf.seek(0L);
-            this.chunkMaxSizeInBytes = raf.readLong();
+            this.chunkMaxSizeInBytes = raf.readInt();
             int len = raf.readInt();
             byte[] bs = new byte[len];
             raf.read(bs);
@@ -296,7 +383,7 @@ public class DB {
 
         public void store(RandomAccessFile raf) throws IOException {
             raf.seek(0L);
-            raf.writeLong(chunkMaxSizeInBytes);
+            raf.writeInt(chunkMaxSizeInBytes);
             byte[] bs = serialize(ranges);
             raf.writeInt(bs.length);
             raf.write(bs);
@@ -331,7 +418,7 @@ public class DB {
 
         @Override
         public String toString() {
-            return "ChunkRange [min=" + min + ", max=" + max + ", numChunk=" + numChunk + "]";
+            return "[" + min + ".." + max + ": " + numChunk + "]";
         }
 
     }
@@ -342,9 +429,9 @@ public class DB {
         TreeMap<K, V> props = new TreeMap<>();
 
         @SuppressWarnings("unchecked")
-        public void load(RandomAccessFile raf, long chunkSize) throws IOException {
+        public void load(RandomAccessFile raf, int chunkSize) throws IOException {
             raf.seek(this.numChunk * chunkSize);
-            byte[] bs = new byte[(int) chunkSize]; // TODO que chunkSize sigui int
+            byte[] bs = new byte[chunkSize];
             raf.read(bs);
             this.props = (TreeMap<K, V>) deserialize(bs);
         }
@@ -352,7 +439,6 @@ public class DB {
         public void store(RandomAccessFile raf, long chunkSize) throws ChunkSizeException, IOException {
             byte[] bs = serialize(props);
             if (bs.length > chunkSize) {
-                // System.out.println("ChunkSizeException: " + props);
                 throw new ChunkSizeException();
             }
             raf.seek(this.numChunk * chunkSize);
@@ -361,7 +447,7 @@ public class DB {
 
         @Override
         public String toString() {
-            return "Chunk(num=" + props.size() + ") [" + numChunk + ": " + props + "]";
+            return "(" + numChunk + ":" + props.size() + ") " + props;
         }
 
     }
