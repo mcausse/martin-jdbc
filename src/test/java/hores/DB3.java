@@ -16,6 +16,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import hores.DB1.ChunkManager;
 import hores.DB3.RangesManager.SegmentExceedsSizeException;
 
 public class DB3 {
@@ -23,9 +24,9 @@ public class DB3 {
     @Test
     public void testName() throws Exception {
         DB<Long, String> db = new DB<>("test");
+        db.recreate();
 
         db.open();
-        db.recreate();
         db.begin();
         db.put(2L, "2");
         db.put(3L, "3");
@@ -118,7 +119,7 @@ public class DB3 {
 
         protected void initStore(int chunkMaxSizeInBytes) throws IOException {
 
-            // open();
+            open();
 
             rangesManager.segmentSize = chunkMaxSizeInBytes;
             rangesManager.entries = new TreeMap<>();
@@ -132,10 +133,10 @@ public class DB3 {
             initialSegment.props = new TreeMap<>();
 
             rangesManager.entries.put(initialRange, new CachedSegment<>(initialSegment));
-            rangesManager.store(rangesRaf, segmentsRaf);
+            // rangesManager.store(rangesRaf, segmentsRaf);
 
-            // commit();
-            // close();
+            commit();
+            close();
         }
 
         public void put(K key, V value) throws IOException {
@@ -158,9 +159,17 @@ public class DB3 {
             this.segment = segment;
             this.hitCount = 0;
         }
+
+        @Override
+        public String toString() {
+            return "hitCount=" + hitCount + ", " + segment + "]";
+        }
+
     }
 
     public static class RangesManager<K extends Comparable<K> & Serializable, V extends Serializable> {
+
+        static final Logger LOG = LoggerFactory.getLogger(RangesManager.class);
 
         int segmentSize = -1;
         TreeMap<Range<K, V>, CachedSegment<K, V>> entries;
@@ -194,7 +203,10 @@ public class DB3 {
                 Segment<K, V> segment = new Segment<>();
                 segment.load(segmentsRaf, entry.getKey().numSegment, segmentSize);
                 cachedSegment = new CachedSegment<>(segment);
-                entry.setValue(cachedSegment);
+
+                // entry.setValue(cachedSegment);
+                this.entries.put(entry.getKey(), cachedSegment);
+                return findFor(segmentsRaf, key);
             }
             cachedSegment.hitCount++;
             return entry;
@@ -207,6 +219,8 @@ public class DB3 {
 
         public void store(RandomAccessFile rangesRaf, RandomAccessFile segmentsRaf) throws IOException {
 
+            LOG.info("Storing ranges: " + entries);
+
             // guarda ranges
             rangesRaf.seek(0L);
             rangesRaf.writeInt(segmentSize);
@@ -216,10 +230,11 @@ public class DB3 {
             rangesRaf.write(bs);
 
             // guarda segments
-            for (Range<K, V> range : entries.keySet()) {
-                CachedSegment<K, V> segment = entries.get(range);
+            for (Entry<Range<K, V>, CachedSegment<K, V>> entry : entries.entrySet()) {
+                CachedSegment<K, V> segment = entry.getValue();
                 if (segment != null) {
-                    storeSegment(segmentsRaf, range, segment);
+                    LOG.info("Storing segment: " + segment);
+                    storeSegment(segmentsRaf, entry.getKey(), segment);
                 }
             }
         }
@@ -258,7 +273,38 @@ public class DB3 {
 
         K min;
         K max;
-        int numSegment;
+        int numSegment = -1;
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((max == null) ? 0 : max.hashCode());
+            result = prime * result + ((min == null) ? 0 : min.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            Range other = (Range) obj;
+            if (max == null) {
+                if (other.max != null)
+                    return false;
+            } else if (!max.equals(other.max))
+                return false;
+            if (min == null) {
+                if (other.min != null)
+                    return false;
+            } else if (!min.equals(other.min))
+                return false;
+            return true;
+        }
 
         @Override
         public int compareTo(Range<K, V> o) {
@@ -269,6 +315,11 @@ public class DB3 {
                 return 1;
             }
             return this.min.compareTo(o.min);
+        }
+
+        @Override
+        public String toString() {
+            return "[" + min + ".." + max + ": " + numSegment + "]";
         }
 
     }
@@ -285,6 +336,7 @@ public class DB3 {
             if (bs.length > segmentSize) {
                 throw new SegmentExceedsSizeException();
             }
+            segmentsRaf.writeInt(bs.length);
             segmentsRaf.write(bs);
         }
 
@@ -292,10 +344,17 @@ public class DB3 {
         public void load(RandomAccessFile segmentsRaf, long numSegment, int segmentSize) throws IOException {
             long atSeek = segmentSize * numSegment;
             segmentsRaf.seek(atSeek);
-            byte[] bs = new byte[segmentSize];
+            int bslen = segmentsRaf.readInt();
+            byte[] bs = new byte[bslen];
             segmentsRaf.read(bs);
             this.props = (TreeMap<K, V>) DB1.deserialize(bs);
         }
+
+        @Override
+        public String toString() {
+            return props.toString();
+        }
+
     }
 
 }
