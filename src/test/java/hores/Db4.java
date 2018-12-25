@@ -1,11 +1,14 @@
 package hores;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.junit.Test;
@@ -16,13 +19,10 @@ import hores.DB3.RangesManager.SegmentExceedsSizeException;
 
 /**
  * <pre>
- *
- *  0 0 000000
- *  | | |
- *  | | +-- N
- *  | +---- add/sub ant + N
- *  +------ inverteix mode compressió/noncompressió
- *
+ * 
+ *  propietats transient 
+ *  un do{}while
+ * 
  * </pre>
  */
 public class Db4 {
@@ -37,14 +37,34 @@ public class Db4 {
         map.put(1L, "one");
         map.put(2L, "two");
         map.put(3L, "three");
+        map.put(4L, "four");
+        map.put(5L, "five");
+        assertEquals("one", map.get(1L));
+        assertEquals("five", map.get(5L));
         map.store();
+
+        map.load();
+        assertEquals("one", map.get(1L));
+        assertEquals("five", map.get(5L));
+
+        assertEquals("{1=one, 2=two, 3=three, 4=four, 5=five}", map.get(0L, 6L).toString());
+        assertEquals("{1=one, 2=two, 3=three, 4=four, 5=five}", map.get(1L, 5L).toString());
+        assertEquals("{2=two, 3=three, 4=four}", map.get(2L, 4L).toString());
+        assertEquals("{3=three}", map.get(3L, 3L).toString());
+
+        assertEquals("{1=one, 2=two, 3=three}", map.get(null, 3L).toString());
+        assertEquals("{3=three, 4=four, 5=five}", map.get(3L, null).toString());
+        assertEquals("{1=one, 2=two, 3=three, 4=four, 5=five}", map.get(null, null).toString());
+        map.store();
+
     }
 
     public static class Segment<K extends Comparable<K> & Serializable, V extends Serializable> {
 
         TreeMap<K, V> props;
-        boolean changed;
-        int hits;
+
+        transient boolean changed;
+        transient int hits;
 
         @Override
         public String toString() {
@@ -212,14 +232,54 @@ public class Db4 {
             Range<K, V> findFor = new Range<>();
             findFor.min = key;
             Range<K, V> range = this.segments.floorKey(findFor);
+            Segment<K, V> segment = loadSegmentFor(range);
+            segment.props.put(key, value);
+            segment.changed = true;
+        }
+
+        public V get(K key) throws IOException {
+            Range<K, V> findFor = new Range<>();
+            findFor.min = key;
+            Range<K, V> range = this.segments.floorKey(findFor);
+            Segment<K, V> segment = loadSegmentFor(range);
+            return segment.props.get(key);
+        }
+
+        private Segment<K, V> loadSegmentFor(Range<K, V> range) throws IOException {
             Segment<K, V> segment = this.segments.get(range);
             if (segment == null) {
                 loadSegment(range);
                 segment = this.segments.get(range);
             }
             segment.hits++;
-            segment.changed = true;
-            segment.props.put(key, value);
+            return segment;
+        }
+
+        public TreeMap<K, V> get(K min, K max) throws IOException {
+
+            Range<K, V> findForMin = new Range<>();
+            findForMin.min = min;
+            Range<K, V> rangeMin = this.segments.floorKey(findForMin);
+
+            Range<K, V> findForMax = new Range<>();
+            findForMax.min = max;
+            Range<K, V> rangeMax = this.segments.floorKey(findForMax);
+
+            Set<Range<K, V>> ranges = this.segments.subMap(rangeMin, true, rangeMax, true).keySet();
+
+            TreeMap<K, V> r = new TreeMap<>();
+            for (Range<K, V> range : ranges) {
+
+                Segment<K, V> segment = loadSegmentFor(range);
+                for (K key : segment.props.keySet()) {
+
+                    if (Range.compare(min, key) <= 0 && Range.compare(key, max) <= 0) {
+                        r.put(key, segment.props.get(key));
+                    }
+                }
+
+            }
+            return r;
         }
 
     }
@@ -235,16 +295,20 @@ public class Db4 {
 
         @Override
         public int compareTo(Range<K, V> o) {
-            if (this.min == null && o.min == null) {
+            return compare(this.min, o.min);
+        }
+
+        public static <K extends Comparable<K> & Serializable> int compare(K o1, K o2) {
+            if (o1 == null && o2 == null) {
                 return 0;
             }
-            if (this.min == null) {
+            if (o1 == null) {
                 return -1;
             }
-            if (o.min == null) {
+            if (o2 == null) {
                 return 1;
             }
-            return this.min.compareTo(o.min);
+            return o1.compareTo(o2);
         }
 
         @Override
