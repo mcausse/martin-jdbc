@@ -1,10 +1,9 @@
 
 package hores;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.Serializable;
@@ -16,7 +15,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import hores.DB1.ChunkManager;
 import hores.DB3.RangesManager.SegmentExceedsSizeException;
 
 public class DB3 {
@@ -291,30 +289,37 @@ public class DB3 {
         public int hashCode() {
             final int prime = 31;
             int result = 1;
-            result = prime * result + ((max == null) ? 0 : max.hashCode());
-            result = prime * result + ((min == null) ? 0 : min.hashCode());
+            result = prime * result + (max == null ? 0 : max.hashCode());
+            result = prime * result + (min == null ? 0 : min.hashCode());
             return result;
         }
 
         @Override
         public boolean equals(Object obj) {
-            if (this == obj)
+            if (this == obj) {
                 return true;
-            if (obj == null)
+            }
+            if (obj == null) {
                 return false;
-            if (getClass() != obj.getClass())
+            }
+            if (getClass() != obj.getClass()) {
                 return false;
+            }
             Range other = (Range) obj;
             if (max == null) {
-                if (other.max != null)
+                if (other.max != null) {
                     return false;
-            } else if (!max.equals(other.max))
+                }
+            } else if (!max.equals(other.max)) {
                 return false;
+            }
             if (min == null) {
-                if (other.min != null)
+                if (other.min != null) {
                     return false;
-            } else if (!min.equals(other.min))
+                }
+            } else if (!min.equals(other.min)) {
                 return false;
+            }
             return true;
         }
 

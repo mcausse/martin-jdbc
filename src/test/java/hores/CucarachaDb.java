@@ -22,103 +22,104 @@ import org.slf4j.LoggerFactory;
  */
 public class CucarachaDb {
 
-//    public abstract class S<E, ID> {
-//
-//        final CucarachaDb db;
-//        final Class<E> entityClass;
-//
-//        public S(CucarachaDb db, Class<E> entityClass) {
-//            super();
-//            this.db = db;
-//            this.entityClass = entityClass;
-//        }
-//
-//        protected abstract String serialKey(ID t);
-//
-//        protected abstract String serialValue(E entity);
-//
-//        protected abstract void deserialKey(E entity, String k);
-//
-//        protected abstract void deserialValue(E entity, String v);
-//
-//        public boolean exist(ID id) {
-//            String key = serialKey(id);
-//            return db.exist(key);
-//        }
-//
-//        public E get(String key) throws Exception {
-//            E r = entityClass.newInstance();
-//            deserialKey(r, key);
-//            String value = db.get(key);
-//            deserialValue(r, value);
-//            return r;
-//        }
-//
-////        public Map<String, String> find(Predicate<ID> keyPredicate, Predicate<E> valuePredicate) {
-////            return db.find(keyPredicate, valuePredicate);
-////        }
-//
-//        public void remove(ID id) {
-//            String key = serialKey(id);
-//            db.remove(key);
-//        }
-//
-//        public void put(E entity) {
-//            String key = serialKey(entity);
-//            String value = serialValue(entity);
-//            db.put(key, value);
-//        }
-//
-//    }
-//
-//    class ExpId {
-//        int anyExp;
-//        long numExp;
-//    }
-//
-//    class Exp {
-//        ExpId id;
-//        String name;
-//        float cost;
-//    }
-//
-//    class ExpS extends S<Exp> {
-//
-//        public ExpS(CucarachaDb db) {
-//            super(db);
-//        }
-//
-//        @Override
-//        public String serialKey(Exp t) {
-//            if (t.id == null) {
-//                throw new RuntimeException();
-//            }
-//            return t.id.anyExp + "/" + t.id.numExp;
-//        }
-//
-//        @Override
-//        public String serialValue(Exp t) {
-//            return "name=" + t.name + ",cost=" + t.cost;
-//        }
-//
-//        @Override
-//        public void deserialKey(Exp t, String k) {
-//            if (t.id == null) {
-//                t.id = new ExpId();
-//            }
-//            String[] ps = k.split("\\/");
-//            t.id.anyExp = Integer.parseInt(ps[0]);
-//            t.id.numExp = Long.parseLong(ps[1]);
-//        }
-//
-//        @Override
-//        public void deserialValue(Exp t, String v) {
-//            String[] ps = v.split("\\,");
-//            t.name = ps[0].split("\\=")[1];
-//            t.cost = Float.parseFloat(ps[1].split("\\=")[1]);
-//        }
-//
-//    }
+    // public abstract class S<E, ID> {
+    //
+    // final CucarachaDb db;
+    // final Class<E> entityClass;
+    //
+    // public S(CucarachaDb db, Class<E> entityClass) {
+    // super();
+    // this.db = db;
+    // this.entityClass = entityClass;
+    // }
+    //
+    // protected abstract String serialKey(ID t);
+    //
+    // protected abstract String serialValue(E entity);
+    //
+    // protected abstract void deserialKey(E entity, String k);
+    //
+    // protected abstract void deserialValue(E entity, String v);
+    //
+    // public boolean exist(ID id) {
+    // String key = serialKey(id);
+    // return db.exist(key);
+    // }
+    //
+    // public E get(String key) throws Exception {
+    // E r = entityClass.newInstance();
+    // deserialKey(r, key);
+    // String value = db.get(key);
+    // deserialValue(r, value);
+    // return r;
+    // }
+    //
+    //// public Map<String, String> find(Predicate<ID> keyPredicate, Predicate<E>
+    // valuePredicate) {
+    //// return db.find(keyPredicate, valuePredicate);
+    //// }
+    //
+    // public void remove(ID id) {
+    // String key = serialKey(id);
+    // db.remove(key);
+    // }
+    //
+    // public void put(E entity) {
+    // String key = serialKey(entity);
+    // String value = serialValue(entity);
+    // db.put(key, value);
+    // }
+    //
+    // }
+    //
+    // class ExpId {
+    // int anyExp;
+    // long numExp;
+    // }
+    //
+    // class Exp {
+    // ExpId id;
+    // String name;
+    // float cost;
+    // }
+    //
+    // class ExpS extends S<Exp> {
+    //
+    // public ExpS(CucarachaDb db) {
+    // super(db);
+    // }
+    //
+    // @Override
+    // public String serialKey(Exp t) {
+    // if (t.id == null) {
+    // throw new RuntimeException();
+    // }
+    // return t.id.anyExp + "/" + t.id.numExp;
+    // }
+    //
+    // @Override
+    // public String serialValue(Exp t) {
+    // return "name=" + t.name + ",cost=" + t.cost;
+    // }
+    //
+    // @Override
+    // public void deserialKey(Exp t, String k) {
+    // if (t.id == null) {
+    // t.id = new ExpId();
+    // }
+    // String[] ps = k.split("\\/");
+    // t.id.anyExp = Integer.parseInt(ps[0]);
+    // t.id.numExp = Long.parseLong(ps[1]);
+    // }
+    //
+    // @Override
+    // public void deserialValue(Exp t, String v) {
+    // String[] ps = v.split("\\,");
+    // t.name = ps[0].split("\\=")[1];
+    // t.cost = Float.parseFloat(ps[1].split("\\=")[1]);
+    // }
+    //
+    // }
 
     public static void main(String[] args) throws Throwable {
 

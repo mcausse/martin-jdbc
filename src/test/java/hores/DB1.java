@@ -113,29 +113,29 @@ public class DB1 {
 
         }
 
-//        {
-//            ChunkManager<Long, String> cm = new ChunkManager<>("test");
-//            cm.recreate(256);
-//
-//            cm.open();
-//
-//            {
-//                ChunkRanges<Long> crs = cm.loadChunkRanges();
-//                RangedChunk<Long, String> rangedChunk = cm.loadRangedChunkFor(crs, k);
-//
-//                rangedChunk.chunk.props.put(2L, "2");
-//                rangedChunk.chunk.props.put(4L, "4");
-//                rangedChunk.chunk.props.put(8L, "8");
-//                rangedChunk.chunk.props.put(16L, "16");
-//
-//                cm.storeRangedChunk(crs, rangedChunk);
-//                cm.storeChunkRanges(crs);
-//            }
-//
-//            cm.info();
-//            cm.close();
-//
-//        }
+        // {
+        // ChunkManager<Long, String> cm = new ChunkManager<>("test");
+        // cm.recreate(256);
+        //
+        // cm.open();
+        //
+        // {
+        // ChunkRanges<Long> crs = cm.loadChunkRanges();
+        // RangedChunk<Long, String> rangedChunk = cm.loadRangedChunkFor(crs, k);
+        //
+        // rangedChunk.chunk.props.put(2L, "2");
+        // rangedChunk.chunk.props.put(4L, "4");
+        // rangedChunk.chunk.props.put(8L, "8");
+        // rangedChunk.chunk.props.put(16L, "16");
+        //
+        // cm.storeRangedChunk(crs, rangedChunk);
+        // cm.storeChunkRanges(crs);
+        // }
+        //
+        // cm.info();
+        // cm.close();
+        //
+        // }
     }
 
     // static class DB2<K extends Comparable<K> & Serializable, V extends
