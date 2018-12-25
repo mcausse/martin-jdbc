@@ -175,8 +175,8 @@ public class DB3 {
         TreeMap<Range<K, V>, CachedSegment<K, V>> entries;
 
         public void put(RandomAccessFile segmentsRaf, K key, V value) throws IOException {
-            Entry<Range<K, V>, CachedSegment<K, V>> entry = findFor(segmentsRaf, key);
-            entry.getValue().segment.props.put(key, value);
+            Entrye<K, V> entry = findFor(segmentsRaf, key);
+            entry.segment.segment.props.put(key, value);
         }
 
         public void clear() {
@@ -185,16 +185,27 @@ public class DB3 {
         }
 
         public V get(RandomAccessFile segmentsRaf, K key) throws IOException {
-            Entry<Range<K, V>, CachedSegment<K, V>> entry = findFor(segmentsRaf, key);
-            return entry.getValue().segment.props.get(key);
+            Entrye<K, V> entry = findFor(segmentsRaf, key);
+            return entry.segment.segment.props.get(key);
+        }
+
+        public static class Entrye<K extends Comparable<K> & Serializable, V extends Serializable> {
+
+            public final Range<K, V> range;
+            public final CachedSegment<K, V> segment;
+
+            public Entrye(Range<K, V> range, CachedSegment<K, V> segment) {
+                super();
+                this.range = range;
+                this.segment = segment;
+            }
         }
 
         /**
          * busca el rang candidat a contenir K. Si el segment del rang no està carregat,
          * el carrega.
          */
-        protected Entry<Range<K, V>, CachedSegment<K, V>> findFor(RandomAccessFile segmentsRaf, K key)
-                throws IOException {
+        protected Entrye<K, V> findFor(RandomAccessFile segmentsRaf, K key) throws IOException {
             Range<K, V> findFor = new Range<>();
             findFor.min = key;
             Entry<Range<K, V>, CachedSegment<K, V>> entry = entries.floorEntry(findFor);
@@ -204,12 +215,13 @@ public class DB3 {
                 segment.load(segmentsRaf, entry.getKey().numSegment, segmentSize);
                 cachedSegment = new CachedSegment<>(segment);
 
-                // entry.setValue(cachedSegment);
+                System.out.println(this.entries.containsKey(entry.getKey()));
                 this.entries.put(entry.getKey(), cachedSegment);
-                return findFor(segmentsRaf, key);
+                System.out.println(this.entries.containsKey(entry.getKey()));
             }
             cachedSegment.hitCount++;
-            return entry;
+
+            return new Entrye<K, V>(entry.getKey(), this.entries.get(entry.getKey()));
         }
 
         public static class SegmentExceedsSizeException extends Exception {
