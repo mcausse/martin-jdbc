@@ -37,7 +37,7 @@ public class Db4 {
 
     @Test
     public void testName() throws Exception {
-        M<Long, String> map = new M<>("testo");
+        M<Long, String> map = new M<>("testo", 5);
         map.recreate();
         map.initStore(512);
 
@@ -78,7 +78,7 @@ public class Db4 {
 
     @Test
     public void testName2() throws Exception {
-        M<Long, String> map = new M<>("testo");
+        M<Long, String> map = new M<>("testo", 1);
         map.recreate();
         map.initStore(256);
 
@@ -121,6 +121,8 @@ public class Db4 {
         TreeMap<Range<K, V>, Segment<K, V>> segments;
 
         final String fileName;
+        final int MAX_CACHE_SIZE;
+
         // final File lockFile;
         final File rangesFile;
         final File segmentsFile;
@@ -128,9 +130,10 @@ public class Db4 {
         RandomAccessFile rangesRaf;
         RandomAccessFile segmentsRaf;
 
-        public M(String fileName) throws IOException {
+        public M(String fileName, int MAX_CACHE_SIZE) throws IOException {
             super();
             this.fileName = fileName;
+            this.MAX_CACHE_SIZE = MAX_CACHE_SIZE;
 
             // this.lockFile = new File(fileName + ".lock");
             this.rangesFile = new File(fileName + ".index");
@@ -248,6 +251,10 @@ public class Db4 {
 
             } catch (SegmentExceedsSizeException e) {
 
+                /*
+                 * el segment supera lo permès => splitta en 2 i crida recursiva
+                 */
+
                 Range<K, V> range1 = new Range<>();
                 Range<K, V> range2 = new Range<>();
 
@@ -309,6 +316,42 @@ public class Db4 {
             LOG.info("loaded segment: " + range + " => " + segment);
         }
 
+        protected Segment<K, V> loadSegmentFor(Range<K, V> range) throws IOException {
+            Segment<K, V> segment = this.segments.get(range);
+            if (segment == null) {
+                cacheGarbageCollector(range);
+                loadSegment(range);
+                segment = this.segments.get(range);
+            }
+            segment.hits++;
+            return segment;
+        }
+
+        protected void cacheGarbageCollector(Range<K, V> excludeRange) {
+
+            int cacheSize = 0;
+            for (Entry<Range<K, V>, Segment<K, V>> e : this.segments.entrySet()) {
+                if (e.getValue() != null) {
+                    cacheSize++;
+                }
+            }
+
+            if (cacheSize >= MAX_CACHE_SIZE) {
+                Range<K, V> best = null;
+                int lowestHits = Integer.MAX_VALUE;
+                for (Entry<Range<K, V>, Segment<K, V>> e : this.segments.entrySet()) {
+                    if (!e.getKey().equals(excludeRange) && e.getValue() != null && lowestHits > e.getValue().hits) {
+                        best = e.getKey();
+                        lowestHits = e.getValue().hits;
+                    }
+                }
+                if (best != null) {
+                    LOG.info("deallocated " + best);
+                    this.segments.remove(best);
+                }
+            }
+        }
+
         public void put(K key, V value) throws IOException {
             Range<K, V> findFor = new Range<>();
             findFor.min = key;
@@ -333,16 +376,6 @@ public class Db4 {
             Range<K, V> range = this.segments.floorKey(findFor);
             Segment<K, V> segment = loadSegmentFor(range);
             return segment.props.get(key);
-        }
-
-        protected Segment<K, V> loadSegmentFor(Range<K, V> range) throws IOException {
-            Segment<K, V> segment = this.segments.get(range);
-            if (segment == null) {
-                loadSegment(range);
-                segment = this.segments.get(range);
-            }
-            segment.hits++;
-            return segment;
         }
 
         public TreeMap<K, V> get(K min, K max) throws IOException {
@@ -395,6 +428,35 @@ public class Db4 {
         K min;
         K max;
         Integer numSegment;
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            Range other = (Range) obj;
+            if (max == null) {
+                if (other.max != null) {
+                    return false;
+                }
+            } else if (!max.equals(other.max)) {
+                return false;
+            }
+            if (min == null) {
+                if (other.min != null) {
+                    return false;
+                }
+            } else if (!min.equals(other.min)) {
+                return false;
+            }
+            return true;
+        }
 
         @Override
         public int compareTo(Range<K, V> o) {
