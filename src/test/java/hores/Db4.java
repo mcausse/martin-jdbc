@@ -1,6 +1,6 @@
 package hores;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,10 +19,10 @@ import hores.DB3.RangesManager.SegmentExceedsSizeException;
 
 /**
  * <pre>
- * 
- *  propietats transient 
+ *
+ *  propietats transient
  *  un do{}while
- * 
+ *
  * </pre>
  */
 public class Db4 {
@@ -63,6 +63,35 @@ public class Db4 {
         assertEquals("{1=one, 2=two, 3=three}", map.get(null, 3L).toString());
         assertEquals("{3=three, 4=four, 5=five}", map.get(3L, null).toString());
         assertEquals("{1=one, 2=two, 3=three, 4=four, 5=five}", map.get(null, null).toString());
+        map.store();
+
+        map.load();
+        map.remove(3L);
+        assertEquals("{1=one, 2=two, 4=four, 5=five}", map.get(null, null).toString());
+        map.store();
+
+        map.load();
+        assertEquals("{1=one, 2=two, 4=four, 5=five}", map.get(null, null).toString());
+        map.store();
+
+    }
+
+    @Test
+    public void testName2() throws Exception {
+        M<Long, String> map = new M<>("testo");
+        map.recreate();
+        map.initStore(256);
+
+        map.load();
+        for (long i = 0L; i < 501L; i++) {
+            map.put(i, "jou" + i);
+        }
+        map.store();
+
+        map.load();
+        assertEquals("jou0", map.get(0L));
+        assertEquals("jou100", map.get(100L));
+        assertEquals("jou500", map.get(500L));
         map.store();
 
     }
@@ -171,14 +200,6 @@ public class Db4 {
 
         public void store() throws IOException {
 
-            // guarda ranges
-            rangesRaf.seek(0L);
-            rangesRaf.writeInt(segmentSize);
-            ArrayList<Range<K, V>> ranges = new ArrayList<>(segments.keySet());
-            byte[] bs = DB1.serialize(ranges);
-            rangesRaf.writeInt(bs.length);
-            rangesRaf.write(bs);
-
             // guarda segments
             for (Entry<Range<K, V>, Segment<K, V>> entry : segments.entrySet()) {
                 Segment<K, V> segment = entry.getValue();
@@ -186,6 +207,14 @@ public class Db4 {
                     storeSegment(segmentsRaf, entry.getKey(), segment);
                 }
             }
+
+            // guarda ranges
+            rangesRaf.seek(0L);
+            rangesRaf.writeInt(segmentSize);
+            ArrayList<Range<K, V>> ranges = new ArrayList<>(segments.keySet());
+            byte[] bs = DB1.serialize(ranges);
+            rangesRaf.writeInt(bs.length);
+            rangesRaf.write(bs);
 
             // TODO comprovar que no estigui ja close()
             // TODO deslockar
@@ -212,8 +241,46 @@ public class Db4 {
                 LOG.info("stored segment: " + range + " => " + segment);
 
             } catch (SegmentExceedsSizeException e) {
-                // TODO Auto-generated catch block
-                throw new RuntimeException(e);
+
+                Range<K, V> range1 = new Range<>();
+                Range<K, V> range2 = new Range<>();
+
+                Segment<K, V> segment1 = new Segment<>();
+                Segment<K, V> segment2 = new Segment<>();
+
+                segment1.changed = true;
+                segment1.props = new TreeMap<>();
+                segment2.changed = true;
+                segment2.props = new TreeMap<>();
+
+                range1.min = range.min;
+                range2.max = range.max;
+
+                boolean addToFirst = true;
+                int i = 0;
+                for (Entry<K, V> prop : segment.props.entrySet()) {
+
+                    if (i == segment.props.size() / 2) {
+                        range1.max = range2.min = prop.getKey();
+                        addToFirst = false;
+                    }
+                    if (addToFirst) {
+                        segment1.props.put(prop.getKey(), prop.getValue());
+                    } else {
+                        segment2.props.put(prop.getKey(), prop.getValue());
+                    }
+
+                    i++;
+                }
+
+                range1.numSegment = range.numSegment;
+                range2.numSegment = this.segments.size();
+
+                this.segments.put(range1, segment1);
+                this.segments.put(range2, segment2);
+
+                storeSegment(segmentsRaf, range1, segment1);
+                storeSegment(segmentsRaf, range2, segment2);
             }
         }
 
@@ -245,6 +312,15 @@ public class Db4 {
             segment.changed = true;
         }
 
+        public void remove(K key) throws IOException {
+            Range<K, V> findFor = new Range<>();
+            findFor.min = key;
+            Range<K, V> range = this.segments.floorKey(findFor);
+            Segment<K, V> segment = loadSegmentFor(range);
+            segment.props.remove(key);
+            segment.changed = true;
+        }
+
         public V get(K key) throws IOException {
             Range<K, V> findFor = new Range<>();
             findFor.min = key;
@@ -253,7 +329,7 @@ public class Db4 {
             return segment.props.get(key);
         }
 
-        private Segment<K, V> loadSegmentFor(Range<K, V> range) throws IOException {
+        protected Segment<K, V> loadSegmentFor(Range<K, V> range) throws IOException {
             Segment<K, V> segment = this.segments.get(range);
             if (segment == null) {
                 loadSegment(range);
