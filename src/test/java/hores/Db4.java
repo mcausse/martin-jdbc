@@ -92,6 +92,7 @@ public class Db4 {
         assertEquals("jou0", map.get(0L));
         assertEquals("jou100", map.get(100L));
         assertEquals("jou500", map.get(500L));
+        map.info();
         map.store();
 
     }
@@ -137,6 +138,11 @@ public class Db4 {
             if (!rangesFile.exists() || !segmentsFile.exists()) {
                 recreate();
             }
+        }
+
+        public void info() {
+            LOG.info("*** [" + fileName + "]: " + segments.size() + " segments (" + segments.size() * segmentSize / 1024
+                    + " Kb)");
         }
 
         public void recreate() throws IOException {
