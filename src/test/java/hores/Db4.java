@@ -1,6 +1,6 @@
 package hores;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +26,14 @@ import hores.DB3.RangesManager.SegmentExceedsSizeException;
  * </pre>
  */
 public class Db4 {
+
+    @Test
+    public void testRangeComparison() throws Exception {
+
+        Range<Long, String> r = new Range<>();
+        r.min = null;
+
+    }
 
     @Test
     public void testName() throws Exception {
@@ -273,7 +281,20 @@ public class Db4 {
                 Segment<K, V> segment = loadSegmentFor(range);
                 for (K key : segment.props.keySet()) {
 
-                    if (Range.compare(min, key) <= 0 && Range.compare(key, max) <= 0) {
+                    // if (Range.compare(min, key) <= 0 && Range.compare(key, max) <= 0) {
+                    // r.put(key, segment.props.get(key));
+                    // }
+                    if (min == null && max == null) {
+                        r.put(key, segment.props.get(key));
+                    } else if (min == null) {
+                        if (key.compareTo(max) <= 0) {
+                            r.put(key, segment.props.get(key));
+                        }
+                    } else if (max == null) {
+                        if (min.compareTo(key) <= 0) {
+                            r.put(key, segment.props.get(key));
+                        }
+                    } else if (min.compareTo(key) <= 0 && key.compareTo(max) <= 0) {
                         r.put(key, segment.props.get(key));
                     }
                 }
@@ -298,17 +319,17 @@ public class Db4 {
             return compare(this.min, o.min);
         }
 
-        public static <K extends Comparable<K> & Serializable> int compare(K o1, K o2) {
-            if (o1 == null && o2 == null) {
+        public static <K extends Comparable<K> & Serializable> int compare(K a, K b) {
+            if (a == null && b == null) {
                 return 0;
             }
-            if (o1 == null) {
+            if (a == null) {
                 return -1;
             }
-            if (o2 == null) {
+            if (b == null) {
                 return 1;
             }
-            return o1.compareTo(o2);
+            return a.compareTo(b);
         }
 
         @Override
