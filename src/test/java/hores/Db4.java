@@ -1,6 +1,6 @@
 package hores;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,6 +8,8 @@ import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Map.Entry;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -26,14 +28,6 @@ import hores.DB3.RangesManager.SegmentExceedsSizeException;
  * </pre>
  */
 public class Db4 {
-
-    @Test
-    public void testRangeComparison() throws Exception {
-
-        Range<Long, String> r = new Range<>();
-        r.min = null;
-
-    }
 
     @Test
     public void testName() throws Exception {
@@ -83,7 +77,7 @@ public class Db4 {
         map.initStore(256);
 
         map.load();
-        for (long i = 0L; i < 501L; i++) {
+        for (long i = 0L; i < 500L; i++) {
             map.put(i, "jou" + i);
         }
         map.store();
@@ -91,10 +85,48 @@ public class Db4 {
         map.load();
         assertEquals("jou0", map.get(0L));
         assertEquals("jou100", map.get(100L));
-        assertEquals("jou500", map.get(500L));
+        assertEquals("jou499", map.get(499L));
         map.info();
         map.store();
 
+    }
+
+    @Test
+    public void testThreads() throws Exception {
+
+        M<String, String> map = new M<>("testo", 32);
+        map.recreate();
+        map.initStore(256);
+
+        for (int i = 0; i < 50; i++) {
+            new Thread(() -> threadableSimpleTest(map)).start();
+        }
+
+    }
+
+    private void threadableSimpleTest(M<String, String> map) {
+
+        long prefix = Thread.currentThread().getId();
+
+        try {
+
+            map.load();
+            for (long i = 0L; i < 501L; i++) {
+                map.put(String.valueOf(prefix) + i, String.valueOf(prefix) + i);
+            }
+            map.store();
+
+            
+            map.load();
+            for (long i = 0L; i < 501L; i++) {
+                map.put(String.valueOf(prefix) + i, String.valueOf(prefix) + i);
+                assertEquals(String.valueOf(prefix) + i, map.get(String.valueOf(prefix) + i));
+            }
+            map.store();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static class Segment<K extends Comparable<K> & Serializable, V extends Serializable> {
@@ -129,6 +161,9 @@ public class Db4 {
 
         RandomAccessFile rangesRaf;
         RandomAccessFile segmentsRaf;
+        
+        final ReadWriteLock lock = new ReentrantReadWriteLock();//TODO
+
 
         public M(String fileName, int MAX_CACHE_SIZE) throws IOException {
             super();
@@ -327,7 +362,7 @@ public class Db4 {
             return segment;
         }
 
-        protected void cacheGarbageCollector(Range<K, V> excludeRange) {
+        protected void cacheGarbageCollector(Range<K, V> excludeRange) throws IOException {
 
             int cacheSize = 0;
             for (Entry<Range<K, V>, Segment<K, V>> e : this.segments.entrySet()) {
@@ -346,6 +381,7 @@ public class Db4 {
                     }
                 }
                 if (best != null) {
+                    storeSegment(segmentsRaf, best, this.segments.get(best));
                     LOG.info("deallocated " + best);
                     this.segments.remove(best);
                 }
