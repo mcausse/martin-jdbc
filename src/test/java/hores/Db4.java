@@ -402,6 +402,7 @@ public class Db4 {
                     if (best.getValue().changed) {
                         storeSegment(segmentsRaf, best.getKey(), best.getValue());
                     }
+                    this.segments.put(best.getKey(), null);
                     LOG.info("deallocated " + best);
                 }
             }
