@@ -32,8 +32,9 @@ public class Db4 {
     @Test
     public void testName() throws Exception {
         M<Long, String> map = new M<>("testo", 5);
-        map.recreate();
-        map.initStore(512);
+        map.recreateFiles();
+        map.init(512);
+        map.store();
 
         map.load();
         map.put(1L, "one");
@@ -73,8 +74,9 @@ public class Db4 {
     @Test
     public void testName2() throws Exception {
         M<Long, String> map = new M<>("testo", 1);
-        map.recreate();
-        map.initStore(256);
+        map.recreateFiles();
+        map.init(256);
+        map.store();
 
         map.load();
         for (long i = 0L; i < 500L; i++) {
@@ -95,12 +97,15 @@ public class Db4 {
     public void testThreads() throws Exception {
 
         M<String, String> map = new M<>("testo", 32);
-        map.recreate();
-        map.initStore(256);
+        map.recreateFiles();
+        map.init(256);
+        map.store();
 
-        for (int i = 0; i < 50; i++) {
-            new Thread(() -> threadableSimpleTest(map)).start();
-        }
+        threadableSimpleTest(map);
+
+        // for (int i = 0; i < 50; i++) {
+        // new Thread(() -> threadableSimpleTest(map)).start();
+        // }
 
     }
 
@@ -112,15 +117,14 @@ public class Db4 {
 
             map.load();
             for (long i = 0L; i < 501L; i++) {
-                map.put(String.valueOf(prefix) + i, String.valueOf(prefix) + i);
+                map.put(String.valueOf(prefix) + "_" + i, String.valueOf(prefix) + "_" + i);
             }
             map.store();
 
-            
             map.load();
             for (long i = 0L; i < 501L; i++) {
-                map.put(String.valueOf(prefix) + i, String.valueOf(prefix) + i);
-                assertEquals(String.valueOf(prefix) + i, map.get(String.valueOf(prefix) + i));
+                map.put(String.valueOf(prefix) + "_" + i, String.valueOf(prefix) + "_" + i);
+                assertEquals(String.valueOf(prefix) + "_" + i, map.get(String.valueOf(prefix) + "_" + i));
             }
             map.store();
 
@@ -161,9 +165,8 @@ public class Db4 {
 
         RandomAccessFile rangesRaf;
         RandomAccessFile segmentsRaf;
-        
-        final ReadWriteLock lock = new ReentrantReadWriteLock();//TODO
 
+        final ReadWriteLock lock = new ReentrantReadWriteLock();// TODO
 
         public M(String fileName, int MAX_CACHE_SIZE) throws IOException {
             super();
@@ -174,7 +177,7 @@ public class Db4 {
             this.rangesFile = new File(fileName + ".index");
             this.segmentsFile = new File(fileName + ".chunks");
             if (!rangesFile.exists() || !segmentsFile.exists()) {
-                recreate();
+                recreateFiles();
             }
         }
 
@@ -183,7 +186,7 @@ public class Db4 {
                     + " Kb)");
         }
 
-        public void recreate() throws IOException {
+        public void recreateFiles() throws IOException {
             // if (lockFile.exists()) {
             // lockFile.delete();
             // }
@@ -199,7 +202,7 @@ public class Db4 {
             LOG.info("recreated DB: " + fileName);
         }
 
-        public void initStore(int chunkMaxSizeInBytes) throws IOException {
+        public void init(int chunkMaxSizeInBytes) throws IOException {
 
             // TODO comprovar que no estigui ja open()
             this.rangesRaf = new RandomAccessFile(rangesFile, "rw");
@@ -220,7 +223,7 @@ public class Db4 {
 
             this.segments.put(initialRange, initialSegment);
 
-            store();
+            // store();
         }
 
         @SuppressWarnings("unchecked")
@@ -245,12 +248,26 @@ public class Db4 {
         public void store() throws IOException {
 
             // guarda segments
-            for (Entry<Range<K, V>, Segment<K, V>> entry : segments.entrySet()) {
-                Segment<K, V> segment = entry.getValue();
-                if (segment != null && segment.changed) {
-                    storeSegment(segmentsRaf, entry.getKey(), segment);
+            // for (Entry<Range<K, V>, Segment<K, V>> entry : segments.entrySet()) {
+            // Segment<K, V> segment = entry.getValue();
+            // if (segment != null && segment.changed) {
+            // storeSegment(segmentsRaf, entry.getKey(), segment);
+            // }
+            // }
+            Entry<Range<K, V>, Segment<K, V>> candidate;
+            do {
+                candidate = null;
+                for (Entry<Range<K, V>, Segment<K, V>> entry : segments.entrySet()) {
+                    Segment<K, V> segment = entry.getValue();
+                    if (segment != null && segment.changed) {
+                        candidate = entry;
+                        break;
+                    }
                 }
-            }
+                if (candidate != null) {
+                    storeSegment(segmentsRaf, candidate.getKey(), candidate.getValue());
+                }
+            } while (candidate != null);
 
             // guarda ranges
             rangesRaf.seek(0L);
@@ -283,6 +300,8 @@ public class Db4 {
                 segmentsRaf.write(bs);
 
                 LOG.info("stored segment: " + range + " => " + segment);
+
+                this.segments.put(range, null);
 
             } catch (SegmentExceedsSizeException e) {
 
@@ -324,6 +343,7 @@ public class Db4 {
                 range1.numSegment = range.numSegment;
                 range2.numSegment = this.segments.size();
 
+                this.segments.remove(range); // ?
                 this.segments.put(range1, segment1);
                 this.segments.put(range2, segment2);
 
@@ -372,18 +392,19 @@ public class Db4 {
             }
 
             if (cacheSize >= MAX_CACHE_SIZE) {
-                Range<K, V> best = null;
+                Entry<Range<K, V>, Segment<K, V>> best = null;
                 int lowestHits = Integer.MAX_VALUE;
                 for (Entry<Range<K, V>, Segment<K, V>> e : this.segments.entrySet()) {
                     if (!e.getKey().equals(excludeRange) && e.getValue() != null && lowestHits > e.getValue().hits) {
-                        best = e.getKey();
+                        best = e;
                         lowestHits = e.getValue().hits;
                     }
                 }
                 if (best != null) {
-                    storeSegment(segmentsRaf, best, this.segments.get(best));
+                    if (best.getValue().changed) {
+                        storeSegment(segmentsRaf, best.getKey(), best.getValue());
+                    }
                     LOG.info("deallocated " + best);
-                    this.segments.remove(best);
                 }
             }
         }
