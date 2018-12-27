@@ -1,6 +1,7 @@
 package hores;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,10 +9,10 @@ import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Map.Entry;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -42,6 +43,7 @@ public class Db4 {
         map.put(5L, "five");
         assertEquals("one", map.get(1L));
         assertEquals("five", map.get(5L));
+        assertNull(map.get(1234L)); /// XXX si el get() retorna null => no existeix l'entrada
         map.store();
 
         map.load();
@@ -97,9 +99,9 @@ public class Db4 {
 
         threadableSimpleTest(map);
 
-        // for (int i = 0; i < 50; i++) {
-        // new Thread(() -> threadableSimpleTest(map)).start();
-        // }
+        for (int i = 0; i < 50; i++) {
+            new Thread(() -> threadableSimpleTest(map)).start();
+        }
 
     }
 
@@ -117,9 +119,14 @@ public class Db4 {
 
             map.load();
             for (long i = 0L; i < 501L; i++) {
-//                map.put(String.valueOf(prefix) + "_" + i, String.valueOf(prefix) + "_" + i);
+                // map.put(String.valueOf(prefix) + "_" + i, String.valueOf(prefix) + "_" + i);
                 assertEquals(String.valueOf(prefix) + "_" + i, map.get(String.valueOf(prefix) + "_" + i));
             }
+
+            // {1_23=1_23, 1_230=1_230, 1_231=1_231, 1_232=1_232, 1_233=1_233, 1_234=1_234,
+            // 1_235=1_235, 1_236=1_236, 1_237=1_237, 1_238=1_238, 1_239=1_239, 1_24=1_24}
+            assertEquals(12, map.get(String.valueOf(prefix) + "_23", String.valueOf(prefix) + "_24").size());
+
             map.store();
 
         } catch (IOException e) {
@@ -160,7 +167,7 @@ public class Db4 {
         RandomAccessFile rangesRaf;
         RandomAccessFile segmentsRaf;
 
-        // final ReadWriteLock lock = new ReentrantReadWriteLock();// TODO
+        final ReadWriteLock lock = new ReentrantReadWriteLock();// TODO
 
         public M(String fileName, int MAX_CACHE_SIZE) throws IOException {
             super();
@@ -181,6 +188,8 @@ public class Db4 {
         }
 
         public void create(int chunkMaxSizeInBytes) throws IOException {
+            lock.writeLock().lock();
+            LOG.info("-> acquired lock");
             recreateFiles();
             init(chunkMaxSizeInBytes);
             store();
@@ -229,6 +238,9 @@ public class Db4 {
         @SuppressWarnings("unchecked")
         public void load() throws IOException {
 
+            lock.writeLock().lock();
+            LOG.info("-> acquired lock");
+
             // TODO comprovar que no estigui ja open()
             this.rangesRaf = new RandomAccessFile(rangesFile, "rw");
             this.segmentsRaf = new RandomAccessFile(segmentsFile, "rw");
@@ -272,12 +284,14 @@ public class Db4 {
             rangesRaf.write(bs);
 
             // TODO comprovar que no estigui ja close()
-            // TODO deslockar
             this.rangesRaf.close();
             this.segmentsRaf.close();
             this.rangesRaf = null;
             this.segmentsRaf = null;
             this.segments.clear();
+
+            LOG.info("<- unlock");
+            lock.writeLock().unlock();
         }
 
         protected void storeSegment(RandomAccessFile segmentsRaf, Range<K, V> range, Segment<K, V> segment)
