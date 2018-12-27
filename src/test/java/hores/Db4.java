@@ -32,9 +32,7 @@ public class Db4 {
     @Test
     public void testName() throws Exception {
         M<Long, String> map = new M<>("testo", 5);
-        map.recreateFiles();
-        map.init(512);
-        map.store();
+        map.create(256);
 
         map.load();
         map.put(1L, "one");
@@ -74,9 +72,7 @@ public class Db4 {
     @Test
     public void testName2() throws Exception {
         M<Long, String> map = new M<>("testo", 1);
-        map.recreateFiles();
-        map.init(256);
-        map.store();
+        map.create(256);
 
         map.load();
         for (long i = 0L; i < 500L; i++) {
@@ -97,9 +93,7 @@ public class Db4 {
     public void testThreads() throws Exception {
 
         M<String, String> map = new M<>("testo", 32);
-        map.recreateFiles();
-        map.init(256);
-        map.store();
+        map.create(256);
 
         threadableSimpleTest(map);
 
@@ -123,7 +117,7 @@ public class Db4 {
 
             map.load();
             for (long i = 0L; i < 501L; i++) {
-                map.put(String.valueOf(prefix) + "_" + i, String.valueOf(prefix) + "_" + i);
+//                map.put(String.valueOf(prefix) + "_" + i, String.valueOf(prefix) + "_" + i);
                 assertEquals(String.valueOf(prefix) + "_" + i, map.get(String.valueOf(prefix) + "_" + i));
             }
             map.store();
@@ -166,7 +160,7 @@ public class Db4 {
         RandomAccessFile rangesRaf;
         RandomAccessFile segmentsRaf;
 
-        final ReadWriteLock lock = new ReentrantReadWriteLock();// TODO
+        // final ReadWriteLock lock = new ReentrantReadWriteLock();// TODO
 
         public M(String fileName, int MAX_CACHE_SIZE) throws IOException {
             super();
@@ -176,9 +170,9 @@ public class Db4 {
             // this.lockFile = new File(fileName + ".lock");
             this.rangesFile = new File(fileName + ".index");
             this.segmentsFile = new File(fileName + ".chunks");
-            if (!rangesFile.exists() || !segmentsFile.exists()) {
-                recreateFiles();
-            }
+            // if (!rangesFile.exists() || !segmentsFile.exists()) {
+            //// recreateFiles(); // TODO ?
+            // }
         }
 
         public void info() {
@@ -186,7 +180,13 @@ public class Db4 {
                     + " Kb)");
         }
 
-        public void recreateFiles() throws IOException {
+        public void create(int chunkMaxSizeInBytes) throws IOException {
+            recreateFiles();
+            init(chunkMaxSizeInBytes);
+            store();
+        }
+
+        protected void recreateFiles() throws IOException {
             // if (lockFile.exists()) {
             // lockFile.delete();
             // }
@@ -202,7 +202,7 @@ public class Db4 {
             LOG.info("recreated DB: " + fileName);
         }
 
-        public void init(int chunkMaxSizeInBytes) throws IOException {
+        protected void init(int chunkMaxSizeInBytes) throws IOException {
 
             // TODO comprovar que no estigui ja open()
             this.rangesRaf = new RandomAccessFile(rangesFile, "rw");
@@ -243,17 +243,11 @@ public class Db4 {
             for (Range<K, V> range : ranges) {
                 this.segments.put(range, null);
             }
+
         }
 
         public void store() throws IOException {
 
-            // guarda segments
-            // for (Entry<Range<K, V>, Segment<K, V>> entry : segments.entrySet()) {
-            // Segment<K, V> segment = entry.getValue();
-            // if (segment != null && segment.changed) {
-            // storeSegment(segmentsRaf, entry.getKey(), segment);
-            // }
-            // }
             Entry<Range<K, V>, Segment<K, V>> candidate;
             do {
                 candidate = null;
@@ -374,7 +368,7 @@ public class Db4 {
         protected Segment<K, V> loadSegmentFor(Range<K, V> range) throws IOException {
             Segment<K, V> segment = this.segments.get(range);
             if (segment == null) {
-                cacheGarbageCollector(range);
+                garbageCollect(range);
                 loadSegment(range);
                 segment = this.segments.get(range);
             }
@@ -382,7 +376,11 @@ public class Db4 {
             return segment;
         }
 
-        protected void cacheGarbageCollector(Range<K, V> excludeRange) throws IOException {
+        /**
+         * revisa els segments carregats, i persisteix el que tingui menys hits
+         * (descarregant-lo de "this.segments"). Repeteix fins a tenir el #.
+         */
+        protected void garbageCollect(Range<K, V> excludeRange) throws IOException {
 
             int cacheSize = 0;
             for (Entry<Range<K, V>, Segment<K, V>> e : this.segments.entrySet()) {
