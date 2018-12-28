@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
@@ -25,6 +27,7 @@ import hores.DB3.RangesManager.SegmentExceedsSizeException;
  *
  *  propietats transient
  *  un do{}while
+ *  doble = assignació = bien!
  *
  * </pre>
  */
@@ -32,7 +35,7 @@ public class Db4 {
 
     @Test
     public void testName() throws Exception {
-        M<Long, String> map = new M<>("testo", 5);
+        M<Long, String> map = new M<>("testName", 5);
         map.create(256);
 
         map.load();
@@ -73,7 +76,7 @@ public class Db4 {
 
     @Test
     public void testName2() throws Exception {
-        M<Long, String> map = new M<>("testo", 1);
+        M<Long, String> map = new M<>("testName2", 1);
         map.create(256);
 
         map.load();
@@ -92,9 +95,9 @@ public class Db4 {
     }
 
     @Test
-    public void testThreads() throws Exception {
+    public void threadableSimpleTest() throws Exception {
 
-        M<String, String> map = new M<>("testo", 32);
+        M<String, String> map = new M<>("threadableSimpleTest", 32);
         map.create(256);
 
         threadableSimpleTest(map);
@@ -134,6 +137,72 @@ public class Db4 {
         }
     }
 
+    @Test
+    public void threadableHeavyMetalTest() throws Exception {
+
+        M<String, String> map = new M<>("threadableHeavyMetalTest", 16);
+        map.create(16 * 1024);
+
+        threadableHeavyMetalTest(map);
+
+        int NUM_THREADS = 15;
+        Thread[] ts = new Thread[NUM_THREADS];
+        for (int i = 0; i < NUM_THREADS; i++) {
+            ts[i] = new Thread(() -> threadableHeavyMetalTest(map));
+            ts[i].start();
+        }
+
+        while (true) {
+            int alives = 0;
+            for (Thread t : ts) {
+                if (t.isAlive())
+                    alives++;
+            }
+            if (alives == 0) {
+                break;
+            } else {
+                Thread.sleep(100L);
+            }
+        }
+        System.out.println("OK");
+    }
+
+    private void threadableHeavyMetalTest(M<String, String> map) {
+
+        long prefix = Thread.currentThread().getId();
+
+        try {
+
+            int N = 15000;
+            List<Long> ns = new ArrayList<>();
+            for (long i = 0L; i < N; i++) {
+                ns.add(i);
+            }
+            Collections.shuffle(ns);
+
+            //
+
+            map.load();
+            for (int i = 0; i < N; i++) {
+                map.put(String.valueOf(prefix) + "_" + ns.get(i), String.valueOf(prefix) + "_" + ns.get(i));
+            }
+            map.store();
+
+            map.load();
+            for (int i = 0; i < N; i++) {
+                assertEquals(String.valueOf(prefix) + "_" + ns.get(i),
+                        map.get(String.valueOf(prefix) + "_" + ns.get(i)));
+            }
+
+            map.info();
+
+            map.store();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static class Segment<K extends Comparable<K> & Serializable, V extends Serializable> {
 
         TreeMap<K, V> props;
@@ -160,45 +229,41 @@ public class Db4 {
         final String fileName;
         final int MAX_CACHE_SIZE;
 
-        // final File lockFile;
         final File rangesFile;
         final File segmentsFile;
 
         RandomAccessFile rangesRaf;
         RandomAccessFile segmentsRaf;
 
-        final ReadWriteLock lock = new ReentrantReadWriteLock();// TODO
+        final ReadWriteLock lock = new ReentrantReadWriteLock();
+        int cacheHits;
+        int cacheFails;
 
         public M(String fileName, int MAX_CACHE_SIZE) throws IOException {
             super();
             this.fileName = fileName;
             this.MAX_CACHE_SIZE = MAX_CACHE_SIZE;
 
-            // this.lockFile = new File(fileName + ".lock");
             this.rangesFile = new File(fileName + ".index");
             this.segmentsFile = new File(fileName + ".chunks");
-            // if (!rangesFile.exists() || !segmentsFile.exists()) {
-            //// recreateFiles(); // TODO ?
-            // }
         }
 
         public void info() {
-            LOG.info("*** [" + fileName + "]: " + segments.size() + " segments (" + segments.size() * segmentSize / 1024
-                    + " Kb)");
+            LOG.info("*** [" + fileName + "]: " + segments.size() + " segments of data ("
+                    + segments.size() * segmentSize / 1024 + " Kb)");
+            LOG.info("*** [" + fileName + "]: cache: " + this.cacheHits + " hits, " + this.cacheFails + " fails (total "
+                    + (this.cacheHits + this.cacheFails) + ")");
         }
 
         public void create(int chunkMaxSizeInBytes) throws IOException {
             lock.writeLock().lock();
-            LOG.info("-> acquired lock");
+            // LOG.info("-> acquired lock");
             recreateFiles();
             init(chunkMaxSizeInBytes);
             store();
         }
 
         protected void recreateFiles() throws IOException {
-            // if (lockFile.exists()) {
-            // lockFile.delete();
-            // }
             if (rangesFile.exists()) {
                 rangesFile.delete();
             }
@@ -239,7 +304,10 @@ public class Db4 {
         public void load() throws IOException {
 
             lock.writeLock().lock();
-            LOG.info("-> acquired lock");
+            this.cacheHits = 0;
+            this.cacheFails = 0;
+
+            // LOG.info("-> acquired lock");
 
             // TODO comprovar que no estigui ja open()
             this.rangesRaf = new RandomAccessFile(rangesFile, "rw");
@@ -290,7 +358,7 @@ public class Db4 {
             this.segmentsRaf = null;
             this.segments.clear();
 
-            LOG.info("<- unlock");
+            // LOG.info("<- unlock");
             lock.writeLock().unlock();
         }
 
@@ -307,7 +375,7 @@ public class Db4 {
                 segmentsRaf.writeInt(bs.length);
                 segmentsRaf.write(bs);
 
-                LOG.info("stored segment: " + range + " => " + segment);
+                // LOG.info("stored segment: " + range + " => " + segment);
 
                 this.segments.put(range, null);
 
@@ -376,7 +444,7 @@ public class Db4 {
 
             this.segments.put(range, segment);
 
-            LOG.info("loaded segment: " + range + " => " + segment);
+            // LOG.info("loaded segment: " + range + " => " + segment);
         }
 
         protected Segment<K, V> loadSegmentFor(Range<K, V> range) throws IOException {
@@ -385,6 +453,9 @@ public class Db4 {
                 garbageCollect(range);
                 loadSegment(range);
                 segment = this.segments.get(range);
+                this.cacheFails++;
+            } else {
+                this.cacheHits++;
             }
             segment.hits++;
             return segment;
@@ -396,28 +467,34 @@ public class Db4 {
          */
         protected void garbageCollect(Range<K, V> excludeRange) throws IOException {
 
-            int cacheSize = 0;
-            for (Entry<Range<K, V>, Segment<K, V>> e : this.segments.entrySet()) {
-                if (e.getValue() != null) {
-                    cacheSize++;
-                }
-            }
-
-            if (cacheSize >= MAX_CACHE_SIZE) {
-                Entry<Range<K, V>, Segment<K, V>> best = null;
-                int lowestHits = Integer.MAX_VALUE;
+            while (true) {
+                int cacheSize = 0;
                 for (Entry<Range<K, V>, Segment<K, V>> e : this.segments.entrySet()) {
-                    if (!e.getKey().equals(excludeRange) && e.getValue() != null && lowestHits > e.getValue().hits) {
-                        best = e;
-                        lowestHits = e.getValue().hits;
+                    if (e.getValue() != null) {
+                        cacheSize++;
                     }
                 }
-                if (best != null) {
-                    if (best.getValue().changed) {
-                        storeSegment(segmentsRaf, best.getKey(), best.getValue());
+
+                if (cacheSize < MAX_CACHE_SIZE) {
+                    break;
+                } else {
+
+                    Entry<Range<K, V>, Segment<K, V>> best = null;
+                    int lowestHits = Integer.MAX_VALUE;
+                    for (Entry<Range<K, V>, Segment<K, V>> e : this.segments.entrySet()) {
+                        if (!e.getKey().equals(excludeRange) && e.getValue() != null
+                                && lowestHits > e.getValue().hits) {
+                            best = e;
+                            lowestHits = e.getValue().hits;
+                        }
                     }
-                    this.segments.put(best.getKey(), null);
-                    LOG.info("deallocated " + best);
+                    if (best != null) {
+                        if (best.getValue().changed) {
+                            storeSegment(segmentsRaf, best.getKey(), best.getValue());
+                        }
+                        this.segments.put(best.getKey(), null);
+                        // LOG.info("deallocated " + best);
+                    }
                 }
             }
         }
@@ -466,9 +543,6 @@ public class Db4 {
                 Segment<K, V> segment = loadSegmentFor(range);
                 for (K key : segment.props.keySet()) {
 
-                    // if (Range.compare(min, key) <= 0 && Range.compare(key, max) <= 0) {
-                    // r.put(key, segment.props.get(key));
-                    // }
                     if (min == null && max == null) {
                         r.put(key, segment.props.get(key));
                     } else if (min == null) {
@@ -510,7 +584,8 @@ public class Db4 {
             if (getClass() != obj.getClass()) {
                 return false;
             }
-            Range other = (Range) obj;
+            @SuppressWarnings("unchecked")
+            Range<K, V> other = (Range<K, V>) obj;
             if (max == null) {
                 if (other.max != null) {
                     return false;
