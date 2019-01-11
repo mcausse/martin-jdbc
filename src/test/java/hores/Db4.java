@@ -111,25 +111,26 @@ public class Db4 {
 
     private void threadableSimpleTest(M<String, String> map) {
 
-        long prefix = Thread.currentThread().getId();
+        String prefix = String.valueOf(Thread.currentThread().getId());
 
         try {
 
             map.load();
+
             for (long i = 0L; i < 501L; i++) {
-                map.put(String.valueOf(prefix) + "_" + i, String.valueOf(prefix) + "_" + i);
+                map.put(prefix + "_" + i, prefix + "_" + i);
             }
             map.store();
 
             map.load();
             for (long i = 0L; i < 501L; i++) {
                 // map.put(String.valueOf(prefix) + "_" + i, String.valueOf(prefix) + "_" + i);
-                assertEquals(String.valueOf(prefix) + "_" + i, map.get(String.valueOf(prefix) + "_" + i));
+                assertEquals(prefix + "_" + i, map.get(prefix + "_" + i));
             }
 
             // {1_23=1_23, 1_230=1_230, 1_231=1_231, 1_232=1_232, 1_233=1_233, 1_234=1_234,
             // 1_235=1_235, 1_236=1_236, 1_237=1_237, 1_238=1_238, 1_239=1_239, 1_24=1_24}
-            assertEquals(12, map.get(String.valueOf(prefix) + "_23", String.valueOf(prefix) + "_24").size());
+            assertEquals(12, map.get(prefix + "_23", prefix + "_24").size());
 
             map.store();
 
@@ -156,8 +157,9 @@ public class Db4 {
         while (true) {
             int alives = 0;
             for (Thread t : ts) {
-                if (t.isAlive())
+                if (t.isAlive()) {
                     alives++;
+                }
             }
             if (alives == 0) {
                 break;
@@ -170,7 +172,7 @@ public class Db4 {
 
     private void threadableHeavyMetalTest(M<String, String> map) {
 
-        long prefix = Thread.currentThread().getId();
+        String prefix = String.valueOf(Thread.currentThread().getId());
 
         try {
 
@@ -185,28 +187,27 @@ public class Db4 {
 
             map.load();
             for (int i = 0; i < N; i++) {
-                map.put(String.valueOf(prefix) + "_" + ns.get(i), String.valueOf(prefix) + "_" + ns.get(i));
+                map.put(prefix + "_" + ns.get(i), prefix + "_" + ns.get(i));
             }
             map.store();
 
             map.load();
             for (int i = 0; i < N; i++) {
-                assertEquals(String.valueOf(prefix) + "_" + ns.get(i),
-                        map.get(String.valueOf(prefix) + "_" + ns.get(i)));
-            }
-            map.info();
-            map.store();
-
-            map.load();
-            for (int i = 0; i < N; i++) {
-                map.remove(String.valueOf(prefix) + "_" + ns.get(i));
+                assertEquals(prefix + "_" + ns.get(i), map.get(prefix + "_" + ns.get(i)));
             }
             map.info();
             map.store();
 
             map.load();
             for (int i = 0; i < N; i++) {
-                assertNull(map.get(String.valueOf(prefix) + "_" + ns.get(i)));
+                map.remove(prefix + "_" + ns.get(i));
+            }
+            map.info();
+            map.store();
+
+            map.load();
+            for (int i = 0; i < N; i++) {
+                assertNull(map.get(prefix + "_" + ns.get(i)));
             }
             map.info();
             map.store();
