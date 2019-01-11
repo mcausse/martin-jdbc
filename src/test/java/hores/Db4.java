@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.BiConsumer;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -193,9 +194,21 @@ public class Db4 {
                 assertEquals(String.valueOf(prefix) + "_" + ns.get(i),
                         map.get(String.valueOf(prefix) + "_" + ns.get(i)));
             }
-
             map.info();
+            map.store();
 
+            map.load();
+            for (int i = 0; i < N; i++) {
+                map.remove(String.valueOf(prefix) + "_" + ns.get(i));
+            }
+            map.info();
+            map.store();
+
+            map.load();
+            for (int i = 0; i < N; i++) {
+                assertNull(map.get(String.valueOf(prefix) + "_" + ns.get(i)));
+            }
+            map.info();
             map.store();
 
         } catch (IOException e) {
@@ -235,17 +248,19 @@ public class Db4 {
         RandomAccessFile rangesRaf;
         RandomAccessFile segmentsRaf;
 
+        // tx vars
         final ReadWriteLock lock = new ReentrantReadWriteLock();
         int cacheHits;
         int cacheFails;
+        long openTime; // TODO usar
 
         public M(String fileName, int MAX_CACHE_SIZE) throws IOException {
             super();
             this.fileName = fileName;
             this.MAX_CACHE_SIZE = MAX_CACHE_SIZE;
 
-            this.rangesFile = new File(fileName + ".index");
-            this.segmentsFile = new File(fileName + ".chunks");
+            this.rangesFile = new File(fileName + ".ranges");
+            this.segmentsFile = new File(fileName + ".segments");
         }
 
         public void info() {
@@ -258,12 +273,7 @@ public class Db4 {
         public void create(int chunkMaxSizeInBytes) throws IOException {
             lock.writeLock().lock();
             // LOG.info("-> acquired lock");
-            recreateFiles();
-            init(chunkMaxSizeInBytes);
-            store();
-        }
 
-        protected void recreateFiles() throws IOException {
             if (rangesFile.exists()) {
                 rangesFile.delete();
             }
@@ -274,9 +284,6 @@ public class Db4 {
             segmentsFile.createNewFile();
 
             LOG.info("recreated DB: " + fileName);
-        }
-
-        protected void init(int chunkMaxSizeInBytes) throws IOException {
 
             // TODO comprovar que no estigui ja open()
             this.rangesRaf = new RandomAccessFile(rangesFile, "rw");
@@ -297,7 +304,7 @@ public class Db4 {
 
             this.segments.put(initialRange, initialSegment);
 
-            // store();
+            store();
         }
 
         @SuppressWarnings("unchecked")
@@ -306,6 +313,7 @@ public class Db4 {
             lock.writeLock().lock();
             this.cacheHits = 0;
             this.cacheFails = 0;
+            this.openTime = System.currentTimeMillis();
 
             // LOG.info("-> acquired lock");
 
@@ -365,6 +373,10 @@ public class Db4 {
         protected void storeSegment(RandomAccessFile segmentsRaf, Range<K, V> range, Segment<K, V> segment)
                 throws IOException {
 
+            if (segment.props.isEmpty()) {
+                // TODO joina segments...
+            }
+
             try {
                 long atSeek = segmentSize * range.numSegment;
                 segmentsRaf.seek(atSeek);
@@ -376,6 +388,8 @@ public class Db4 {
                 segmentsRaf.write(bs);
 
                 // LOG.info("stored segment: " + range + " => " + segment);
+
+                // TODO si és {} joinar ranges
 
                 this.segments.put(range, null);
 
@@ -523,6 +537,16 @@ public class Db4 {
             Range<K, V> range = this.segments.floorKey(findFor);
             Segment<K, V> segment = loadSegmentFor(range);
             return segment.props.get(key);
+        }
+
+        // TODO testar
+        public void iterate(BiConsumer<K, V> consumer) throws IOException {
+            for (Range<K, V> range : segments.keySet()) {
+                Segment<K, V> segment = loadSegmentFor(range);
+                for (Entry<K, V> e : segment.props.entrySet()) {
+                    consumer.accept(e.getKey(), e.getValue());
+                }
+            }
         }
 
         public TreeMap<K, V> get(K min, K max) throws IOException {
