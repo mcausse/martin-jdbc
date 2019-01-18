@@ -52,7 +52,7 @@ public class GenericDao<E, ID> {
         em.update(table, entity, columnsToUpdate);
     }
 
-    public void update(Table<E> table, E example, Iterable<Column<E, ?>> columnsToUpdate, IQueryObject wherePredicate) {
+    public void update(E example, Iterable<Column<E, ?>> columnsToUpdate, IQueryObject wherePredicate) {
         em.update(table, example, columnsToUpdate, wherePredicate);
     }
 
@@ -88,7 +88,7 @@ public class GenericDao<E, ID> {
         return em.queryFor(aliasedTable);
     }
 
-    public <C> Query<C> scalarQueryFor(Column<?, C> column) {
+    public <C> Query<C> scalarQueryFor(Column<E, C> column) {
         return em.scalarQueryFor(column);
     }
 

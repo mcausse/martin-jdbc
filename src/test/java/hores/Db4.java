@@ -3,8 +3,12 @@ package hores;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -20,8 +24,6 @@ import java.util.function.BiConsumer;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import hores.DB3.RangesManager.SegmentExceedsSizeException;
 
 /**
  * <pre>
@@ -327,7 +329,7 @@ public class Db4 {
             int len = rangesRaf.readInt();
             byte[] bs = new byte[len];
             rangesRaf.read(bs);
-            ArrayList<Range<K, V>> ranges = (ArrayList<Range<K, V>>) DB1.deserialize(bs);
+            ArrayList<Range<K, V>> ranges = (ArrayList<Range<K, V>>) deserialize(bs);
             this.segments = new TreeMap<>();
             for (Range<K, V> range : ranges) {
                 this.segments.put(range, null);
@@ -356,7 +358,7 @@ public class Db4 {
             rangesRaf.seek(0L);
             rangesRaf.writeInt(segmentSize);
             ArrayList<Range<K, V>> ranges = new ArrayList<>(segments.keySet());
-            byte[] bs = DB1.serialize(ranges);
+            byte[] bs = serialize(ranges);
             rangesRaf.writeInt(bs.length);
             rangesRaf.write(bs);
 
@@ -381,7 +383,7 @@ public class Db4 {
             try {
                 long atSeek = segmentSize * range.numSegment;
                 segmentsRaf.seek(atSeek);
-                byte[] bs = DB1.serialize(segment.props);
+                byte[] bs = serialize(segment.props);
                 if (bs.length > segmentSize) {
                     throw new SegmentExceedsSizeException();
                 }
@@ -450,7 +452,7 @@ public class Db4 {
             int bslen = segmentsRaf.readInt();
             byte[] bs = new byte[bslen];
             segmentsRaf.read(bs);
-            TreeMap<K, V> props = (TreeMap<K, V>) DB1.deserialize(bs);
+            TreeMap<K, V> props = (TreeMap<K, V>) deserialize(bs);
 
             Segment<K, V> segment = new Segment<>();
             segment.props = props;
@@ -652,4 +654,50 @@ public class Db4 {
         }
 
     }
+
+    /**
+     * serialitza un bean
+     *
+     * @param o el bean a serialitzar
+     * @return el bean serialitzat
+     */
+    public static byte[] serialize(final Serializable o) {
+        try {
+            final ByteArrayOutputStream bs = new ByteArrayOutputStream();
+            final ObjectOutputStream os = new ObjectOutputStream(bs);
+            os.writeObject(o);
+            os.close();
+            final byte[] bytes = bs.toByteArray();
+            bs.close();
+            return bytes;
+        } catch (final Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * deserialitza un bean
+     *
+     * @param byteArray el bean serialitzat
+     * @return el bean deserialitzat
+     */
+    public static Serializable deserialize(final byte[] byteArray) {
+
+        try {
+            final ByteArrayInputStream bs = new ByteArrayInputStream(byteArray);
+            final ObjectInputStream is = new ObjectInputStream(bs);
+            final Serializable o = (Serializable) is.readObject();
+            is.close();
+            bs.close();
+            return o;
+        } catch (final Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static class SegmentExceedsSizeException extends Exception {
+
+        private static final long serialVersionUID = 7670311782431069829L;
+    }
+
 }

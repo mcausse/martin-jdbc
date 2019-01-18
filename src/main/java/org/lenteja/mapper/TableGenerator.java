@@ -74,6 +74,22 @@ public class TableGenerator {
             s.append("\t}\n");
 
             s.append("}\n");
+
+            ////////////////////////////////////////
+
+            s.append("public class " + entityName + " {\n");
+            s.append("\n");
+
+            for (ColumnMeta c : columns) {
+
+                if (c.isPk) {
+                    s.append("\t/** PK */\n");
+                }
+                s.append("\tpublic " + c.getColumnClassName() + " " + c.getPropertyName() + ";\n");
+            }
+
+            s.append("}\n");
+
             return s.toString();
         }
     }
