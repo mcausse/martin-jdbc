@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.JdbcDataAccesFacade;
+import org.lenteja.jdbc.extractor.EntityMapResultSetExtractor2;
 import org.lenteja.jdbc.script.SqlScriptExecutor;
 import org.lenteja.jdbc.txproxy.TransactionalMethod;
 import org.lenteja.jdbc.txproxy.TransactionalServiceProxyfier;
@@ -14,8 +15,10 @@ import org.lenteja.mapper.Column;
 import org.lenteja.mapper.GenericDao;
 import org.lenteja.mapper.Table;
 import org.lenteja.mapper.TableGenerator;
+import org.lenteja.mapper.autogen.ScalarMappers;
 import org.lenteja.mapper.autogen.impl.HsqldbSequence;
 import org.lenteja.mapper.query.Restrictions;
+import org.lenteja.test.VotrTest.ServiceImpl.VistaUsuariDto;
 
 public class VotrTest {
 
@@ -72,6 +75,20 @@ public class VotrTest {
         u2.email = "mem@votr.org";
         s.convidaUsuari(v1.votrHash, u2);
 
+        Option eneida = new Option();
+        eneida.title = "aeneid";
+        eneida.descr = "la eneida";
+        Option iliada = new Option();
+        iliada.title = "iliada";
+        iliada.descr = "la iliada";
+        Option odisea = new Option();
+        odisea.title = "odisea";
+        odisea.descr = "la odisea";
+        s.creaOrModificaOpcio(v1.votrHash, eneida);
+        s.creaOrModificaOpcio(v1.votrHash, iliada);
+        s.creaOrModificaOpcio(v1.votrHash, odisea);
+        s.eliminaOpcio(v1.votrHash, iliada.optionId);
+
     }
 
     public class VotrDao extends GenericDao<Votr, Integer> {
@@ -99,7 +116,14 @@ public class VotrTest {
     }
 
     public interface Service {
+
         void creaVotacio(Votr votr, User user);
+
+        VistaUsuariDto vistaUsuari(String hashVotr, String hashUser);
+
+        void eliminaOpcio(String hashVotr, long idOpcio);
+
+        void creaOrModificaOpcio(String hashVotr, Option option);
 
         void convidaUsuari(String hashVotr, User user);
 
@@ -113,6 +137,11 @@ public class VotrTest {
         final UserDao userDao;
         final OptionDao optionDao;
         final CommentDao commentDao;
+
+        final VotrTable votr_ = new VotrTable();
+        final UserTable user_ = new UserTable();
+        final OptionTable option_ = new OptionTable();
+        final CommentTable comment_ = new CommentTable();
 
         public ServiceImpl(DataAccesFacade facade) {
             super();
@@ -149,9 +178,33 @@ public class VotrTest {
 
         @Override
         @TransactionalMethod
+        public void creaOrModificaOpcio(String hashVotr, Option option) {
+
+            Votr votr = votrDao.queryUnique(votr_.votrHash.eq(hashVotr));
+
+            option.optionId = null;
+            option.votrId = votr.votrId;
+            optionDao.store(option);
+        }
+
+        @Override
+        @TransactionalMethod
+        public void eliminaOpcio(String hashVotr, long idOpcio) {
+
+            Votr votr = votrDao.queryUnique(votr_.votrHash.eq(hashVotr));
+
+            Option option = optionDao.queryUnique(Restrictions.and( //
+                    option_.optionId.eq(idOpcio), //
+                    option_.votrId.eq(votr.votrId)));
+
+            optionDao.delete(option);
+        }
+
+        @Override
+        @TransactionalMethod
         public void convidaUsuari(String hashVotr, User user) {
 
-            Votr votr = votrDao.queryUnique(new VotrTable().votrHash.eq(hashVotr));
+            Votr votr = votrDao.queryUnique(votr_.votrHash.eq(hashVotr));
 
             user.userId = null;
             user.userHash = generaHash(user.email);
@@ -165,15 +218,59 @@ public class VotrTest {
         @TransactionalMethod
         public void actualitzaUsuari(String hashVotr, String hashUser, String alias, Long idOpcioVotada) {
 
-            Votr votr = votrDao.queryUnique(new VotrTable().votrHash.eq(hashVotr));
+            Votr votr = votrDao.queryUnique(votr_.votrHash.eq(hashVotr));
             User user = userDao.queryUnique( //
                     Restrictions.and( //
-                            new UserTable().userHash.eq(hashUser), //
-                            new UserTable().votrId.eq(votr.votrId) //
+                            user_.userHash.eq(hashUser), //
+                            user_.votrId.eq(votr.votrId) //
                     ));
             user.alias = alias;
             user.optionId = idOpcioVotada;
             userDao.update(user);
+        }
+
+        @Override
+        @TransactionalMethod(readOnly = true)
+        public VistaUsuariDto vistaUsuari(String hashVotr, String hashUser) {
+
+            Votr votr = votrDao.queryUnique(votr_.votrHash.eq(hashVotr));
+            User user = userDao.queryUnique( //
+                    Restrictions.and( //
+                            user_.userHash.eq(hashUser), //
+                            user_.votrId.eq(votr.votrId) //
+                    ));
+
+            // Map<Integer, User> users = userDao.queryFor() //
+            // .append("select {} from {} ", u.all(), u) //
+            // .append("join {} on {} ", tu, u.idUser.eq(tu.idUser)) //
+            // .append("join {} on {} ", tu, t.idTicket.eq(tu.idTicket)) //
+            // .append("where {} ", t.idTicket.eq(idTicket)) //
+            // .append("order by {} ", Order.asc(tu.joined)) //
+            // .getExecutor(facade).extract(new EntityMapResultSetExtractor<Integer,
+            // User>(u, uu -> uu.idUser));
+
+            votrDao.queryFor() //
+                    .append("select * ") //
+                    .append("from {}") //
+                    .append("") //
+                    .append("") //
+                    .append("") //
+                    .append("") //
+                    .getExecutor(facade)
+                    .extract(new EntityMapResultSetExtractor2<Integer, Option>(ScalarMappers.INTEGER, option_));
+
+            ;
+
+            // FIXME
+
+            return null;
+        }
+
+        public class VistaUsuariDto {
+
+            Votr votr;
+            User user;
+
         }
     }
 

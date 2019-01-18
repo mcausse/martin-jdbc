@@ -52,8 +52,11 @@ public class GenericDao<E, ID> {
         em.update(table, entity, columnsToUpdate);
     }
 
-    public void update(E example, Iterable<Column<E, ?>> columnsToUpdate, IQueryObject wherePredicate) {
-        em.update(table, example, columnsToUpdate, wherePredicate);
+    /**
+     * @return # of affected rows
+     */
+    public int update(E example, Iterable<Column<E, ?>> columnsToUpdate, IQueryObject wherePredicate) {
+        return em.update(table, example, columnsToUpdate, wherePredicate);
     }
 
     public void delete(E entity) {

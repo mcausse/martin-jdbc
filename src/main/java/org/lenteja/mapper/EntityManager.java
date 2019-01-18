@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.lenteja.jdbc.DataAccesFacade;
+import org.lenteja.jdbc.exception.EmptyResultException;
 import org.lenteja.jdbc.exception.JdbcException;
 import org.lenteja.jdbc.exception.TooManyResultsException;
 import org.lenteja.jdbc.query.IQueryObject;
@@ -230,28 +231,51 @@ public class EntityManager {
 
     public <E> void update(Table<E> table, E entity) {
         IQueryObject q = o.update(table, entity);
-        facade.update(q);
+        int affectedRows = facade.update(q);
+        if (affectedRows == 0) {
+            throw new EmptyResultException(q.toString());
+        } else if (affectedRows > 1) {
+            throw new TooManyResultsException(q.toString());
+        }
     }
 
     public <E> void update(Table<E> table, E entity, Iterable<Column<E, ?>> columnsToUpdate) {
         IQueryObject q = o.update(table, entity, columnsToUpdate);
-        facade.update(q);
+        int affectedRows = facade.update(q);
+        if (affectedRows == 0) {
+            throw new EmptyResultException(q.toString());
+        } else if (affectedRows > 1) {
+            throw new TooManyResultsException(q.toString());
+        }
     }
 
-    public <E> void update(Table<E> table, E example, Iterable<Column<E, ?>> columnsToUpdate,
+    /**
+     * @return # of affected rows
+     */
+    public <E> int update(Table<E> table, E example, Iterable<Column<E, ?>> columnsToUpdate,
             IQueryObject wherePredicate) {
         IQueryObject q = o.update(table, example, columnsToUpdate, wherePredicate);
-        facade.update(q);
+        return facade.update(q);
     }
 
     public <E> void delete(Table<E> table, E entity) {
         IQueryObject q = o.delete(table, entity);
-        facade.update(q);
+        int affectedRows = facade.update(q);
+        if (affectedRows == 0) {
+            throw new EmptyResultException(q.toString());
+        } else if (affectedRows > 1) {
+            throw new TooManyResultsException(q.toString());
+        }
     }
 
     public <E> void delete(Table<E> table, IQueryObject wherePredicate) {
         IQueryObject q = o.delete(table, wherePredicate);
-        facade.update(q);
+        int affectedRows = facade.update(q);
+        if (affectedRows == 0) {
+            throw new EmptyResultException(q.toString());
+        } else if (affectedRows > 1) {
+            throw new TooManyResultsException(q.toString());
+        }
     }
 
     // ===========================================
