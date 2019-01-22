@@ -4,6 +4,7 @@ import java.util.Date;
 
 import org.hsqldb.jdbc.JDBCDataSource;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.JdbcDataAccesFacade;
@@ -20,6 +21,7 @@ import org.lenteja.mapper.autogen.impl.HsqldbSequence;
 import org.lenteja.mapper.query.Restrictions;
 import org.lenteja.test.VotrTest.ServiceImpl.VistaUsuariDto;
 
+@Ignore // TODO
 public class VotrTest {
 
     final DataAccesFacade facade;

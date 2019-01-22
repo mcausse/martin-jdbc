@@ -2,9 +2,9 @@ package org.lenteja.mapper;
 
 public class Conventions {
 
-    // public static String tableNameOf(Class<?> entityClass) {
-    // return camelCaseToSqlCase(entityClass.getSimpleName());
-    // }
+    public static String tableNameOf(Class<?> entityClass) {
+        return camelCaseToSqlCase(entityClass.getSimpleName());
+    }
 
     public static String columnNameOf(String propertyName) {
         return camelCaseToSqlCase(propertyName);
