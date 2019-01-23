@@ -1,13 +1,10 @@
 package cat.lechuga.jdbc;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.lenteja.jdbc.query.IQueryObject;
-import org.lenteja.jdbc.query.QueryObject;
+import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.mapper.Conventions;
 import org.lenteja.mapper.autogen.Generator;
 import org.lenteja.mapper.handler.ColumnHandler;
@@ -27,94 +24,9 @@ import cat.lechuga.jdbc.reflect.ReflectUtils;
 
 public class EntityManagerFactory {
 
-    public static class EntityManager<E> {
-
-        final EntityMeta<E> entityMeta;
-
-        public EntityManager(EntityMeta<E> entityMeta) {
-            super();
-            this.entityMeta = entityMeta;
-        }
-
-    }
-
-    public static class EntityManagerOperations<E> {
-
-        final EntityMeta<E> entityMeta;
-
-        public EntityManagerOperations(EntityMeta<E> entityMeta) {
-            super();
-            this.entityMeta = entityMeta;
-        }
-
-        public IQueryObject update(E entity) throws Exception {
-            QueryObject q = new QueryObject();
-            q.append("update ");
-            q.append(entityMeta.getTableName());
-            q.append(" set ");
-            {
-                int c = 0;
-                for (PropertyMeta p : entityMeta.regularProps) {
-                    if (c > 0) {
-                        q.append(",");
-                    }
-                    q.append(p.getColumnName());
-                    q.append("=?");
-                    q.addArg(p.getJdbcValue(entity));
-                    c++;
-                }
-            }
-            q.append(" where ");
-            {
-                int c = 0;
-                for (PropertyMeta p : entityMeta.idProps) {
-                    if (c > 0) {
-                        q.append(" and ");
-                    }
-                    q.append(p.getColumnName());
-                    q.append("=?");
-                    q.addArg(p.getJdbcValue(entity));
-                    c++;
-                }
-            }
-            return q;
-        }
-
-        public IQueryObject loadById(Object id) {
-            QueryObject q = new QueryObject();
-            q.append("select ");
-            {
-                int c = 0;
-                for (PropertyMeta p : entityMeta.allProps) {
-                    if (c > 0) {
-                        q.append(",");
-                    }
-                    q.append(p.getColumnName());
-                    c++;
-                }
-            }
-            q.append(" from ");
-            q.append(entityMeta.getTableName());
-            q.append(" where ");
-            {
-                int c = 0;
-                for (PropertyMeta p : entityMeta.idProps) {
-                    if (c > 0) {
-                        q.append(" and ");
-                    }
-                    q.append(p.getColumnName());
-                    q.append("=?");
-                    q.addArg(p.getJdbcValue(1, id));
-                    c++;
-                }
-            }
-            return q;
-        }
-    }
-
-    public <E> EntityManager<E> buildEntityManager(Class<E> entityClass) {
+    public <E, ID> EntityManager<E, ID> buildEntityManager(DataAccesFacade facade, Class<E> entityClass) {
         EntityMeta<E> entityMeta = buildEntityMeta(entityClass);
-        return new EntityManager<>(entityMeta);
+        return new EntityManager<>(facade, entityMeta);
     }
 
     protected <E> EntityMeta<E> buildEntityMeta(Class<E> entityClass) {
@@ -181,122 +93,6 @@ public class EntityManagerFactory {
         }
 
         return new EntityMeta<>(entityClass, tableName, propMetas);
-    }
-
-    public static class EntityMeta<E> {
-
-        final Class<E> entityClass;
-        final String tableName;
-
-        final List<PropertyMeta> allProps;
-        final List<PropertyMeta> idProps;
-        final List<PropertyMeta> regularProps;
-
-        public EntityMeta(Class<E> entityClass, String tableName, List<PropertyMeta> allProps) {
-            super();
-            this.entityClass = entityClass;
-            this.tableName = tableName;
-            this.allProps = allProps;
-
-            this.idProps = new ArrayList<>();
-            this.regularProps = new ArrayList<>();
-            for (PropertyMeta p : allProps) {
-                if (p.isId) {
-                    this.idProps.add(p);
-                } else {
-                    this.regularProps.add(p);
-                }
-            }
-        }
-
-        public Class<E> getEntityClass() {
-            return entityClass;
-        }
-
-        public String getTableName() {
-            return tableName;
-        }
-
-        public List<PropertyMeta> getAllProps() {
-            return allProps;
-        }
-
-        public List<PropertyMeta> getIdProps() {
-            return idProps;
-        }
-
-        public List<PropertyMeta> getRegularProps() {
-            return regularProps;
-        }
-
-        @Override
-        public String toString() {
-            return "EntityMeta [entityClass=" + entityClass + ", tableName=" + tableName + ", allProps=" + allProps
-                    + "]";
-        }
-
-    }
-
-    public static class PropertyMeta {
-
-        final Property prop;
-
-        final String columnName;
-        final boolean isId;
-        final ColumnHandler handler;
-        final Generator generator;
-
-        public PropertyMeta(Property prop, String columnName, boolean isId, ColumnHandler handler,
-                Generator generator) {
-            super();
-            this.prop = prop;
-            this.columnName = columnName;
-            this.isId = isId;
-            this.handler = handler;
-            this.generator = generator;
-        }
-
-        public Object getJdbcValue(Object entity) throws Exception {
-            Object value = prop.get(entity);
-            return handler.getJdbcValue(value);
-        }
-
-        public Object getJdbcValue(int propertyOffset, Object entity) {
-            Object value = prop.get(propertyOffset, entity);
-            return handler.getJdbcValue(value);
-        }
-
-        public void readValue(Object entity, ResultSet rs) throws SQLException {
-            Object value = handler.readValue(rs, getColumnName());
-            prop.set(entity, value);
-        }
-
-        public Property getProp() {
-            return prop;
-        }
-
-        public String getColumnName() {
-            return columnName;
-        }
-
-        public boolean isId() {
-            return isId;
-        }
-
-        public ColumnHandler getHandler() {
-            return handler;
-        }
-
-        public Generator getGenerator() {
-            return generator;
-        }
-
-        @Override
-        public String toString() {
-            return "PropertyMeta [prop=" + prop + ", columnName=" + columnName + ", isId=" + isId + ", handler="
-                    + handler + ", generator=" + generator + "]";
-        }
-
     }
 
 }

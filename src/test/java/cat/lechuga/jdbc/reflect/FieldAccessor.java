@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 
 public class FieldAccessor extends Accessor {
 
-    final Field field;
+    private final Field field;
 
     public FieldAccessor(Class<?> beanClass, Field field) {
         super(beanClass, field.getType());

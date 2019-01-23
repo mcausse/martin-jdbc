@@ -4,9 +4,9 @@ import java.lang.reflect.Method;
 
 public class PropertyAccessor extends Accessor {
 
-    final String propertyName;
-    final Method setter;
-    final Method getter;
+    private final String propertyName;
+    private final Method setter;
+    private final Method getter;
 
     public PropertyAccessor(Class<?> beanClass, String propertyName, Method setter, Method getter) {
         super(beanClass, getter.getReturnType());

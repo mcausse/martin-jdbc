@@ -2,8 +2,8 @@ package cat.lechuga.jdbc.reflect;
 
 public abstract class Accessor {
 
-    final Class<?> beanClass;
-    final Class<?> propertyType;
+    private final Class<?> beanClass;
+    private final Class<?> propertyType;
 
     public Accessor(Class<?> beanClass, Class<?> propertyType) {
         super();

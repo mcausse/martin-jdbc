@@ -7,8 +7,6 @@ import java.util.Date;
 
 import org.junit.Test;
 
-import cat.lechuga.jdbc.EntityManagerFactory.EntityManagerOperations;
-import cat.lechuga.jdbc.EntityManagerFactory.EntityMeta;
 import cat.lechuga.jdbc.test.ESex;
 import cat.lechuga.jdbc.test.Exp;
 import cat.lechuga.jdbc.test.ExpId;
@@ -40,7 +38,12 @@ public class EntityManagerOperationsTest {
                 "update exps set name=?,fecha_ini=?,sex=?,alive=? where id_ens=? and any_exp=? and num_exp=? -- [jou(String), Thu Jan 01 01:00:00 CET 1970(Date), FEMALE(String), true(Boolean), 8(Long), 1982(Integer), 123(Long)]",
                 emo.update(exp).toString());
 
-        System.out.println(emo.loadById(id));
+        System.out.println(emo.loadById(id));// TODO
+        System.out.println(emo.insert(exp));// TODO
+        System.out.println(emo.delete(exp));// TODO
+        System.out.println(emo.deleteById(id));// TODO
+        System.out.println(emo.existsById(id));// TODO
+        System.out.println(emo.exists(exp));// TODO
     }
 
     @Test
@@ -60,6 +63,11 @@ public class EntityManagerOperationsTest {
                 "update pizza set name=?,price=? where id_pizza=? -- [romana(String), 12.34(BigDecimal), 42(Long)]",
                 emo.update(pizza).toString());
 
-        System.out.println(emo.loadById(123L));
+        System.out.println(emo.loadById(42L));// TODO
+        System.out.println(emo.insert(pizza));// TODO
+        System.out.println(emo.delete(pizza));// TODO
+        System.out.println(emo.deleteById(42L));// TODO
+        System.out.println(emo.existsById(42L));// TODO
+        System.out.println(emo.exists(pizza));// TODO
     }
 }

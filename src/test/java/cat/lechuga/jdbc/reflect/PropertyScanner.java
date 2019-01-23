@@ -16,6 +16,8 @@ import cat.lechuga.jdbc.reflect.anno.Embeddable;
 /**
  * <pre>
  *
+ * TODO
+ *
  *  1) rollo hql
  *  2) generar constants per a entitats, typed.
  *  3) amb aquestes constants de columna => fer criteria type-safe
@@ -35,12 +37,11 @@ public class PropertyScanner {
 
         Map<String, Property> r = new LinkedHashMap<>();
         for (Property p : props) {
-            r.put(p.fullName, p);
+            r.put(p.getFullName(), p);
         }
         return r;
     }
 
-    @SuppressWarnings("unchecked")
     protected void propertyScanner(List<Property> r, Class<?> originalBeanClass, Class<?> targetBeanClass,
             List<String> fullName, List<Accessor> accessors, Set<Annotation> annos) {
 

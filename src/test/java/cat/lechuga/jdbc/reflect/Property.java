@@ -6,9 +6,9 @@ import java.util.Set;
 
 public class Property {
 
-    public final String fullName;
-    public final List<Accessor> accessors;
-    public final Set<Annotation> annos;
+    private final String fullName;
+    private final List<Accessor> accessors;
+    private final Set<Annotation> annos;
 
     public Property(String fullName, List<Accessor> accessors, Set<Annotation> annos) {
         super();
@@ -42,6 +42,10 @@ public class Property {
 
     public Class<?> getType() {
         return accessors.get(accessors.size() - 1).getPropertyType();
+    }
+
+    public String getFullName() {
+        return fullName;
     }
 
     public Object get(Object bean) {
