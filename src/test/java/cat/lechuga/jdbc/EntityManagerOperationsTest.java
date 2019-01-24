@@ -35,7 +35,7 @@ public class EntityManagerOperationsTest {
 
         System.out.println(emo.update(exp));
         assertEquals(
-                "update exps set name=?,fecha_ini=?,sex=?,alive=? where id_ens=? and any_exp=? and num_exp=? -- [jou(String), Thu Jan 01 01:00:00 CET 1970(Date), FEMALE(String), true(Boolean), 8(Long), 1982(Integer), 123(Long)]",
+                "update exps set name=?,fecha_ini=?,sex=?,alive=? where id_ens=? and any_exp=? and num_exp=? -- [jou(String), 01-01-1970(String), FEMALE(String), true(Boolean), 8(Long), 1982(Integer), 123(Long)]",
                 emo.update(exp).toString());
 
         System.out.println(emo.loadById(id));// TODO

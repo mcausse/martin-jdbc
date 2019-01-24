@@ -10,6 +10,7 @@ import cat.lechuga.jdbc.generator.Generator;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Generated {
+
     Class<? extends Generator> value();
 
     String[] args() default {};

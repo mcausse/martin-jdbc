@@ -5,8 +5,10 @@ import java.util.Date;
 
 import cat.lechuga.jdbc.anno.Column;
 import cat.lechuga.jdbc.anno.Enumerated;
+import cat.lechuga.jdbc.anno.Handler;
 import cat.lechuga.jdbc.anno.Id;
 import cat.lechuga.jdbc.anno.Table;
+import cat.lechuga.jdbc.handler.DateStringHandler;
 
 @Table("exps")
 public class Exp {
@@ -16,6 +18,7 @@ public class Exp {
 
     String name;
 
+    @Handler(value = DateStringHandler.class, args = { "dd-MM-yyyy" })
     @Column("fecha_ini")
     Date fecIni;
 

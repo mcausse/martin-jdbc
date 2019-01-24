@@ -6,9 +6,6 @@ import java.util.Map;
 
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.mapper.Conventions;
-import org.lenteja.mapper.handler.ColumnHandler;
-import org.lenteja.mapper.handler.EnumColumnHandler;
-import org.lenteja.mapper.handler.Handlers;
 
 import cat.lechuga.jdbc.anno.Column;
 import cat.lechuga.jdbc.anno.Enumerated;
@@ -18,6 +15,9 @@ import cat.lechuga.jdbc.anno.Id;
 import cat.lechuga.jdbc.anno.Table;
 import cat.lechuga.jdbc.anno.Transient;
 import cat.lechuga.jdbc.generator.Generator;
+import cat.lechuga.jdbc.handler.ColumnHandler;
+import cat.lechuga.jdbc.handler.EnumColumnHandler;
+import cat.lechuga.jdbc.handler.Handlers;
 import cat.lechuga.jdbc.reflect.Property;
 import cat.lechuga.jdbc.reflect.PropertyScanner;
 import cat.lechuga.jdbc.reflect.ReflectUtils;
@@ -29,6 +29,7 @@ public class EntityManagerFactory {
         return new EntityManager<>(facade, entityMeta);
     }
 
+    @SuppressWarnings("unchecked")
     protected <E> EntityMeta<E> buildEntityMeta(Class<E> entityClass) {
         PropertyScanner ps = new PropertyScanner();
         Map<String, Property> props = ps.propertyScanner(entityClass);
@@ -66,10 +67,10 @@ public class EntityManagerFactory {
             final ColumnHandler handler;
             {
                 if (prop.containsAnnotation(Enumerated.class)) {
-                    handler = new EnumColumnHandler(prop.getType());
+                    handler = new EnumColumnHandler((Class<Enum>) prop.getType());
                 } else if (prop.containsAnnotation(Handler.class)) {
                     Handler anno = prop.getAnnotation(Handler.class);
-                    Class<ColumnHandler> handlerClass = anno.value();
+                    Class<? extends ColumnHandler> handlerClass = anno.value();
                     String[] handlerArgs = anno.args();
                     handler = ReflectUtils.newInstance(handlerClass, handlerArgs);
                 } else {

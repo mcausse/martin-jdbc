@@ -5,13 +5,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.lenteja.mapper.handler.ColumnHandler;
+import cat.lechuga.jdbc.handler.ColumnHandler;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Handler {
 
-    Class<ColumnHandler> value();
+    Class<? extends ColumnHandler> value();
 
     String[] args() default {};
 }
