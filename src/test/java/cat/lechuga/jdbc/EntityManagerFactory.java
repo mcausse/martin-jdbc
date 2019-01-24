@@ -6,7 +6,6 @@ import java.util.Map;
 
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.mapper.Conventions;
-import org.lenteja.mapper.autogen.Generator;
 import org.lenteja.mapper.handler.ColumnHandler;
 import org.lenteja.mapper.handler.EnumColumnHandler;
 import org.lenteja.mapper.handler.Handlers;
@@ -18,6 +17,7 @@ import cat.lechuga.jdbc.anno.Handler;
 import cat.lechuga.jdbc.anno.Id;
 import cat.lechuga.jdbc.anno.Table;
 import cat.lechuga.jdbc.anno.Transient;
+import cat.lechuga.jdbc.generator.Generator;
 import cat.lechuga.jdbc.reflect.Property;
 import cat.lechuga.jdbc.reflect.PropertyScanner;
 import cat.lechuga.jdbc.reflect.ReflectUtils;
@@ -81,9 +81,9 @@ public class EntityManagerFactory {
             {
                 if (prop.containsAnnotation(Generated.class)) {
                     Generated anno = prop.getAnnotation(Generated.class);
-                    Class<? extends Generator> handlerClass = anno.value();
-                    String[] handlerArgs = anno.args();
-                    generator = ReflectUtils.newInstance(handlerClass, handlerArgs);
+                    Class<? extends Generator> generatorClass = anno.value();
+                    String[] generatorArgs = anno.args();
+                    generator = ReflectUtils.newInstance(generatorClass, generatorArgs);
                 } else {
                     generator = null;
                 }

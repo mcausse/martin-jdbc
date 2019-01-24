@@ -3,9 +3,9 @@ package cat.lechuga.jdbc;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.lenteja.mapper.autogen.Generator;
 import org.lenteja.mapper.handler.ColumnHandler;
 
+import cat.lechuga.jdbc.generator.Generator;
 import cat.lechuga.jdbc.reflect.Property;
 
 public class PropertyMeta {

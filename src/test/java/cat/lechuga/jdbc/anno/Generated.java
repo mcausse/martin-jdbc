@@ -5,7 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.lenteja.mapper.autogen.Generator;
+import cat.lechuga.jdbc.generator.Generator;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

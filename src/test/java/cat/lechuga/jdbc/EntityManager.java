@@ -42,6 +42,16 @@ public class EntityManager<E, ID> {
         return facade.loadUnique(q, entityMapable);
     }
 
+    public void refresh(E entity) {
+        IQueryObject q = ops.refresh(entity);
+        E e = facade.loadUnique(q, entityMapable);
+
+        for (PropertyMeta p : entityMeta.getRegularProps()) {
+            Object value = p.getProp().get(e);
+            p.getProp().set(entity, value);
+        }
+    }
+
     public void update(E entity) {
         IQueryObject q = ops.update(entity);
         int affectedRows = facade.update(q);
@@ -68,7 +78,7 @@ public class EntityManager<E, ID> {
     public boolean existsById(ID id) {
         IQueryObject q = ops.existsById(id);
         long rows = facade.loadUnique(q, ScalarMappers.LONG);
-        return rows > 0;
+        return rows > 0L;
     }
 
     public void delete(E entity) {
@@ -83,6 +93,7 @@ public class EntityManager<E, ID> {
     public boolean exists(E entity) {
         IQueryObject q = ops.exists(entity);
         long rows = facade.loadUnique(q, ScalarMappers.LONG);
-        return rows > 0;
+        return rows > 0L;
     }
+
 }

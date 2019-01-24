@@ -61,6 +61,37 @@ public class EntityManagerOperations<E> {
         return q;
     }
 
+    public IQueryObject refresh(E entity) {
+        QueryObject q = new QueryObject();
+        q.append("select ");
+        {
+            int c = 0;
+            for (PropertyMeta p : entityMeta.getRegularProps()) {
+                if (c > 0) {
+                    q.append(",");
+                }
+                q.append(p.getColumnName());
+                c++;
+            }
+        }
+        q.append(" from ");
+        q.append(entityMeta.getTableName());
+        q.append(" where ");
+        {
+            int c = 0;
+            for (PropertyMeta p : entityMeta.getIdProps()) {
+                if (c > 0) {
+                    q.append(" and ");
+                }
+                q.append(p.getColumnName());
+                q.append("=?");
+                q.addArg(p.getJdbcValue(entity));
+                c++;
+            }
+        }
+        return q;
+    }
+
     public IQueryObject insert(E entity) {
         QueryObject q = new QueryObject();
         q.append("insert into ");
