@@ -27,6 +27,13 @@ public class Exp {
 
     boolean alive;
 
+    // TODO gran cosa rollo ORM !!!
+    // @Query(lazy=true, result=Tex.class, query= //
+    // "select {_ref.*} from {_ref.#} " //
+    // "where _ref.idEns=_this.idEns and _ref.idEns=_this.idEns and
+    // _ref.idEns=_this.idEns")
+    // List<Tex> texs;
+
     public ExpId getId() {
         return id;
     }

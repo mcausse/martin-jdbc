@@ -11,6 +11,7 @@ public class EntityMeta<E> {
     private final List<PropertyMeta> allProps;
     private final List<PropertyMeta> idProps;
     private final List<PropertyMeta> regularProps;
+    private final List<PropertyMeta> autogenProps;
 
     public EntityMeta(Class<E> entityClass, String tableName, List<PropertyMeta> allProps) {
         super();
@@ -20,11 +21,15 @@ public class EntityMeta<E> {
 
         this.idProps = new ArrayList<>();
         this.regularProps = new ArrayList<>();
+        this.autogenProps = new ArrayList<>();
         for (PropertyMeta p : allProps) {
             if (p.isId()) {
                 this.idProps.add(p);
             } else {
                 this.regularProps.add(p);
+            }
+            if (p.getGenerator() != null) {
+                this.autogenProps.add(p);
             }
         }
     }
@@ -47,6 +52,10 @@ public class EntityMeta<E> {
 
     public List<PropertyMeta> getRegularProps() {
         return regularProps;
+    }
+
+    public List<PropertyMeta> getAutogenProps() {
+        return autogenProps;
     }
 
     @Override

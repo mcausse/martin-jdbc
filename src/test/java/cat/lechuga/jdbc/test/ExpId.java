@@ -1,6 +1,8 @@
 package cat.lechuga.jdbc.test;
 
 import cat.lechuga.jdbc.anno.Column;
+import cat.lechuga.jdbc.anno.Generated;
+import cat.lechuga.jdbc.generator.impl.HsqldbIdentity;
 import cat.lechuga.jdbc.reflect.anno.Embeddable;
 
 @Embeddable
@@ -10,6 +12,7 @@ public class ExpId {
 
     public Integer anyExp;
 
+    @Generated(HsqldbIdentity.class)
     @Column("num_exp")
     Long numExp;
 

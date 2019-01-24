@@ -19,7 +19,8 @@ public abstract class Accessor {
     }
 
     protected void verifyPropertyValueClass(Object propertyValue) {
-        if (propertyValue != null) {
+        // https://stackoverflow.com/questions/1650614/isassignablefrom-with-reference-and-primitive-types
+        if (propertyValue != null && !propertyType.isPrimitive()/* FIXME */) {
             if (!propertyType.isAssignableFrom(propertyValue.getClass())) {
                 throw new RuntimeException(toString() + " expected property type: " + propertyType.getName()
                         + ", but received: " + propertyValue.getClass().getName());

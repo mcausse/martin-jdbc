@@ -66,7 +66,7 @@ public class EntityManagerOperations<E> {
         q.append("select ");
         {
             int c = 0;
-            for (PropertyMeta p : entityMeta.getRegularProps()) {
+            for (PropertyMeta p : entityMeta.getAllProps()) {
                 if (c > 0) {
                     q.append(",");
                 }

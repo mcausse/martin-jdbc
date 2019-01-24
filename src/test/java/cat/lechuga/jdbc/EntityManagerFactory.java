@@ -6,6 +6,8 @@ import java.util.Map;
 
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.mapper.Conventions;
+import org.lenteja.mapper.autogen.ScalarHandler;
+import org.lenteja.mapper.autogen.ScalarMappers;
 
 import cat.lechuga.jdbc.anno.Column;
 import cat.lechuga.jdbc.anno.Enumerated;
@@ -24,12 +26,19 @@ import cat.lechuga.jdbc.reflect.ReflectUtils;
 
 public class EntityManagerFactory {
 
-    public <E, ID> EntityManager<E, ID> buildEntityManager(DataAccesFacade facade, Class<E> entityClass) {
+    private final DataAccesFacade facade;
+
+    public EntityManagerFactory(DataAccesFacade facade) {
+        super();
+        this.facade = facade;
+    }
+
+    public <E, ID> EntityManager<E, ID> buildEntityManager(Class<E> entityClass) {
         EntityMeta<E> entityMeta = buildEntityMeta(entityClass);
         return new EntityManager<>(facade, entityMeta);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     protected <E> EntityMeta<E> buildEntityMeta(Class<E> entityClass) {
         PropertyScanner ps = new PropertyScanner();
         Map<String, Property> props = ps.propertyScanner(entityClass);
@@ -85,6 +94,9 @@ public class EntityManagerFactory {
                     Class<? extends Generator> generatorClass = anno.value();
                     String[] generatorArgs = anno.args();
                     generator = ReflectUtils.newInstance(generatorClass, generatorArgs);
+
+                    ScalarHandler<Object> scalarMapper = ScalarMappers.getScalarMapperFor(prop.getType());
+                    generator.setScalarHandler(scalarMapper);
                 } else {
                     generator = null;
                 }
