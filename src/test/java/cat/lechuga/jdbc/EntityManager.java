@@ -1,5 +1,7 @@
 package cat.lechuga.jdbc;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 import org.lenteja.jdbc.DataAccesFacade;
@@ -11,26 +13,26 @@ import org.lenteja.mapper.autogen.ScalarMappers;
 import cat.lechuga.jdbc.generator.Generator;
 import cat.lechuga.jdbc.reflect.ReflectUtils;
 
-public class EntityManager<E, ID> {
+public class EntityManager<E, ID> implements Mapable<E> {
 
     private final DataAccesFacade facade;
     private final EntityMeta<E> entityMeta;
     private final EntityManagerOperations<E> ops;
-
-    private final Mapable<E> entityMapable;
 
     public EntityManager(DataAccesFacade facade, EntityMeta<E> entityMeta) {
         super();
         this.facade = facade;
         this.entityMeta = entityMeta;
         this.ops = new EntityManagerOperations<>(entityMeta);
-        this.entityMapable = rs -> {
-            E r = ReflectUtils.newInstance(entityMeta.getEntityClass());
-            for (PropertyMeta p : entityMeta.getAllProps()) {
-                p.readValue(r, rs);
-            }
-            return r;
-        };
+    }
+
+    @Override
+    public E map(ResultSet rs) throws SQLException {
+        E r = ReflectUtils.newInstance(entityMeta.getEntityClass());
+        for (PropertyMeta p : entityMeta.getAllProps()) {
+            p.readValue(r, rs);
+        }
+        return r;
     }
 
     public DataAccesFacade getFacade() {
@@ -41,23 +43,19 @@ public class EntityManager<E, ID> {
         return entityMeta;
     }
 
-    public Mapable<E> getEntityMapable() {
-        return entityMapable;
-    }
-
     public List<E> loadAll() {
         IQueryObject q = ops.loadAll();
-        return facade.load(q, entityMapable);
+        return facade.load(q, this);
     }
 
     public E loadById(ID id) {
         IQueryObject q = ops.loadById(id);
-        return facade.loadUnique(q, entityMapable);
+        return facade.loadUnique(q, this);
     }
 
     public void refresh(E entity) {
         IQueryObject q = ops.refresh(entity);
-        E e = facade.loadUnique(q, entityMapable);
+        E e = facade.loadUnique(q, this);
 
         for (PropertyMeta p : entityMeta.getAllProps()) {
             Object value = p.getProp().get(e);

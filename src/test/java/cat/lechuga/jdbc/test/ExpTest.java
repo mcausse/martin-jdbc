@@ -16,6 +16,7 @@ import org.lenteja.jdbc.script.SqlScriptExecutor;
 
 import cat.lechuga.jdbc.EntityManager;
 import cat.lechuga.jdbc.EntityManagerFactory;
+import cat.lechuga.jdbc.mql.QueryBuilder;
 
 public class ExpTest {
 
@@ -81,6 +82,15 @@ public class ExpTest {
             assertEquals(
                     "Exp [id=ExpId [idEns=8, anyExp=2019, numExp=10], name=jou, fecIni=19700101, sex=FEMALE, alive=true]",
                     exp1.toString());
+
+            {
+                QueryBuilder qb = new QueryBuilder(facade);
+                qb.addAlias("e", expEm);
+                qb.append("select {e.*} ");
+                qb.append("from {e.#} ");
+                qb.append("where {e.id.anyExp=?} and {e.sex in (?,?)}", exp1.getId().anyExp, ESex.FEMALE, ESex.MALE);
+                exp1 = qb.getExecutor(expEm).loadUnique();
+            }
 
             assertTrue(expEm.exists(exp1));
             assertTrue(expEm.existsById(id1));

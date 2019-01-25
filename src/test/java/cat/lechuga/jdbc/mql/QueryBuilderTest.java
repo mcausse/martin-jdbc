@@ -27,7 +27,9 @@ public class QueryBuilderTest {
             qb.append("from {e.#} ");
             qb.append("where {e.id.anyExp=?} and {e.sex in (?,?)}", 1982, ESex.FEMALE, ESex.MALE);
 
-            System.out.println(qb.getQueryObject().toString());
+            assertEquals(
+                    "select id_ens,any_exp,num_exp,name,fecha_ini,sex,alive from exps e where e.any_exp=? and e.sex in (?,?) -- [1982(Integer), FEMALE(String), MALE(String)]",
+                    qb.getQueryObject().toString());
         }
 
         {
