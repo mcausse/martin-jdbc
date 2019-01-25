@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.hsqldb.jdbc.JDBCDataSource;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.JdbcDataAccesFacade;
@@ -27,6 +28,7 @@ import org.lenteja.mapper.query.Order;
 import org.lenteja.mapper.query.Restrictions;
 import org.lenteja.test.TicketsTest.ServiceImpl.TicketDetailDto;
 
+@Ignore
 public class TicketsTest {
 
     final DataAccesFacade facade;

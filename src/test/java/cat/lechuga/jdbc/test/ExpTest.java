@@ -14,9 +14,10 @@ import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.JdbcDataAccesFacade;
 import org.lenteja.jdbc.script.SqlScriptExecutor;
 
-import cat.lechuga.jdbc.EntityManager;
-import cat.lechuga.jdbc.EntityManagerFactory;
-import cat.lechuga.jdbc.mql.QueryBuilder;
+import cat.lechuga.EntityManager;
+import cat.lechuga.EntityManagerFactory;
+import cat.lechuga.generator.ScalarMappers;
+import cat.lechuga.mql.QueryBuilder;
 
 public class ExpTest {
 
@@ -91,7 +92,13 @@ public class ExpTest {
                 qb.append("where {e.id.anyExp=?} and {e.sex in (?,?)}", exp1.getId().anyExp, ESex.FEMALE, ESex.MALE);
                 exp1 = qb.getExecutor(expEm).loadUnique();
             }
-
+            {
+                QueryBuilder qb = new QueryBuilder(facade);
+                qb.addAlias("e", expEm);
+                qb.append("select count(*) from {e.#}");
+                long total = qb.getExecutor(ScalarMappers.LONG).loadUnique();
+                assertEquals(1, total);
+            }
             assertTrue(expEm.exists(exp1));
             assertTrue(expEm.existsById(id1));
 

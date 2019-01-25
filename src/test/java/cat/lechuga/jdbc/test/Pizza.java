@@ -2,9 +2,9 @@ package cat.lechuga.jdbc.test;
 
 import java.math.BigDecimal;
 
-import cat.lechuga.jdbc.anno.Generated;
-import cat.lechuga.jdbc.anno.Id;
-import cat.lechuga.jdbc.generator.impl.HsqldbSequence;
+import cat.lechuga.anno.Generated;
+import cat.lechuga.anno.Id;
+import cat.lechuga.generator.impl.HsqldbSequence;
 
 public class Pizza {
 

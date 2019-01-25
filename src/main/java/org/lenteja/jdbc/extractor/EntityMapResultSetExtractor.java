@@ -6,7 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import org.lenteja.mapper.Mapable;
+import cat.lechuga.Mapable;
 
 public class EntityMapResultSetExtractor<K, E> implements ResultSetExtractor<Map<K, E>> {
 

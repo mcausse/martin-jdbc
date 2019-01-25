@@ -7,6 +7,9 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import cat.lechuga.EntityManagerFactory;
+import cat.lechuga.EntityManagerOperations;
+import cat.lechuga.EntityMeta;
 import cat.lechuga.jdbc.test.ESex;
 import cat.lechuga.jdbc.test.Exp;
 import cat.lechuga.jdbc.test.ExpId;

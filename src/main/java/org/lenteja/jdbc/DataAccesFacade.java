@@ -9,7 +9,8 @@ import org.lenteja.jdbc.exception.EmptyResultException;
 import org.lenteja.jdbc.exception.TooManyResultsException;
 import org.lenteja.jdbc.extractor.ResultSetExtractor;
 import org.lenteja.jdbc.query.IQueryObject;
-import org.lenteja.mapper.Mapable;
+
+import cat.lechuga.Mapable;
 
 public interface DataAccesFacade {
 

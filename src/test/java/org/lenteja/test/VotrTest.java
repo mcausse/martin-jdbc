@@ -16,10 +16,11 @@ import org.lenteja.mapper.Column;
 import org.lenteja.mapper.GenericDao;
 import org.lenteja.mapper.Table;
 import org.lenteja.mapper.TableGenerator;
-import org.lenteja.mapper.autogen.ScalarMappers;
 import org.lenteja.mapper.autogen.impl.HsqldbSequence;
 import org.lenteja.mapper.query.Restrictions;
 import org.lenteja.test.VotrTest.ServiceImpl.VistaUsuariDto;
+
+import cat.lechuga.generator.ScalarMappers;
 
 @Ignore // TODO
 public class VotrTest {

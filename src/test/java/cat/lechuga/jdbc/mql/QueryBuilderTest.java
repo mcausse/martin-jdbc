@@ -5,11 +5,12 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
-import cat.lechuga.jdbc.EntityManager;
-import cat.lechuga.jdbc.EntityManagerFactory;
+import cat.lechuga.EntityManager;
+import cat.lechuga.EntityManagerFactory;
 import cat.lechuga.jdbc.test.ESex;
 import cat.lechuga.jdbc.test.Exp;
 import cat.lechuga.jdbc.test.ExpId;
+import cat.lechuga.mql.QueryBuilder;
 
 public class QueryBuilderTest {
 

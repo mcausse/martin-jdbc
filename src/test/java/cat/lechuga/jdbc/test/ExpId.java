@@ -1,9 +1,9 @@
 package cat.lechuga.jdbc.test;
 
-import cat.lechuga.jdbc.anno.Column;
-import cat.lechuga.jdbc.anno.Generated;
-import cat.lechuga.jdbc.generator.impl.HsqldbIdentity;
-import cat.lechuga.jdbc.reflect.anno.Embeddable;
+import cat.lechuga.anno.Column;
+import cat.lechuga.anno.Generated;
+import cat.lechuga.generator.impl.HsqldbIdentity;
+import cat.lechuga.reflect.anno.Embeddable;
 
 @Embeddable
 public class ExpId {

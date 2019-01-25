@@ -11,6 +11,8 @@ import org.junit.Test;
 
 import cat.lechuga.jdbc.test.ESex;
 import cat.lechuga.jdbc.test.Exp;
+import cat.lechuga.reflect.Property;
+import cat.lechuga.reflect.PropertyScanner;
 
 public class PropertyScannerTest {
 

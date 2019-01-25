@@ -3,12 +3,12 @@ package cat.lechuga.jdbc.test;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import cat.lechuga.jdbc.anno.Column;
-import cat.lechuga.jdbc.anno.Enumerated;
-import cat.lechuga.jdbc.anno.Handler;
-import cat.lechuga.jdbc.anno.Id;
-import cat.lechuga.jdbc.anno.Table;
-import cat.lechuga.jdbc.handler.DateStringHandler;
+import cat.lechuga.anno.Column;
+import cat.lechuga.anno.Enumerated;
+import cat.lechuga.anno.Handler;
+import cat.lechuga.anno.Id;
+import cat.lechuga.anno.Table;
+import cat.lechuga.handler.DateStringHandler;
 
 @Table("exps")
 public class Exp {

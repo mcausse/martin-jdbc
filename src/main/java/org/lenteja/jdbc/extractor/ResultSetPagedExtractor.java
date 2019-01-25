@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.lenteja.mapper.Mapable;
+import cat.lechuga.Mapable;
 
 public class ResultSetPagedExtractor<T> implements ResultSetExtractor<PageResult<T>> {
 

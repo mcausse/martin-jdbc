@@ -14,9 +14,10 @@ import org.lenteja.jdbc.exception.JdbcException;
 import org.lenteja.jdbc.exception.TooManyResultsException;
 import org.lenteja.jdbc.extractor.ResultSetExtractor;
 import org.lenteja.jdbc.query.IQueryObject;
-import org.lenteja.mapper.Mapable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import cat.lechuga.Mapable;
 
 public class JdbcDataAccesFacade implements DataAccesFacade {
 

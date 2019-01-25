@@ -13,11 +13,12 @@ import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.query.QueryObject;
 import org.lenteja.mapper.Column;
-import org.lenteja.mapper.Mapable;
 import org.lenteja.mapper.Table;
 import org.lenteja.mapper.query.Executor;
 import org.lenteja.mapper.query.Order;
 import org.lenteja.mapper.query.Restrictions;
+
+import cat.lechuga.Mapable;
 
 /**
  * <pre>
