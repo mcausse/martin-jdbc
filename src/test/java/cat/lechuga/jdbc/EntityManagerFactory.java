@@ -39,7 +39,7 @@ public class EntityManagerFactory {
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected <E> EntityMeta<E> buildEntityMeta(Class<E> entityClass) {
+    public <E> EntityMeta<E> buildEntityMeta(Class<E> entityClass) {
         PropertyScanner ps = new PropertyScanner();
         Map<String, Property> props = ps.propertyScanner(entityClass);
 

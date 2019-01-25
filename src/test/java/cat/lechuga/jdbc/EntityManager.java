@@ -33,6 +33,18 @@ public class EntityManager<E, ID> {
         };
     }
 
+    public DataAccesFacade getFacade() {
+        return facade;
+    }
+
+    public EntityMeta<E> getEntityMeta() {
+        return entityMeta;
+    }
+
+    public Mapable<E> getEntityMapable() {
+        return entityMapable;
+    }
+
     public List<E> loadAll() {
         IQueryObject q = ops.loadAll();
         return facade.load(q, entityMapable);
