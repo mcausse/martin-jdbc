@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.lenteja.jdbc.DataAccesFacade;
+import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.query.QueryObject;
 
 import cat.lechuga.EntityManager;
@@ -51,11 +52,17 @@ public class QueryBuilder {
         return this;
     }
 
-    public QueryObject getQueryObject() {
+    public IQueryObject getQueryObject() {
         return qo;
     }
 
     public <T> Executor<T> getExecutor(Mapable<T> mapable) {
         return new Executor<>(facade, qo, mapable);
     }
+
+    @Override
+    public String toString() {
+        return qo.toString();
+    }
+
 }

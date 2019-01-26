@@ -340,6 +340,13 @@ public class VotrTest {
                 you = userDao.loadUniqueByExample(example);
             }
 
+            List<User> allUsers;
+            {
+                User example = new User();
+                example.setVotrId(votr.getId());
+                allUsers = userDao.loadByExample(example);
+            }
+
             Map<Option, List<User>> optionsVots = new LinkedHashMap<>();
             {
                 List<Option> opcions;
@@ -366,7 +373,7 @@ public class VotrTest {
                         Order.by(Order.asc("commentDate"), Order.asc("commentId")));
             }
 
-            return new VotrInfo(votr, you, optionsVots, comments);
+            return new VotrInfo(votr, you, allUsers, optionsVots, comments);
         }
 
     }
@@ -375,22 +382,26 @@ public class VotrTest {
 
         public final Votr votr;
         public final User you;
+        public final List<User> allUsers;
         public final Map<Option, List<User>> optionsVots;
         public final List<Comment> comments;
 
-        public VotrInfo(Votr votr, User you, Map<Option, List<User>> optionsVots, List<Comment> comments) {
+        public VotrInfo(Votr votr, User you, List<User> allUsers, Map<Option, List<User>> optionsVots,
+                List<Comment> comments) {
             super();
             this.votr = votr;
             this.you = you;
+            this.allUsers = allUsers;
             this.optionsVots = optionsVots;
             this.comments = comments;
         }
 
         @Override
         public String toString() {
-            return "VotrInfo [votr=" + votr + ", you=" + you + ", optionsVots=" + optionsVots + ", comments=" + comments
-                    + "]";
+            return "VotrInfo [votr=" + votr + ", you=" + you + ", allUsers=" + allUsers + ", optionsVots=" + optionsVots
+                    + ", comments=" + comments + "]";
         }
+
     }
 
     @Table("votrs")

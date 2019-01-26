@@ -28,8 +28,10 @@ public class QueryBuilderTest {
             qb.append("from {e.#} ");
             qb.append("where {e.id.anyExp=?} and {e.sex in (?,?)}", 1982, ESex.FEMALE, ESex.MALE);
 
-            assertEquals(
-                    "select id_ens,any_exp,num_exp,name,fecha_ini,sex,alive from exps e where e.any_exp=? and e.sex in (?,?) -- [1982(Integer), FEMALE(String), MALE(String)]",
+            assertEquals( //
+                    "select e.id_ens,e.any_exp,e.num_exp,e.name,e.fecha_ini,e.sex,e.alive " + //
+                            "from exps e where e.any_exp=? and e.sex in (?,?)" + //
+                            " -- [1982(Integer), FEMALE(String), MALE(String)]", //
                     qb.getQueryObject().toString());
         }
 

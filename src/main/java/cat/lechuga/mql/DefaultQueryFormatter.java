@@ -65,7 +65,7 @@ public class DefaultQueryFormatter implements QueryFormatter {
         if (propName.equals("*")) {
             StringJoiner j = new StringJoiner(",");
             for (PropertyMeta p : meta.getAllProps()) {
-                j.add(p.getColumnName());
+                j.add(alias + "." + p.getColumnName());
             }
             r.append(j.toString());
         } else if (propName.equals("#")) {
