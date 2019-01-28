@@ -7,16 +7,19 @@ public class EntityMeta<E> {
 
     private final Class<E> entityClass;
     private final String tableName;
+    private final List<EntityListener<E>> listeners;
 
     private final List<PropertyMeta> allProps;
     private final List<PropertyMeta> idProps;
     private final List<PropertyMeta> regularProps;
     private final List<PropertyMeta> autogenProps;
 
-    public EntityMeta(Class<E> entityClass, String tableName, List<PropertyMeta> allProps) {
+    public EntityMeta(Class<E> entityClass, String tableName, List<EntityListener<E>> listeners,
+            List<PropertyMeta> allProps) {
         super();
         this.entityClass = entityClass;
         this.tableName = tableName;
+        this.listeners = listeners;
         this.allProps = allProps;
 
         this.idProps = new ArrayList<>();
@@ -40,6 +43,10 @@ public class EntityMeta<E> {
 
     public String getTableName() {
         return tableName;
+    }
+
+    public List<EntityListener<E>> getListeners() {
+        return listeners;
     }
 
     public List<PropertyMeta> getAllProps() {

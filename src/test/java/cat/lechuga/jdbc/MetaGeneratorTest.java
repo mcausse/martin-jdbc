@@ -32,10 +32,10 @@ public class MetaGeneratorTest {
             System.out.println(MetaGenerator.generateMetaColumns(meta, uniqueIndex++));
         }
 
-        Votr_ votr_ = new Votr_();
+        Votr_ votr_ = new Votr_("v");
         User_ user_ = new User_();
         Option_ option_ = new Option_();
-        Comment_ comment_ = new Comment_();
+        // Comment_ comment_ = new Comment_();
 
         {
             TypeSafeQueryBuilder q = new TypeSafeQueryBuilder(null);
@@ -43,10 +43,9 @@ public class MetaGeneratorTest {
             q.append("select max({}) ", votr_.id);
             q.append("from {} ", votr_);
             q.append("where {} ", votr_.id.eq(103));
-            assertEquals("select max({votr.id}) from {votr.#} where {votr.id=?}  -- [103(Integer)]",
+            assertEquals("select max({v.id}) from {v.#} where {v.id=?}  -- [103(Integer)]",
                     q.getMqlQueryObject().toString());
-            assertEquals("select max(votr.votr_id) from votrs votr where votr.votr_id=?  -- [103(Integer)]",
-                    q.toString());
+            assertEquals("select max(v.votr_id) from votrs v where v.votr_id=?  -- [103(Integer)]", q.toString());
         }
 
         {

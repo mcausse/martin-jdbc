@@ -3,6 +3,7 @@ package cat.lechuga;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.exception.JdbcException;
@@ -26,13 +27,22 @@ public class EntityManager<E, ID> implements Mapable<E> {
         this.ops = new EntityManagerOperations<>(entityMeta);
     }
 
+    void executeListenerCallback(Consumer<EntityListener<E>> callbackMethod, E entity) {
+
+    }
+
     @Override
     public E map(ResultSet rs) throws SQLException {
-        E r = ReflectUtils.newInstance(entityMeta.getEntityClass());
+        E entity = ReflectUtils.newInstance(entityMeta.getEntityClass());
         for (PropertyMeta p : entityMeta.getAllProps()) {
-            p.readValue(r, rs);
+            p.readValue(entity, rs);
         }
-        return r;
+
+        if (entityMeta.getListeners() != null) {
+            entityMeta.getListeners().forEach(l -> l.afterLoad(entity));
+        }
+
+        return entity;
     }
 
     public DataAccesFacade getFacade() {
@@ -87,6 +97,10 @@ public class EntityManager<E, ID> implements Mapable<E> {
      * </pre>
      */
     public void store(E entity) {
+
+        if (entityMeta.getListeners() != null) {
+            entityMeta.getListeners().forEach(l -> l.beforeStore(entity));
+        }
 
         /**
          * si una propietat PK és primitiva, el seu valor mai serà null (p.ex. serà 0) i
@@ -155,18 +169,36 @@ public class EntityManager<E, ID> implements Mapable<E> {
             }
 
         }
+
+        if (entityMeta.getListeners() != null) {
+            entityMeta.getListeners().forEach(l -> l.afterStore(entity));
+        }
+
     }
 
     public void update(E entity) {
+
+        if (entityMeta.getListeners() != null) {
+            entityMeta.getListeners().forEach(l -> l.beforeUpdate(entity));
+        }
+
         IQueryObject q = ops.update(entity);
         int affectedRows = facade.update(q);
         if (affectedRows != 1) {
             throw new UnexpectedResultException(
                     "expected affectedRows=1, but affectedRows=" + affectedRows + " for " + q);
         }
+
+        if (entityMeta.getListeners() != null) {
+            entityMeta.getListeners().forEach(l -> l.afterUpdate(entity));
+        }
     }
 
     public void insert(E entity) {
+
+        if (entityMeta.getListeners() != null) {
+            entityMeta.getListeners().forEach(l -> l.beforeInsert(entity));
+        }
 
         for (PropertyMeta autoGenProp : entityMeta.getAutogenProps()) {
             Generator ag = autoGenProp.getGenerator();
@@ -195,14 +227,45 @@ public class EntityManager<E, ID> implements Mapable<E> {
             }
         }
 
+        if (entityMeta.getListeners() != null) {
+            entityMeta.getListeners().forEach(l -> l.afterInsert(entity));
+        }
+
     }
 
-    public void deleteById(ID id) {
-        IQueryObject q = ops.deleteById(id);
+    // public void deleteById(ID id) {
+    //
+    // if (entityMeta.getListeners() != null) {
+    // entityMeta.getListeners().forEach(l -> l.beforeDelete(entity));
+    // }
+    //
+    // IQueryObject q = ops.deleteById(id);
+    // int affectedRows = facade.update(q);
+    // if (affectedRows != 1) {
+    // throw new UnexpectedResultException(
+    // "expected affectedRows=1, but affectedRows=" + affectedRows + " for " + q);
+    // }
+    //
+    // if (entityMeta.getListeners() != null) {
+    // entityMeta.getListeners().forEach(l -> l.afterDelete(entity));
+    // }
+    // }
+
+    public void delete(E entity) {
+
+        if (entityMeta.getListeners() != null) {
+            entityMeta.getListeners().forEach(l -> l.beforeDelete(entity));
+        }
+
+        IQueryObject q = ops.delete(entity);
         int affectedRows = facade.update(q);
         if (affectedRows != 1) {
             throw new UnexpectedResultException(
                     "expected affectedRows=1, but affectedRows=" + affectedRows + " for " + q);
+        }
+
+        if (entityMeta.getListeners() != null) {
+            entityMeta.getListeners().forEach(l -> l.afterDelete(entity));
         }
     }
 
@@ -210,15 +273,6 @@ public class EntityManager<E, ID> implements Mapable<E> {
         IQueryObject q = ops.existsById(id);
         long rows = facade.loadUnique(q, ScalarMappers.LONG);
         return rows > 0L;
-    }
-
-    public void delete(E entity) {
-        IQueryObject q = ops.delete(entity);
-        int affectedRows = facade.update(q);
-        if (affectedRows != 1) {
-            throw new UnexpectedResultException(
-                    "expected affectedRows=1, but affectedRows=" + affectedRows + " for " + q);
-        }
     }
 
     public boolean exists(E entity) {

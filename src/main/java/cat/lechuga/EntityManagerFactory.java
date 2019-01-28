@@ -7,6 +7,7 @@ import java.util.Map;
 import org.lenteja.jdbc.DataAccesFacade;
 
 import cat.lechuga.anno.Column;
+import cat.lechuga.anno.EntityListeners;
 import cat.lechuga.anno.Enumerated;
 import cat.lechuga.anno.Generated;
 import cat.lechuga.anno.Handler;
@@ -48,6 +49,20 @@ public class EntityManagerFactory {
         } else {
             Table anno = entityClass.getAnnotation(Table.class);
             tableName = anno.value();
+        }
+
+        final List<EntityListener<E>> listeners;
+        {
+            if (entityClass.getAnnotation(EntityListeners.class) == null) {
+                listeners = null;
+            } else {
+                listeners = new ArrayList<>();
+                EntityListeners anno = entityClass.getAnnotation(EntityListeners.class);
+                Class<? extends EntityListener<?>>[] listenerClasses = anno.value();
+                for (Class<? extends EntityListener<?>> listenerClass : listenerClasses) {
+                    listeners.add((EntityListener<E>) ReflectUtils.newInstance(listenerClass));
+                }
+            }
         }
 
         List<PropertyMeta> propMetas = new ArrayList<>();
@@ -104,7 +119,7 @@ public class EntityManagerFactory {
             propMetas.add(new PropertyMeta(prop, columnName, isId, handler, generator));
         }
 
-        return new EntityMeta<>(entityClass, tableName, propMetas);
+        return new EntityMeta<>(entityClass, tableName, listeners, propMetas);
     }
 
 }

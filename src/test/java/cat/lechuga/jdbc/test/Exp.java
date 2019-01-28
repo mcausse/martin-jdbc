@@ -4,12 +4,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import cat.lechuga.anno.Column;
+import cat.lechuga.anno.EntityListeners;
 import cat.lechuga.anno.Enumerated;
 import cat.lechuga.anno.Handler;
 import cat.lechuga.anno.Id;
 import cat.lechuga.anno.Table;
 import cat.lechuga.handler.DateStringHandler;
 
+@EntityListeners({ ExpListener.class })
 @Table("exps")
 public class Exp {
 

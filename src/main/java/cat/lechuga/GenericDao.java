@@ -107,9 +107,9 @@ public class GenericDao<E, ID> {
         em.insert(entity);
     }
 
-    public void deleteById(ID id) {
-        em.deleteById(id);
-    }
+    // public void deleteById(ID id) {
+    // em.deleteById(id);
+    // }
 
     public void delete(E entity) {
         em.delete(entity);
