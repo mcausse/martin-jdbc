@@ -58,6 +58,18 @@ public class Restrictions {
         return r;
     }
 
+    // public static Object orderBy(List<Order<?>> orders) {
+    // Criterion r = new Criterion();
+    // for (Order<?> o : orders) {
+    // r.append("not(");
+    // o.getPropName()
+    // r.append("not(");
+    // r.append(q);
+    // r.append(")");
+    // }
+    // return r;
+    // }
+
     // public static Criterion all() {
     // return new Criterion("1=1");
     // }

@@ -6,6 +6,8 @@ import org.lenteja.jdbc.query.QueryObject;
 
 import cat.lechuga.EntityManagerFactory;
 import cat.lechuga.EntityMeta;
+import cat.lechuga.Facaded;
+import cat.lechuga.FacadedMapable;
 import cat.lechuga.Mapable;
 import cat.lechuga.mql.Executor;
 import cat.lechuga.mql.QueryBuilder;
@@ -20,7 +22,7 @@ public class TypeSafeQueryBuilder {
         super();
         this.emf = new EntityManagerFactory(facade);
         this.qo = new QueryObject();
-        this.qb = new QueryBuilder(facade);
+        this.qb = new QueryBuilder();
     }
 
     public TypeSafeQueryBuilder addAlias(MetaTable<?> table) {
@@ -75,8 +77,16 @@ public class TypeSafeQueryBuilder {
         return qb.getQueryObject();
     }
 
-    public <T> Executor<T> getExecutor(Mapable<T> mapable) {
+    public <T> Executor<T> getExecutor(FacadedMapable<T> mapable) {
         return qb.getExecutor(mapable);
+    }
+
+    public <T> Executor<T> getExecutor(DataAccesFacade facade, Mapable<T> mapable) {
+        return qb.getExecutor(facade, mapable);
+    }
+
+    public <T> Executor<T> getExecutor(Facaded facaded, Mapable<T> mapable) {
+        return qb.getExecutor(facaded.getFacade(), mapable);
     }
 
     @Override

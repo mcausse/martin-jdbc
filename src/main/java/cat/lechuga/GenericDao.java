@@ -9,13 +9,17 @@ import java.util.StringJoiner;
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.query.QueryObject;
 
-public class GenericDao<E, ID> {
+public class GenericDao<E, ID> implements FacadedMapable<E>, EntityMetable<E> {
 
     final EntityManager<E, ID> em;
 
     public GenericDao(EntityManager<E, ID> em) {
         super();
         this.em = em;
+    }
+
+    public EntityManager<E, ID> getEntityManager() {
+        return em;
     }
 
     // ===========================================================
@@ -68,17 +72,24 @@ public class GenericDao<E, ID> {
     }
 
     // ===========================================================
-    // ===========================================================
+    // ================= FacadedMapable ========================
     // ===========================================================
 
+    @Override
     public E map(ResultSet rs) throws SQLException {
         return em.map(rs);
     }
 
+    @Override
     public DataAccesFacade getFacade() {
         return em.getFacade();
     }
 
+    // ===========================================================
+    // ===========================================================
+    // ===========================================================
+
+    @Override
     public EntityMeta<E> getEntityMeta() {
         return em.getEntityMeta();
     }

@@ -85,7 +85,7 @@ public class ExpTest {
                     exp1.toString());
 
             {
-                QueryBuilder qb = new QueryBuilder(facade);
+                QueryBuilder qb = new QueryBuilder();
                 qb.addAlias("e", expEm);
                 qb.append("select {e.*} ");
                 qb.append("from {e.#} ");
@@ -93,10 +93,10 @@ public class ExpTest {
                 exp1 = qb.getExecutor(expEm).loadUnique();
             }
             {
-                QueryBuilder qb = new QueryBuilder(facade);
+                QueryBuilder qb = new QueryBuilder();
                 qb.addAlias("e", expEm);
                 qb.append("select count(*) from {e.#}");
-                long total = qb.getExecutor(ScalarMappers.LONG).loadUnique();
+                long total = qb.getExecutor(facade, ScalarMappers.LONG).loadUnique();
                 assertEquals(1, total);
             }
             assertTrue(expEm.exists(exp1));

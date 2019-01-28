@@ -14,7 +14,7 @@ import cat.lechuga.generator.Generator;
 import cat.lechuga.generator.ScalarMappers;
 import cat.lechuga.reflect.ReflectUtils;
 
-public class EntityManager<E, ID> implements Mapable<E> {
+public class EntityManager<E, ID> implements FacadedMapable<E>, EntityMetable<E> {
 
     private final DataAccesFacade facade;
     private final EntityMeta<E> entityMeta;
@@ -31,6 +31,10 @@ public class EntityManager<E, ID> implements Mapable<E> {
 
     }
 
+    // ===========================================================
+    // ================= FacadedMapable ========================
+    // ===========================================================
+
     @Override
     public E map(ResultSet rs) throws SQLException {
         E entity = ReflectUtils.newInstance(entityMeta.getEntityClass());
@@ -45,10 +49,16 @@ public class EntityManager<E, ID> implements Mapable<E> {
         return entity;
     }
 
+    @Override
     public DataAccesFacade getFacade() {
         return facade;
     }
 
+    // ===========================================================
+    // ===========================================================
+    // ===========================================================
+
+    @Override
     public EntityMeta<E> getEntityMeta() {
         return entityMeta;
     }

@@ -196,16 +196,16 @@ public class MetaColumn<E, T> {
         return q;
     }
 
-    // TODO com carai fer això en MQL (o millor dit, en Martincho-QL)
-    // public Criterion ilike(ELike elike, String value) {
-    // Criterion q = new Criterion();
-    // q.append("upper({");
-    // q.append(table.getAlias());
-    // q.append(".");
-    // q.append(propertyName);
-    // q.append("}) like upper(?)}");
-    // q.addArg(elike.process(value));
-    // return q;
-    // }
+    // XXX birgueria en MQL (o millor dit, en Martincho-QL)
+    public Criterion ilike(ELike elike, String value) {
+        Criterion q = new Criterion();
+        q.append("upper({");
+        q.append(table.getAlias());
+        q.append(".");
+        q.append(propertyName);
+        q.append(") like upper(?)}");
+        q.addArg(elike.process(value));
+        return q;
+    }
 
 }

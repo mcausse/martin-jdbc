@@ -21,7 +21,7 @@ public class QueryBuilderTest {
         EntityManager<Exp, ExpId> expMan = emf.buildEntityManager(Exp.class);
 
         {
-            QueryBuilder qb = new QueryBuilder(null);
+            QueryBuilder qb = new QueryBuilder();
             qb.addAlias("e", expMan);
 
             qb.append("select {e.*} ");
@@ -36,7 +36,7 @@ public class QueryBuilderTest {
         }
 
         {
-            QueryBuilder qb = new QueryBuilder(null);
+            QueryBuilder qb = new QueryBuilder();
             qb.addAlias("e", expMan);
 
             try {
@@ -49,7 +49,7 @@ public class QueryBuilderTest {
             }
         }
         {
-            QueryBuilder qb = new QueryBuilder(null);
+            QueryBuilder qb = new QueryBuilder();
             qb.addAlias("e", expMan);
 
             try {
@@ -63,7 +63,7 @@ public class QueryBuilderTest {
         }
 
         {
-            QueryBuilder qb = new QueryBuilder(null);
+            QueryBuilder qb = new QueryBuilder();
             qb.addAlias("e", expMan);
 
             try {
@@ -75,7 +75,7 @@ public class QueryBuilderTest {
             }
         }
         {
-            QueryBuilder qb = new QueryBuilder(null);
+            QueryBuilder qb = new QueryBuilder();
             qb.addAlias("e", expMan);
 
             try {

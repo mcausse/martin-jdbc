@@ -78,15 +78,18 @@ public class MetaGeneratorTest {
             q.append("select max({}) ", votr_.id);
             q.append("from {} ", votr_);
             q.append("where {} ", Restrictions.and( //
-                    votr_.title.like(ELike.CONTAINS, "o"), //
+                    votr_.title.ilike(ELike.CONTAINS, "o"), //
+                    votr_.id.isNotNull(), //
+                    votr_.id.ge(5), //
+                    votr_.id.le(50), //
                     votr_.id.between(5, 50) //
             ));
 
             assertEquals(
-                    "select max({v.id}) from {v.#} where {v.title like ?} and {v.id between ? and ?}  -- [%o%(String), 5(Integer), 50(Integer)]",
+                    "select max({v.id}) from {v.#} where upper({v.title) like upper(?)} and {v.id} is not null and {v.id>=?} and {v.id<=?} and {v.id between ? and ?}  -- [%o%(String), 5(Integer), 50(Integer), 5(Integer), 50(Integer)]",
                     q.getMqlQueryObject().toString());
             assertEquals(
-                    "select max(v.votr_id) from votrs v where v.title like ? and v.votr_id between ? and ?  -- [%o%(String), 5(Integer), 50(Integer)]",
+                    "select max(v.votr_id) from votrs v where upper(v.title) like upper(?) and v.votr_id is not null and v.votr_id>=? and v.votr_id<=? and v.votr_id between ? and ?  -- [%o%(String), 5(Integer), 50(Integer), 5(Integer), 50(Integer)]",
                     q.toString());
         }
     }
