@@ -43,7 +43,9 @@ public class QueryBuilderTest {
                 qb.append("where {e.id.anyExp=?} and {e.sex in (?,?)}", 1982, ESex.FEMALE);
                 fail();
             } catch (Exception e) {
-                assertEquals("expected one more argument", e.getMessage());
+                assertEquals(
+                        "expected one more argument for: where {e.id.anyExp=?} and {e.sex in (?,?)} -- [1982(Integer), FEMALE(ESex)]",
+                        e.getMessage());
             }
         }
         {
@@ -54,7 +56,9 @@ public class QueryBuilderTest {
                 qb.append("where {e.id.anyExp=?} and {e.sex=?}", 1982, ESex.FEMALE, ESex.MALE);
                 fail();
             } catch (Exception e) {
-                assertEquals("unused argument at index 2", e.getMessage());
+                assertEquals(
+                        "unused argument at index 2 for: where {e.id.anyExp=?} and {e.sex=?} -- [1982(Integer), FEMALE(ESex), MALE(ESex)]",
+                        e.getMessage());
             }
         }
 
@@ -66,7 +70,8 @@ public class QueryBuilderTest {
                 qb.append("where {kk.id.anyExp=?}", 1982);
                 fail();
             } catch (Exception e) {
-                assertEquals("alias not found: 'kk', valid are: [e]", e.getMessage());
+                assertEquals("alias not found: 'kk', valid are: [e] for: where {kk.id.anyExp=?} -- [1982(Integer)]",
+                        e.getMessage());
             }
         }
         {
@@ -77,7 +82,9 @@ public class QueryBuilderTest {
                 qb.append("where {e.kkk=?}", 1982);
                 fail();
             } catch (Exception e) {
-                assertEquals("property not defined: 'cat.lechuga.jdbc.test.Exp#kkk", e.getMessage());
+                assertEquals(
+                        "property not defined: 'cat.lechuga.jdbc.test.Exp#kkk for: where {e.kkk=?} -- [1982(Integer)]",
+                        e.getMessage());
             }
         }
 

@@ -27,10 +27,12 @@ import cat.lechuga.reflect.ReflectUtils;
 public class EntityManagerFactory {
 
     private final DataAccesFacade facade;
+    private final PropertyScanner ps;
 
     public EntityManagerFactory(DataAccesFacade facade) {
         super();
         this.facade = facade;
+        this.ps = new PropertyScanner();
     }
 
     public <E, ID> EntityManager<E, ID> buildEntityManager(Class<E> entityClass) {
@@ -40,7 +42,6 @@ public class EntityManagerFactory {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public <E> EntityMeta<E> buildEntityMeta(Class<E> entityClass) {
-        PropertyScanner ps = new PropertyScanner();
         Map<String, Property> props = ps.propertyScanner(entityClass);
 
         final String tableName;

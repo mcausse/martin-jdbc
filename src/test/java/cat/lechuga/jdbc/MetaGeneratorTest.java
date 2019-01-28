@@ -12,9 +12,11 @@ import cat.lechuga.jdbc.test.VotrTest.Comment;
 import cat.lechuga.jdbc.test.VotrTest.Option;
 import cat.lechuga.jdbc.test.VotrTest.User;
 import cat.lechuga.jdbc.test.VotrTest.Votr;
+import cat.lechuga.tsmql.ELike;
 import cat.lechuga.tsmql.MetaColumn;
 import cat.lechuga.tsmql.MetaGenerator;
 import cat.lechuga.tsmql.MetaTable;
+import cat.lechuga.tsmql.Restrictions;
 import cat.lechuga.tsmql.TypeSafeQueryBuilder;
 
 public class MetaGeneratorTest {
@@ -67,6 +69,24 @@ public class MetaGeneratorTest {
                             "from options option2 join users user " + //
                             "on option2.votr_id=user.votr_id and option2.norder=user.option_norder " + //
                             "group by option2.votr_id, option2.norder, option2.title, option2.descr  -- []", //
+                    q.toString());
+        }
+
+        {
+            TypeSafeQueryBuilder q = new TypeSafeQueryBuilder(null);
+            q.addAlias(votr_);
+            q.append("select max({}) ", votr_.id);
+            q.append("from {} ", votr_);
+            q.append("where {} ", Restrictions.and( //
+                    votr_.title.like(ELike.CONTAINS, "o"), //
+                    votr_.id.between(5, 50) //
+            ));
+
+            assertEquals(
+                    "select max({v.id}) from {v.#} where {v.title like ?} and {v.id between ? and ?}  -- [%o%(String), 5(Integer), 50(Integer)]",
+                    q.getMqlQueryObject().toString());
+            assertEquals(
+                    "select max(v.votr_id) from votrs v where v.title like ? and v.votr_id between ? and ?  -- [%o%(String), 5(Integer), 50(Integer)]",
                     q.toString());
         }
     }

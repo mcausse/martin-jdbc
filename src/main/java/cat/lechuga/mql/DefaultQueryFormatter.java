@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.query.QueryObject;
+import org.lenteja.jdbc.query.QueryObjectUtils;
 
 import cat.lechuga.EntityMeta;
 import cat.lechuga.PropertyMeta;
@@ -36,7 +37,7 @@ public class DefaultQueryFormatter implements QueryFormatter {
             String propName = m.group(2);
             String expression = m.group(4);
 
-            IQueryObject value = evaluateExpression(aliases, alias, propName, expression, args, currArgIndex);
+            IQueryObject value = evaluateExpression(aliases, alias, propName, expression, fragment, args, currArgIndex);
             currArgIndex += value.getArgs().length;
 
             m.appendReplacement(sb, value.getQuery());
@@ -45,7 +46,8 @@ public class DefaultQueryFormatter implements QueryFormatter {
         m.appendTail(sb);
 
         if (currArgIndex != args.length) {
-            throw new RuntimeException("unused argument at index " + currArgIndex);
+            throw new RuntimeException(
+                    "unused argument at index " + currArgIndex + " for: " + QueryObjectUtils.toString(fragment, args));
         }
 
         r.append(sb.toString());
@@ -53,10 +55,11 @@ public class DefaultQueryFormatter implements QueryFormatter {
     }
 
     private IQueryObject evaluateExpression(Map<String, EntityMeta<?>> aliases, String alias, String propName,
-            String expression, Object[] args, int currArgIndex) {
+            String expression, String fragment, Object[] args, int currArgIndex) {
 
         if (!aliases.containsKey(alias)) {
-            throw new RuntimeException("alias not found: '" + alias + "', valid are: " + aliases.keySet());
+            throw new RuntimeException("alias not found: '" + alias + "', valid are: " + aliases.keySet() + " for: "
+                    + QueryObjectUtils.toString(fragment, args));
         }
         EntityMeta<?> meta = aliases.get(alias);
 
@@ -82,8 +85,8 @@ public class DefaultQueryFormatter implements QueryFormatter {
                 }
             }
             if (prop == null) {
-                throw new RuntimeException(
-                        "property not defined: '" + meta.getEntityClass().getName() + "#" + propName);
+                throw new RuntimeException("property not defined: '" + meta.getEntityClass().getName() + "#" + propName
+                        + " for: " + QueryObjectUtils.toString(fragment, args));
             }
 
             r.append(alias);
@@ -94,7 +97,8 @@ public class DefaultQueryFormatter implements QueryFormatter {
             for (char c : expression.toCharArray()) {
                 if (c == '?') {
                     if (args.length <= currArgIndex) {
-                        throw new RuntimeException("expected one more argument");
+                        throw new RuntimeException(
+                                "expected one more argument" + " for: " + QueryObjectUtils.toString(fragment, args));
                     }
                     Object arg = args[currArgIndex++];
                     arg = prop.getHandler().getJdbcValue(arg);

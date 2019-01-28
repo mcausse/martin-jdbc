@@ -2,12 +2,17 @@ package org.lenteja.jdbc.query;
 
 public interface QueryObjectUtils {
 
-    public static String toString(final IQueryObject q) {
+    public static String toString(IQueryObject q) {
+        return toString(q.getQuery(), q.getArgs());
+    }
+
+    public static String toString(String query, Object[] args) {
+
         final StringBuilder r = new StringBuilder();
-        r.append(q.getQuery());
+        r.append(query);
         r.append(" -- [");
         int c = 0;
-        for (final Object o : q.getArgs()) {
+        for (final Object o : args) {
             if (c > 0) {
                 r.append(", ");
             }
