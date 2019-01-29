@@ -9,7 +9,7 @@ import org.lenteja.jdbc.DataAccesFacade;
 import cat.lechuga.mql.QueryBuilder;
 import cat.lechuga.tsmql.Criterion;
 
-public class BetterGenericDao<E, ID> implements FacadedMapable<E>, EntityMetable<E> {
+public class BetterGenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetable<E> {
 
     final GenericDao<E, ID> genericDao;
 

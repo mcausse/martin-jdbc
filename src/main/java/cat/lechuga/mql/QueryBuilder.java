@@ -10,7 +10,6 @@ import org.lenteja.jdbc.query.QueryObject;
 import cat.lechuga.EntityMeta;
 import cat.lechuga.EntityMetable;
 import cat.lechuga.Facaded;
-import cat.lechuga.FacadedMapable;
 import cat.lechuga.Mapable;
 
 public class QueryBuilder {
@@ -58,7 +57,7 @@ public class QueryBuilder {
         return qo;
     }
 
-    public <T> Executor<T> getExecutor(FacadedMapable<T> facadedMapable) {
+    public <T, FM extends Facaded & Mapable<T>> Executor<T> getExecutor(FM facadedMapable) {
         return new Executor<>(facadedMapable.getFacade(), qo, facadedMapable);
     }
 

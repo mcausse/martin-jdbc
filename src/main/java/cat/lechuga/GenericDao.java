@@ -9,7 +9,7 @@ import java.util.StringJoiner;
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.query.QueryObject;
 
-public class GenericDao<E, ID> implements FacadedMapable<E>, EntityMetable<E> {
+public class GenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetable<E> {
 
     final EntityManager<E, ID> em;
 

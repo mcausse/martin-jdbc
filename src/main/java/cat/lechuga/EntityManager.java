@@ -14,7 +14,7 @@ import cat.lechuga.generator.Generator;
 import cat.lechuga.generator.ScalarMappers;
 import cat.lechuga.reflect.ReflectUtils;
 
-public class EntityManager<E, ID> implements FacadedMapable<E>, EntityMetable<E> {
+public class EntityManager<E, ID> implements Facaded, Mapable<E>, EntityMetable<E> {
 
     private final DataAccesFacade facade;
     private final EntityMeta<E> entityMeta;
