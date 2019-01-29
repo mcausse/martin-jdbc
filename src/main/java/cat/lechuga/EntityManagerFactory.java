@@ -26,16 +26,14 @@ import cat.lechuga.reflect.ReflectUtils;
 
 public class EntityManagerFactory {
 
-    private final DataAccesFacade facade;
     private final PropertyScanner ps;
 
-    public EntityManagerFactory(DataAccesFacade facade) {
+    public EntityManagerFactory() {
         super();
-        this.facade = facade;
         this.ps = new PropertyScanner();
     }
 
-    public <E, ID> EntityManager<E, ID> buildEntityManager(Class<E> entityClass) {
+    public <E, ID> EntityManager<E, ID> buildEntityManager(DataAccesFacade facade, Class<E> entityClass) {
         EntityMeta<E> entityMeta = buildEntityMeta(entityClass);
         return new EntityManager<>(facade, entityMeta);
     }

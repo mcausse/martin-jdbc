@@ -3,6 +3,8 @@ package cat.lechuga;
 import java.util.Arrays;
 import java.util.List;
 
+import cat.lechuga.tsmql.MetaColumn;
+
 public class Order<E> {
 
     @SafeVarargs
@@ -27,6 +29,14 @@ public class Order<E> {
 
     public static <E> Order<E> desc(String propName) {
         return new Order<>(propName, " desc");
+    }
+
+    public static <E> Order<E> asc(MetaColumn<E, ?> metaColumn) {
+        return new Order<>(metaColumn.getPropertyName(), " asc");
+    }
+
+    public static <E> Order<E> desc(MetaColumn<E, ?> metaColumn) {
+        return new Order<>(metaColumn.getPropertyName(), " desc");
     }
 
     public String getPropName() {

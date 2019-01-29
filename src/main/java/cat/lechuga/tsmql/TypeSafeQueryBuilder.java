@@ -13,19 +13,17 @@ import cat.lechuga.mql.QueryBuilder;
 
 public class TypeSafeQueryBuilder {
 
-    private final EntityManagerFactory emf;
     private final QueryObject qo; // mql query
     private final QueryBuilder qb;
 
-    public TypeSafeQueryBuilder(DataAccesFacade facade) {
+    public TypeSafeQueryBuilder() {
         super();
-        this.emf = new EntityManagerFactory(facade);
         this.qo = new QueryObject();
         this.qb = new QueryBuilder();
     }
 
     public TypeSafeQueryBuilder addAlias(MetaTable<?> table) {
-        EntityMeta<?> em = emf.buildEntityMeta(table.getEntityClass());
+        EntityMeta<?> em = new EntityManagerFactory().buildEntityMeta(table.getEntityClass());
         qb.addAlias(table.getAlias(), em);
         return this;
     }

@@ -47,9 +47,9 @@ public class ExpTest {
     @Test
     public void testName() throws Exception {
 
-        EntityManagerFactory emf = new EntityManagerFactory(facade);
+        EntityManagerFactory emf = new EntityManagerFactory();
 
-        EntityManager<Exp, ExpId> expEm = emf.buildEntityManager(Exp.class);
+        EntityManager<Exp, ExpId> expEm = emf.buildEntityManager(facade, Exp.class);
 
         facade.begin();
         try {

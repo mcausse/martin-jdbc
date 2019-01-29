@@ -24,6 +24,10 @@ public class BetterGenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetab
         qb.append("select {e.*} ");
         qb.append("from {e.#} ");
         qb.append("where {}", criterion);
+        // TypeSafeQueryBuilder qb = new TypeSafeQueryBuilder();
+        // qb.append("select {} ", metaTable.all());
+        // qb.append("from {} ", metaTable);
+        // qb.append("where {} ", criterion);
         return qb.getExecutor(genericDao.getEntityManager()).loadUnique();
     }
 
@@ -33,6 +37,10 @@ public class BetterGenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetab
         qb.append("select {e.*} ");
         qb.append("from {e.#} ");
         qb.append("where {}", criterion);
+        // TypeSafeQueryBuilder qb = new TypeSafeQueryBuilder(getFacade());
+        // qb.append("select {} ", metaTable.all());
+        // qb.append("from {} ", metaTable);
+        // qb.append("where {} ", criterion);
         return qb.getExecutor(genericDao.getEntityManager()).load();
     }
 
@@ -42,6 +50,10 @@ public class BetterGenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetab
         qb.append("select {e.*} ");
         qb.append("from {e.#} ");
         qb.append("where {}", criterion);
+        // TypeSafeQueryBuilder qb = new TypeSafeQueryBuilder(getFacade());
+        // qb.append("select {} ", metaTable.all());
+        // qb.append("from {} ", metaTable);
+        // qb.append("where {} ", criterion);
         if (!orders.isEmpty()) {
             qb.append("order by ");// TODO aixo fallara
             int c = 0;

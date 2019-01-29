@@ -17,8 +17,8 @@ public class QueryBuilderTest {
     @Test
     public void testName() throws Exception {
 
-        EntityManagerFactory emf = new EntityManagerFactory(null);
-        EntityManager<Exp, ExpId> expMan = emf.buildEntityManager(Exp.class);
+        EntityManagerFactory emf = new EntityManagerFactory();
+        EntityManager<Exp, ExpId> expMan = emf.buildEntityManager(null, Exp.class);
 
         {
             QueryBuilder qb = new QueryBuilder();

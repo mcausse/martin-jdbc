@@ -20,7 +20,7 @@ public class EntityManagerOperationsTest {
     @Test
     public void testExpExpId() throws Exception {
 
-        EntityManagerFactory emf = new EntityManagerFactory(null);
+        EntityManagerFactory emf = new EntityManagerFactory();
         EntityMeta<Exp> entityMeta = emf.buildEntityMeta(Exp.class);
         EntityManagerOperations<Exp> emo = new EntityManagerOperations<>(entityMeta);
 
@@ -52,7 +52,7 @@ public class EntityManagerOperationsTest {
     @Test
     public void testPizza() throws Exception {
 
-        EntityManagerFactory emf = new EntityManagerFactory(null);
+        EntityManagerFactory emf = new EntityManagerFactory();
         EntityMeta<Pizza> entityMeta = emf.buildEntityMeta(Pizza.class);
         EntityManagerOperations<Pizza> emo = new EntityManagerOperations<>(entityMeta);
 

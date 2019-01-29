@@ -26,7 +26,7 @@ public class MetaGeneratorTest {
 
         Class<?>[] cs = { Votr.class, User.class, Option.class, Comment.class };
 
-        EntityManagerFactory emf = new EntityManagerFactory(null);
+        EntityManagerFactory emf = new EntityManagerFactory();
 
         int uniqueIndex = 0;
         for (Class<?> c : cs) {
@@ -40,7 +40,7 @@ public class MetaGeneratorTest {
         // Comment_ comment_ = new Comment_();
 
         {
-            TypeSafeQueryBuilder q = new TypeSafeQueryBuilder(null);
+            TypeSafeQueryBuilder q = new TypeSafeQueryBuilder();
             q.addAlias(votr_);
             q.append("select max({}) ", votr_.id);
             q.append("from {} ", votr_);
@@ -51,7 +51,7 @@ public class MetaGeneratorTest {
         }
 
         {
-            TypeSafeQueryBuilder q = new TypeSafeQueryBuilder(null);
+            TypeSafeQueryBuilder q = new TypeSafeQueryBuilder();
             q.addAlias(option_);
             q.addAlias(user_);
             q.append("select {},count(*) ", option_.star());
@@ -73,7 +73,7 @@ public class MetaGeneratorTest {
         }
 
         {
-            TypeSafeQueryBuilder q = new TypeSafeQueryBuilder(null);
+            TypeSafeQueryBuilder q = new TypeSafeQueryBuilder();
             q.addAlias(votr_);
             q.append("select max({}) ", votr_.id);
             q.append("from {} ", votr_);

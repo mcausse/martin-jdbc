@@ -15,8 +15,8 @@ import org.lenteja.jdbc.script.SqlScriptExecutor;
 import org.lenteja.jdbc.txproxy.TransactionalMethod;
 import org.lenteja.jdbc.txproxy.TransactionalServiceProxyfier;
 
+import cat.lechuga.BetterGenericDao;
 import cat.lechuga.EntityManagerFactory;
-import cat.lechuga.GenericDao;
 import cat.lechuga.Order;
 import cat.lechuga.anno.Column;
 import cat.lechuga.anno.Generated;
@@ -132,20 +132,20 @@ public class VotrTest {
     public static class VotrServiceImpl implements VotrService {
 
         final DataAccesFacade facade;
-        final GenericDao<Votr, Integer> votrDao;
-        final GenericDao<User, Long> userDao;
-        final GenericDao<Option, OptionId> optionDao;
-        final GenericDao<Comment, Long> commentDao;
+        final BetterGenericDao<Votr, Integer> votrDao;
+        final BetterGenericDao<User, Long> userDao;
+        final BetterGenericDao<Option, OptionId> optionDao;
+        final BetterGenericDao<Comment, Long> commentDao;
 
         public VotrServiceImpl(DataAccesFacade facade) {
             super();
             this.facade = facade;
-            EntityManagerFactory emf = new EntityManagerFactory(facade);
+            EntityManagerFactory emf = new EntityManagerFactory();
 
-            this.votrDao = new GenericDao<>(emf.buildEntityManager(Votr.class));
-            this.userDao = new GenericDao<>(emf.buildEntityManager(User.class));
-            this.optionDao = new GenericDao<>(emf.buildEntityManager(Option.class));
-            this.commentDao = new GenericDao<>(emf.buildEntityManager(Comment.class));
+            this.votrDao = new BetterGenericDao<>(emf.buildEntityManager(facade, Votr.class));
+            this.userDao = new BetterGenericDao<>(emf.buildEntityManager(facade, User.class));
+            this.optionDao = new BetterGenericDao<>(emf.buildEntityManager(facade, Option.class));
+            this.commentDao = new BetterGenericDao<>(emf.buildEntityManager(facade, Comment.class));
         }
 
         protected String generaHash(String input) {
@@ -345,6 +345,15 @@ public class VotrTest {
                 User example = new User();
                 example.setVotrId(votr.getId());
                 allUsers = userDao.loadByExample(example);
+
+                // TODO
+                // // Votr_ votr_ = new Votr_("v");
+                // User_ user_ = new User_();
+                // // Option_ option_ = new Option_();
+                //
+                // allUsers = userDao.loadBy( //
+                // user_.votrId.eq(votr.getId()), //
+                // Order.by(Order.asc(user_.userId)));
             }
 
             Map<Option, List<User>> optionsVots = new LinkedHashMap<>();
