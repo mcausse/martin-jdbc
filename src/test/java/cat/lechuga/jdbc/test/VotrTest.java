@@ -101,9 +101,15 @@ public class VotrTest {
         // VotrInfo [votr=Votr [id=100, votrHash=4ceec84a, title=best poem, desc=Votr
         // for best poem, creacio=1970-01-01 01:00:00.0], you=User [userId=202,
         // userHash=fd702155, email=mem@votr.com, alias=mem, votrId=100,
-        // votedOptionId=0, votedDate=1970-01-01 01:00:00.0], optionsVots={Option
-        // [id=Option [votrId=100, order=0], title=aeneid, desc=the aeneid]=[User
-        // [userId=201, userHash=24831ba8, email=mhc@votr.com, alias=mhc, votrId=100,
+        // votedOptionId=0, votedDate=1970-01-01 01:00:00.0], allUsers=[User
+        // [userId=200, userHash=eafbf122, email=mhc@votr.com, alias=null, votrId=100,
+        // votedOptionId=null, votedDate=null], User [userId=201, userHash=24831ba8,
+        // email=mhc@votr.com, alias=mhc, votrId=100, votedOptionId=0,
+        // votedDate=1970-01-01 01:00:00.0], User [userId=202, userHash=fd702155,
+        // email=mem@votr.com, alias=mem, votrId=100, votedOptionId=0,
+        // votedDate=1970-01-01 01:00:00.0]], optionsVots={Option [id=Option
+        // [votrId=100, order=0], title=aeneid, desc=the aeneid]=[User [userId=201,
+        // userHash=24831ba8, email=mhc@votr.com, alias=mhc, votrId=100,
         // votedOptionId=0, votedDate=1970-01-01 01:00:00.0], User [userId=202,
         // userHash=fd702155, email=mem@votr.com, alias=mem, votrId=100,
         // votedOptionId=0, votedDate=1970-01-01 01:00:00.0]], Option [id=Option
@@ -117,7 +123,11 @@ public class VotrTest {
         // convidat, votrId=100, userId=201], Comment [commentId=404,
         // commentDate=1970-01-01 01:00:00.0, comment=he sigut convidat, votrId=100,
         // userId=202], Comment [commentId=405, commentDate=1970-01-01 01:00:00.0,
-        // comment=s'ha recreat les opcions, votrId=100, userId=201]]]
+        // comment=s'ha recreat les opcions, votrId=100, userId=201], Comment
+        // [commentId=406, commentDate=1970-01-01 01:00:00.0, comment=he votat: aeneid,
+        // votrId=100, userId=201], Comment [commentId=407, commentDate=1970-01-01
+        // 01:00:00.0, comment=he votat: aeneid, votrId=100, userId=202]]]
+
     }
 
     protected String generaHash(String input) {
@@ -412,9 +422,7 @@ public class VotrTest {
 
                 Comment_ c = new Comment_();
 
-                Comment example = new Comment();
-                example.setVotrId(votr.getId());
-                comments = commentDao.loadByExample(example,
+                comments = commentDao.loadBy(c.votrId.eq(votr.getId()),
                         TOrders.by(TOrder.asc(c.commentDate), TOrder.asc(c.commentId)));
             }
 
