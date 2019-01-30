@@ -2,12 +2,14 @@ package cat.lechuga;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
 
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.query.QueryObject;
+
+import cat.lechuga.Orders.Order;
+import cat.lechuga.mql.QueryBuilder;
 
 public class GenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetable<E> {
 
@@ -20,6 +22,17 @@ public class GenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetable<E> 
 
     public EntityManager<E, ID> getEntityManager() {
         return em;
+    }
+
+    // ===========================================================
+    // ===========================================================
+    // ===========================================================
+
+    // TODO mql dep
+    public QueryBuilder buildQueryFor(String alias) {
+        QueryBuilder qb = new QueryBuilder();
+        qb.addAlias(alias, this);
+        return qb;
     }
 
     // ===========================================================
@@ -43,10 +56,10 @@ public class GenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetable<E> 
     }
 
     public List<E> loadByExample(E example) {
-        return loadByExample(example, Collections.emptyList());
+        return loadByExample(example, null);
     }
 
-    public List<E> loadByExample(E example, List<Order<E>> orders) {
+    public List<E> loadByExample(E example, Orders<E> orders) {
         QueryObject q = new QueryObject();
         q.append(em.getOperations().loadAll());
         q.append(" where 1=1");
@@ -59,10 +72,10 @@ public class GenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetable<E> 
                 q.addArg(p.getJdbcValue(example));
             }
         }
-        if (orders.size() > 0) {
+        if (orders != null) {
             q.append(" order by ");
             StringJoiner j = new StringJoiner(", ");
-            for (Order<E> o : orders) {
+            for (Order<E> o : orders.getOrders()) {
                 PropertyMeta p = em.getEntityMeta().getProp(o.getPropName());
                 j.add(p.getColumnName() + " " + o.getOrder());
             }

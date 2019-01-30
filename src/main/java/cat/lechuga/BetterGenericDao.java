@@ -2,68 +2,56 @@ package cat.lechuga;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.lenteja.jdbc.DataAccesFacade;
 
-import cat.lechuga.mql.QueryBuilder;
+import cat.lechuga.Orders.Order;
 import cat.lechuga.tsmql.Criterion;
+import cat.lechuga.tsmql.MetaTable;
+import cat.lechuga.tsmql.TOrders;
+import cat.lechuga.tsmql.TOrders.TOrder;
+import cat.lechuga.tsmql.TypeSafeQueryBuilder;
 
 public class BetterGenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetable<E> {
 
     final GenericDao<E, ID> genericDao;
+    final MetaTable<E> metaTable;
 
-    public BetterGenericDao(EntityManager<E, ID> em) {
+    public BetterGenericDao(EntityManager<E, ID> em, MetaTable<E> metaTable) {
         super();
         this.genericDao = new GenericDao<>(em);
+        this.metaTable = metaTable;
     }
 
-    public E loadUniqueBy(Criterion criterion) { // TODO testar
-        QueryBuilder qb = new QueryBuilder();
-        qb.addAlias("e", genericDao);
-        qb.append("select {e.*} ");
-        qb.append("from {e.#} ");
+    public E loadUniqueBy(Criterion criterion) {
+        TypeSafeQueryBuilder qb = new TypeSafeQueryBuilder();
+        qb.addAlias(metaTable);
+        qb.append("select {} ", metaTable.all());
+        qb.append("from {} ", metaTable);
         qb.append("where {}", criterion);
-        // TypeSafeQueryBuilder qb = new TypeSafeQueryBuilder();
-        // qb.append("select {} ", metaTable.all());
-        // qb.append("from {} ", metaTable);
-        // qb.append("where {} ", criterion);
         return qb.getExecutor(genericDao.getEntityManager()).loadUnique();
     }
 
-    public List<E> loadBy(Criterion criterion) { // TODO testar
-        QueryBuilder qb = new QueryBuilder();
-        qb.addAlias("e", genericDao);
-        qb.append("select {e.*} ");
-        qb.append("from {e.#} ");
-        qb.append("where {}", criterion);
-        // TypeSafeQueryBuilder qb = new TypeSafeQueryBuilder(getFacade());
-        // qb.append("select {} ", metaTable.all());
-        // qb.append("from {} ", metaTable);
-        // qb.append("where {} ", criterion);
-        return qb.getExecutor(genericDao.getEntityManager()).load();
+    public List<E> loadBy(Criterion criterion) {
+        return loadBy(criterion, null);
     }
 
-    public List<E> loadBy(Criterion criterion, List<Order<E>> orders) { // TODO testar
-        QueryBuilder qb = new QueryBuilder();
-        qb.addAlias("e", genericDao);
-        qb.append("select {e.*} ");
-        qb.append("from {e.#} ");
+    public List<E> loadBy(Criterion criterion, TOrders<E> orders) {
+        TypeSafeQueryBuilder qb = new TypeSafeQueryBuilder();
+        qb.addAlias(metaTable);
+        qb.append("select {} ", metaTable.all());
+        qb.append("from {} ", metaTable);
         qb.append("where {}", criterion);
-        // TypeSafeQueryBuilder qb = new TypeSafeQueryBuilder(getFacade());
-        // qb.append("select {} ", metaTable.all());
-        // qb.append("from {} ", metaTable);
-        // qb.append("where {} ", criterion);
-        if (!orders.isEmpty()) {
-            qb.append("order by ");// TODO aixo fallara
+        if (orders != null) {
+            qb.append("order by ");
             int c = 0;
-            for (Order<E> o : orders) {
+            for (TOrder<E> o : orders.getOrders()) {
                 if (c > 0) {
                     qb.append(",");
                 }
-                qb.append("{e.");
-                qb.append(o.getPropName());
-                qb.append("} ");
+                qb.append("{} ", o.getMetaColumn());
                 qb.append(o.getOrder());
                 c++;
             }
@@ -97,8 +85,20 @@ public class BetterGenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetab
         return genericDao.loadByExample(example);
     }
 
-    public List<E> loadByExample(E example, List<Order<E>> orders) {
+    public List<E> loadByExample(E example, Orders<E> orders) {
         return genericDao.loadByExample(example, orders);
+    }
+
+    public List<E> loadByExample(E example, TOrders<E> orders) {
+        List<Order<E>> os = new ArrayList<>();
+        for (TOrder<E> o : orders.getOrders()) {
+            if (Order.ASC.equals(o.getOrder())) {
+                os.add(Order.asc(o.getMetaColumn().getPropertyName()));
+            } else {
+                os.add(Order.desc(o.getMetaColumn().getPropertyName()));
+            }
+        }
+        return loadByExample(example, new Orders<>(os));
     }
 
     @Override

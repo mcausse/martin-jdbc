@@ -17,13 +17,20 @@ import org.lenteja.jdbc.txproxy.TransactionalServiceProxyfier;
 
 import cat.lechuga.BetterGenericDao;
 import cat.lechuga.EntityManagerFactory;
-import cat.lechuga.Order;
+import cat.lechuga.Orders;
+import cat.lechuga.Orders.Order;
 import cat.lechuga.anno.Column;
 import cat.lechuga.anno.Generated;
 import cat.lechuga.anno.Id;
 import cat.lechuga.anno.Table;
 import cat.lechuga.generator.impl.HsqldbSequence;
+import cat.lechuga.jdbc.MetaGeneratorTest.Comment_;
+import cat.lechuga.jdbc.MetaGeneratorTest.Option_;
+import cat.lechuga.jdbc.MetaGeneratorTest.User_;
+import cat.lechuga.jdbc.MetaGeneratorTest.Votr_;
 import cat.lechuga.reflect.anno.Embeddable;
+import cat.lechuga.tsmql.TOrders;
+import cat.lechuga.tsmql.TOrders.TOrder;
 
 public class VotrTest {
 
@@ -142,10 +149,10 @@ public class VotrTest {
             this.facade = facade;
             EntityManagerFactory emf = new EntityManagerFactory();
 
-            this.votrDao = new BetterGenericDao<>(emf.buildEntityManager(facade, Votr.class));
-            this.userDao = new BetterGenericDao<>(emf.buildEntityManager(facade, User.class));
-            this.optionDao = new BetterGenericDao<>(emf.buildEntityManager(facade, Option.class));
-            this.commentDao = new BetterGenericDao<>(emf.buildEntityManager(facade, Comment.class));
+            this.votrDao = new BetterGenericDao<>(emf.buildEntityManager(facade, Votr.class), new Votr_());
+            this.userDao = new BetterGenericDao<>(emf.buildEntityManager(facade, User.class), new User_());
+            this.optionDao = new BetterGenericDao<>(emf.buildEntityManager(facade, Option.class), new Option_());
+            this.commentDao = new BetterGenericDao<>(emf.buildEntityManager(facade, Comment.class), new Comment_());
         }
 
         protected String generaHash(String input) {
@@ -194,7 +201,7 @@ public class VotrTest {
             {
                 User example = new User();
                 example.setVotrId(votr.getId());
-                us = userDao.loadByExample(example, Order.by(Order.asc("userId")));
+                us = userDao.loadByExample(example, Orders.by(Order.asc("userId")));
             }
             for (User u : us) {
                 u.setVotedOptionOrder(null);
@@ -342,18 +349,15 @@ public class VotrTest {
 
             List<User> allUsers;
             {
-                User example = new User();
-                example.setVotrId(votr.getId());
-                allUsers = userDao.loadByExample(example);
+                // User example = new User();
+                // example.setVotrId(votr.getId());
+                // allUsers = userDao.loadByExample(example);
 
-                // TODO
-                // // Votr_ votr_ = new Votr_("v");
-                // User_ user_ = new User_();
-                // // Option_ option_ = new Option_();
-                //
-                // allUsers = userDao.loadBy( //
-                // user_.votrId.eq(votr.getId()), //
-                // Order.by(Order.asc(user_.userId)));
+                User_ user_ = new User_();
+
+                allUsers = userDao.loadBy( //
+                        user_.votrId.eq(votr.getId()), //
+                        TOrders.by(TOrder.asc(user_.userId)));
             }
 
             Map<Option, List<User>> optionsVots = new LinkedHashMap<>();
@@ -379,7 +383,7 @@ public class VotrTest {
                 Comment example = new Comment();
                 example.setVotrId(votr.getId());
                 comments = commentDao.loadByExample(example,
-                        Order.by(Order.asc("commentDate"), Order.asc("commentId")));
+                        Orders.by(Order.asc("commentDate"), Order.asc("commentId")));
             }
 
             return new VotrInfo(votr, you, allUsers, optionsVots, comments);
