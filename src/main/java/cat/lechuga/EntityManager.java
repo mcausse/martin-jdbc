@@ -3,7 +3,6 @@ package cat.lechuga;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.exception.JdbcException;
@@ -25,10 +24,6 @@ public class EntityManager<E, ID> implements Facaded, Mapable<E>, EntityMetable<
         this.facade = facade;
         this.entityMeta = entityMeta;
         this.ops = new EntityManagerOperations<>(entityMeta);
-    }
-
-    void executeListenerCallback(Consumer<EntityListener<E>> callbackMethod, E entity) {
-
     }
 
     // ===========================================================

@@ -10,6 +10,7 @@ import cat.lechuga.Facaded;
 import cat.lechuga.Mapable;
 import cat.lechuga.mql.Executor;
 import cat.lechuga.mql.QueryBuilder;
+import cat.lechuga.tsmql.TOrders.TOrder;
 
 public class TypeSafeQueryBuilder {
 
@@ -53,6 +54,18 @@ public class TypeSafeQueryBuilder {
                 MetaColumn<?, ?> arg2 = (MetaColumn<?, ?>) arg;
                 qo.append("{" + arg2.getAlias() + "." + arg2.getPropertyName() + "}");
                 qb.append("{" + arg2.getAlias() + "." + arg2.getPropertyName() + "}");
+            } else if (arg instanceof TOrders) {
+                TOrders<?> arg2 = (TOrders<?>) arg;
+                int c = 0;
+                for (TOrder<?> o : arg2.getOrders()) {
+                    if (c > 0) {
+                        qo.append(",");
+                    }
+                    c++;
+                    MetaColumn<?, ?> metac = o.getMetaColumn();
+                    qo.append("{" + metac.getAlias() + "." + metac.getPropertyName() + "} " + o.getOrder());
+                    qb.append("{" + metac.getAlias() + "." + metac.getPropertyName() + "} " + o.getOrder());
+                }
             } else {
                 throw new RuntimeException(String.valueOf(arg));
             }

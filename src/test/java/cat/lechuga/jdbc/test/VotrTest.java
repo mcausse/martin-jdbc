@@ -28,9 +28,12 @@ import cat.lechuga.jdbc.MetaGeneratorTest.Comment_;
 import cat.lechuga.jdbc.MetaGeneratorTest.Option_;
 import cat.lechuga.jdbc.MetaGeneratorTest.User_;
 import cat.lechuga.jdbc.MetaGeneratorTest.Votr_;
+import cat.lechuga.mql.QueryBuilder;
 import cat.lechuga.reflect.anno.Embeddable;
+import cat.lechuga.tsmql.Restrictions;
 import cat.lechuga.tsmql.TOrders;
 import cat.lechuga.tsmql.TOrders.TOrder;
+import cat.lechuga.tsmql.TypeSafeQueryBuilder;
 
 public class VotrTest {
 
@@ -341,10 +344,18 @@ public class VotrTest {
 
             User you;
             {
-                User example = new User();
-                example.setUserHash(hashUser);
-                example.setVotrId(votr.getId());
-                you = userDao.loadUniqueByExample(example);
+                User_ user_ = new User_();
+
+                you = userDao.loadUniqueBy( //
+                        Restrictions.and( //
+                                user_.userHash.eq(hashUser), //
+                                user_.votrId.eq(votr.getId()) //
+                        ));
+
+                // User example = new User();
+                // example.setUserHash(hashUser);
+                // example.setVotrId(votr.getId());
+                // you = userDao.loadUniqueByExample(example);
             }
 
             List<User> allUsers;
@@ -364,26 +375,47 @@ public class VotrTest {
             {
                 List<Option> opcions;
                 {
-                    OptionId optId = new OptionId();
-                    Option opt = new Option();
-                    opt.setId(optId);
-                    optId.setVotrId(votr.getId());
-                    opcions = optionDao.loadByExample(opt);
+                    // OptionId optId = new OptionId();
+                    // Option opt = new Option();
+                    // opt.setId(optId);
+                    // optId.setVotrId(votr.getId());
+                    // opcions = optionDao.loadByExample(opt);
+
+                    TypeSafeQueryBuilder q = new TypeSafeQueryBuilder();
+                    Option_ o = new Option_();
+                    q.addAlias(o);
+                    q.append("select {} from {} ", o.all(), o);
+                    q.append("where {} ", o.votrId.eq(votr.getId()));
+                    q.append("order by {}", TOrders.by(TOrder.asc(o.order)));
+                    opcions = q.getExecutor(optionDao).load();
                 }
                 for (Option o : opcions) {
-                    User example = new User();
-                    example.setVotrId(votr.getId());
-                    example.setVotedOptionOrder(o.getId().getOrder());
-                    optionsVots.put(o, userDao.loadByExample(example));
+                    // User example = new User();
+                    // example.setVotrId(votr.getId());
+                    // example.setVotedOptionOrder(o.getId().getOrder());
+                    // optionsVots.put(o, userDao.loadByExample(example));
+
+                    QueryBuilder q = new QueryBuilder();
+                    q.addAlias("u", userDao);
+                    q.append("select {u.*} from {u.#} where {u.votrId=?} and {u.votedOptionOrder=?}", votr.getId(),
+                            o.getId().getOrder());
+                    optionsVots.put(o, q.getExecutor(userDao).load());
                 }
             }
 
             List<Comment> comments;
             {
+                // Comment example = new Comment();
+                // example.setVotrId(votr.getId());
+                // comments = commentDao.loadByExample(example,
+                // Orders.by(Order.asc("commentDate"), Order.asc("commentId")));
+
+                Comment_ c = new Comment_();
+
                 Comment example = new Comment();
                 example.setVotrId(votr.getId());
                 comments = commentDao.loadByExample(example,
-                        Orders.by(Order.asc("commentDate"), Order.asc("commentId")));
+                        TOrders.by(TOrder.asc(c.commentDate), TOrder.asc(c.commentId)));
             }
 
             return new VotrInfo(votr, you, allUsers, optionsVots, comments);
