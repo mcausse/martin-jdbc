@@ -13,6 +13,7 @@ import cat.lechuga.generator.Generator;
 import cat.lechuga.generator.ScalarMappers;
 import cat.lechuga.reflect.ReflectUtils;
 
+//TODO i si l'EntityManager no té tipus i pot manipular vàries entitats???
 public class EntityManager<E, ID> implements Facaded, Mapable<E>, EntityMetable<E> {
 
     private final DataAccesFacade facade;
