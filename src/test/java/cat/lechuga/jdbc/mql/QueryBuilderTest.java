@@ -9,7 +9,6 @@ import cat.lechuga.EntityManager;
 import cat.lechuga.EntityManagerFactory;
 import cat.lechuga.jdbc.test.ESex;
 import cat.lechuga.jdbc.test.Exp;
-import cat.lechuga.jdbc.test.ExpId;
 import cat.lechuga.mql.QueryBuilder;
 
 public class QueryBuilderTest {
@@ -18,11 +17,11 @@ public class QueryBuilderTest {
     public void testName() throws Exception {
 
         EntityManagerFactory emf = new EntityManagerFactory();
-        EntityManager<Exp, ExpId> expMan = emf.buildEntityManager(null, Exp.class);
+        EntityManager em = emf.buildEntityManager(null, Exp.class);
 
         {
-            QueryBuilder qb = new QueryBuilder();
-            qb.addAlias("e", expMan);
+            QueryBuilder qb = em.buildQuery();
+            qb.addAlias("e", Exp.class);
 
             qb.append("select {e.*} ");
             qb.append("from {e.#} ");
@@ -36,8 +35,8 @@ public class QueryBuilderTest {
         }
 
         {
-            QueryBuilder qb = new QueryBuilder();
-            qb.addAlias("e", expMan);
+            QueryBuilder qb = em.buildQuery();
+            qb.addAlias("e", Exp.class);
 
             try {
                 qb.append("where {e.id.anyExp=?} and {e.sex in (?,?)}", 1982, ESex.FEMALE);
@@ -49,8 +48,8 @@ public class QueryBuilderTest {
             }
         }
         {
-            QueryBuilder qb = new QueryBuilder();
-            qb.addAlias("e", expMan);
+            QueryBuilder qb = em.buildQuery();
+            qb.addAlias("e", Exp.class);
 
             try {
                 qb.append("where {e.id.anyExp=?} and {e.sex=?}", 1982, ESex.FEMALE, ESex.MALE);
@@ -63,8 +62,8 @@ public class QueryBuilderTest {
         }
 
         {
-            QueryBuilder qb = new QueryBuilder();
-            qb.addAlias("e", expMan);
+            QueryBuilder qb = em.buildQuery();
+            qb.addAlias("e", Exp.class);
 
             try {
                 qb.append("where {kk.id.anyExp=?}", 1982);
@@ -75,8 +74,8 @@ public class QueryBuilderTest {
             }
         }
         {
-            QueryBuilder qb = new QueryBuilder();
-            qb.addAlias("e", expMan);
+            QueryBuilder qb = em.buildQuery();
+            qb.addAlias("e", Exp.class);
 
             try {
                 qb.append("where {e.kkk=?}", 1982);

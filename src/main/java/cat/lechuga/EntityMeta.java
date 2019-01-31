@@ -1,9 +1,13 @@
 package cat.lechuga;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EntityMeta<E> {
+import cat.lechuga.reflect.ReflectUtils;
+
+public class EntityMeta<E> implements Mapable<E> {
 
     private final Class<E> entityClass;
     private final String tableName;
@@ -35,6 +39,20 @@ public class EntityMeta<E> {
                 this.autogenProps.add(p);
             }
         }
+    }
+
+    @Override
+    public E map(ResultSet rs) throws SQLException {
+        E entity = ReflectUtils.newInstance(getEntityClass());
+        for (PropertyMeta p : getAllProps()) {
+            p.readValue(entity, rs);
+        }
+
+        if (getListeners() != null) {
+            getListeners().forEach(l -> l.afterLoad(entity));
+        }
+
+        return entity;
     }
 
     public Class<E> getEntityClass() {

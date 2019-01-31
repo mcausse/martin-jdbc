@@ -6,6 +6,7 @@ import java.util.Date;
 
 import org.junit.Test;
 
+import cat.lechuga.EntityManager;
 import cat.lechuga.EntityManagerFactory;
 import cat.lechuga.EntityMeta;
 import cat.lechuga.jdbc.test.VotrTest.Comment;
@@ -39,8 +40,10 @@ public class MetaGeneratorTest {
         Option_ option_ = new Option_();
         // Comment_ comment_ = new Comment_();
 
+        EntityManager em = emf.buildEntityManager(null, Votr.class, User.class, Option.class, Comment.class);
+
         {
-            TypeSafeQueryBuilder q = new TypeSafeQueryBuilder();
+            TypeSafeQueryBuilder q = new TypeSafeQueryBuilder(em);
             q.addAlias(votr_);
             q.append("select max({}) ", votr_.id);
             q.append("from {} ", votr_);
@@ -51,7 +54,7 @@ public class MetaGeneratorTest {
         }
 
         {
-            TypeSafeQueryBuilder q = new TypeSafeQueryBuilder();
+            TypeSafeQueryBuilder q = new TypeSafeQueryBuilder(em);
             q.addAlias(option_);
             q.addAlias(user_);
             q.append("select {},count(*) ", option_.star());
@@ -73,7 +76,7 @@ public class MetaGeneratorTest {
         }
 
         {
-            TypeSafeQueryBuilder q = new TypeSafeQueryBuilder();
+            TypeSafeQueryBuilder q = new TypeSafeQueryBuilder(em);
             q.addAlias(votr_);
             q.append("select max({}) ", votr_.id);
             q.append("from {} ", votr_);

@@ -1,49 +1,38 @@
 package cat.lechuga;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.StringJoiner;
 
-import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.query.QueryObject;
 
 import cat.lechuga.Orders.Order;
-import cat.lechuga.mql.QueryBuilder;
 
-public class GenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetable<E> {
+public class GenericDao<E, ID> {
 
-    final EntityManager<E, ID> em;
+    final EntityManager em;
+    final Class<E> entityClass;
+    final EntityMeta<E> entityMeta;
 
-    public GenericDao(EntityManager<E, ID> em) {
+    public GenericDao(EntityManager em, Class<E> entityClass) {
         super();
         this.em = em;
+        this.entityClass = entityClass;
+        this.entityMeta = em.getEntityMeta(entityClass);
     }
 
-    public EntityManager<E, ID> getEntityManager() {
+    public EntityManager getEntityManager() {
         return em;
     }
 
-    // ===========================================================
-    // ===========================================================
-    // ===========================================================
-
-    // TODO mql dep
-    public QueryBuilder buildQueryFor(String alias) {
-        QueryBuilder qb = new QueryBuilder();
-        qb.addAlias(alias, this);
-        return qb;
+    public Class<E> getEntityClass() {
+        return entityClass;
     }
-
-    // ===========================================================
-    // ===========================================================
-    // ===========================================================
 
     public E loadUniqueByExample(E example) {
         QueryObject q = new QueryObject();
-        q.append(em.getOperations().loadAll());
+        q.append(em.getOperations().loadAll(entityMeta));
         q.append(" where 1=1");
-        for (PropertyMeta p : em.getEntityMeta().getAllProps()) {
+        for (PropertyMeta p : entityMeta.getAllProps()) {
             Object v = p.getProp().get(example);
             if (v != null) {
                 q.append(" and ");
@@ -52,7 +41,7 @@ public class GenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetable<E> 
                 q.addArg(p.getJdbcValue(example));
             }
         }
-        return em.getFacade().loadUnique(q, em);
+        return em.getFacade().loadUnique(q, entityMeta);
     }
 
     public List<E> loadByExample(E example) {
@@ -61,9 +50,9 @@ public class GenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetable<E> 
 
     public List<E> loadByExample(E example, Orders<E> orders) {
         QueryObject q = new QueryObject();
-        q.append(em.getOperations().loadAll());
+        q.append(em.getOperations().loadAll(entityMeta));
         q.append(" where 1=1");
-        for (PropertyMeta p : em.getEntityMeta().getAllProps()) {
+        for (PropertyMeta p : entityMeta.getAllProps()) {
             Object v = p.getProp().get(example);
             if (v != null) {
                 q.append(" and ");
@@ -76,47 +65,28 @@ public class GenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetable<E> 
             q.append(" order by ");
             StringJoiner j = new StringJoiner(", ");
             for (Order<E> o : orders.getOrders()) {
-                PropertyMeta p = em.getEntityMeta().getProp(o.getPropName());
+                PropertyMeta p = entityMeta.getProp(o.getPropName());
                 j.add(p.getColumnName() + " " + o.getOrder());
             }
             q.append(j.toString());
         }
-        return em.getFacade().load(q, em);
-    }
-
-    // ===========================================================
-    // ================= FacadedMapable ========================
-    // ===========================================================
-
-    @Override
-    public E map(ResultSet rs) throws SQLException {
-        return em.map(rs);
-    }
-
-    @Override
-    public DataAccesFacade getFacade() {
-        return em.getFacade();
+        return em.getFacade().load(q, entityMeta);
     }
 
     // ===========================================================
     // ===========================================================
     // ===========================================================
-
-    @Override
-    public EntityMeta<E> getEntityMeta() {
-        return em.getEntityMeta();
-    }
 
     public List<E> loadAll() {
-        return em.loadAll();
+        return em.loadAll(entityClass);
     }
 
     public E loadById(ID id) {
-        return em.loadById(id);
+        return em.loadById(entityClass, id);
     }
 
     public void refresh(E entity) {
-        em.refresh(entity);
+        em.refresh(entityClass, entity);
     }
 
     public void store(E entity) {
@@ -131,16 +101,12 @@ public class GenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetable<E> 
         em.insert(entity);
     }
 
-    // public void deleteById(ID id) {
-    // em.deleteById(id);
-    // }
-
     public void delete(E entity) {
         em.delete(entity);
     }
 
     public boolean existsById(ID id) {
-        return em.existsById(id);
+        return em.existsById(entityClass, id);
     }
 
     public boolean exists(E entity) {

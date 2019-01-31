@@ -1,12 +1,9 @@
 package cat.lechuga.tsmql;
 
-import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.query.QueryObject;
 
-import cat.lechuga.EntityManagerFactory;
-import cat.lechuga.EntityMeta;
-import cat.lechuga.Facaded;
+import cat.lechuga.EntityManager;
 import cat.lechuga.Mapable;
 import cat.lechuga.mql.Executor;
 import cat.lechuga.mql.QueryBuilder;
@@ -14,18 +11,19 @@ import cat.lechuga.tsmql.TOrders.TOrder;
 
 public class TypeSafeQueryBuilder {
 
+    private final EntityManager em;
     private final QueryObject qo; // mql query
     private final QueryBuilder qb;
 
-    public TypeSafeQueryBuilder() {
+    public TypeSafeQueryBuilder(EntityManager em) {
         super();
+        this.em = em;
         this.qo = new QueryObject();
-        this.qb = new QueryBuilder();
+        this.qb = new QueryBuilder(em);
     }
 
     public TypeSafeQueryBuilder addAlias(MetaTable<?> table) {
-        EntityMeta<?> em = new EntityManagerFactory().buildEntityMeta(table.getEntityClass());
-        qb.addAlias(table.getAlias(), em);
+        qb.addAlias(table.getAlias(), table.getEntityClass());
         return this;
     }
 
@@ -87,16 +85,12 @@ public class TypeSafeQueryBuilder {
         return qb.getQueryObject();
     }
 
-    public <T, FM extends Facaded & Mapable<T>> Executor<T> getExecutor(FM facadedMapable) {
-        return qb.getExecutor(facadedMapable);
+    public <T> Executor<T> getExecutor(Class<T> entityClass) {
+        return getExecutor(em.getEntityMeta(entityClass));
     }
 
-    public <T> Executor<T> getExecutor(DataAccesFacade facade, Mapable<T> mapable) {
-        return qb.getExecutor(facade, mapable);
-    }
-
-    public <T> Executor<T> getExecutor(Facaded facaded, Mapable<T> mapable) {
-        return qb.getExecutor(facaded.getFacade(), mapable);
+    public <T> Executor<T> getExecutor(Mapable<T> mapable) {
+        return qb.getExecutor(mapable);
     }
 
     @Override

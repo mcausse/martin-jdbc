@@ -1,37 +1,36 @@
 package cat.lechuga;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.lenteja.jdbc.DataAccesFacade;
-
 import cat.lechuga.Orders.Order;
+import cat.lechuga.mql.QueryBuilder;
 import cat.lechuga.tsmql.Criterion;
 import cat.lechuga.tsmql.MetaTable;
 import cat.lechuga.tsmql.TOrders;
 import cat.lechuga.tsmql.TOrders.TOrder;
 import cat.lechuga.tsmql.TypeSafeQueryBuilder;
 
-public class BetterGenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetable<E> {
+public class BetterGenericDao<E, ID> {
 
+    final EntityManager em;
     final GenericDao<E, ID> genericDao;
     final MetaTable<E> metaTable;
 
-    public BetterGenericDao(EntityManager<E, ID> em, MetaTable<E> metaTable) {
+    public BetterGenericDao(EntityManager em, MetaTable<E> metaTable) {
         super();
-        this.genericDao = new GenericDao<>(em);
+        this.em = em;
+        this.genericDao = new GenericDao<>(em, metaTable.getEntityClass());
         this.metaTable = metaTable;
     }
 
     public E loadUniqueBy(Criterion criterion) {
-        TypeSafeQueryBuilder qb = new TypeSafeQueryBuilder();
+        TypeSafeQueryBuilder qb = new TypeSafeQueryBuilder(em);
         qb.addAlias(metaTable);
         qb.append("select {} ", metaTable.all());
         qb.append("from {} ", metaTable);
         qb.append("where {}", criterion);
-        return qb.getExecutor(genericDao.getEntityManager()).loadUnique();
+        return qb.getExecutor(genericDao.getEntityClass()).loadUnique();
     }
 
     public List<E> loadBy(Criterion criterion) {
@@ -39,7 +38,7 @@ public class BetterGenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetab
     }
 
     public List<E> loadBy(Criterion criterion, TOrders<E> orders) {
-        TypeSafeQueryBuilder qb = new TypeSafeQueryBuilder();
+        TypeSafeQueryBuilder qb = new TypeSafeQueryBuilder(em);
         qb.addAlias(metaTable);
         qb.append("select {} ", metaTable.all());
         qb.append("from {} ", metaTable);
@@ -56,21 +55,19 @@ public class BetterGenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetab
                 c++;
             }
         }
-        return qb.getExecutor(genericDao.getEntityManager()).load();
+        return qb.getExecutor(genericDao.getEntityClass()).load();
     }
 
     // ===========================================================
-    // ================= FacadedMapable ========================
+    // ===========================================================
     // ===========================================================
 
-    @Override
-    public E map(ResultSet rs) throws SQLException {
-        return genericDao.map(rs);
+    public QueryBuilder buildQuery() {
+        return em.buildQuery();
     }
 
-    @Override
-    public DataAccesFacade getFacade() {
-        return genericDao.getFacade();
+    public TypeSafeQueryBuilder buildTypedQuery() {
+        return em.buildTypeSafeQuery();
     }
 
     // ===========================================================
@@ -99,11 +96,6 @@ public class BetterGenericDao<E, ID> implements Facaded, Mapable<E>, EntityMetab
             }
         }
         return loadByExample(example, new Orders<>(os));
-    }
-
-    @Override
-    public EntityMeta<E> getEntityMeta() {
-        return genericDao.getEntityMeta();
     }
 
     public List<E> loadAll() {

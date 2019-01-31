@@ -22,7 +22,7 @@ public class EntityManagerOperationsTest {
 
         EntityManagerFactory emf = new EntityManagerFactory();
         EntityMeta<Exp> entityMeta = emf.buildEntityMeta(Exp.class);
-        EntityManagerOperations<Exp> emo = new EntityManagerOperations<>(entityMeta);
+        EntityManagerOperations emo = new EntityManagerOperations();
 
         ExpId id = new ExpId();
         Exp exp = new Exp();
@@ -36,17 +36,17 @@ public class EntityManagerOperationsTest {
         exp.setName("jou");
         exp.sex = ESex.FEMALE;
 
-        System.out.println(emo.update(exp));
+        System.out.println(emo.update(entityMeta, exp));
         assertEquals(
                 "update exps set name=?,fecha_ini=?,sex=?,alive=? where id_ens=? and any_exp=? and num_exp=? -- [jou(String), 01-01-1970(String), FEMALE(String), true(Boolean), 8(Long), 1982(Integer), 123(Long)]",
-                emo.update(exp).toString());
+                emo.update(entityMeta, exp).toString());
 
-        System.out.println(emo.loadById(id));// TODO
-        System.out.println(emo.insert(exp));// TODO
-        System.out.println(emo.delete(exp));// TODO
-        System.out.println(emo.deleteById(id));// TODO
-        System.out.println(emo.existsById(id));// TODO
-        System.out.println(emo.exists(exp));// TODO
+        System.out.println(emo.loadById(entityMeta, id));// TODO
+        System.out.println(emo.insert(entityMeta, exp));// TODO
+        System.out.println(emo.delete(entityMeta, exp));// TODO
+        System.out.println(emo.deleteById(entityMeta, id));// TODO
+        System.out.println(emo.existsById(entityMeta, id));// TODO
+        System.out.println(emo.exists(entityMeta, exp));// TODO
     }
 
     @Test
@@ -54,23 +54,23 @@ public class EntityManagerOperationsTest {
 
         EntityManagerFactory emf = new EntityManagerFactory();
         EntityMeta<Pizza> entityMeta = emf.buildEntityMeta(Pizza.class);
-        EntityManagerOperations<Pizza> emo = new EntityManagerOperations<>(entityMeta);
+        EntityManagerOperations emo = new EntityManagerOperations();
 
         Pizza pizza = new Pizza();
         pizza.idPizza = 42L;
         pizza.name = "romana";
         pizza.price = new BigDecimal("12.34");
 
-        System.out.println(emo.update(pizza));
+        System.out.println(emo.update(entityMeta, pizza));
         assertEquals(
                 "update pizza set name=?,price=? where id_pizza=? -- [romana(String), 12.34(BigDecimal), 42(Long)]",
-                emo.update(pizza).toString());
+                emo.update(entityMeta, pizza).toString());
 
-        System.out.println(emo.loadById(42L));// TODO
-        System.out.println(emo.insert(pizza));// TODO
-        System.out.println(emo.delete(pizza));// TODO
-        System.out.println(emo.deleteById(42L));// TODO
-        System.out.println(emo.existsById(42L));// TODO
-        System.out.println(emo.exists(pizza));// TODO
+        System.out.println(emo.loadById(entityMeta, 42L));// TODO
+        System.out.println(emo.insert(entityMeta, pizza));// TODO
+        System.out.println(emo.delete(entityMeta, pizza));// TODO
+        System.out.println(emo.deleteById(entityMeta, 42L));// TODO
+        System.out.println(emo.existsById(entityMeta, 42L));// TODO
+        System.out.println(emo.exists(entityMeta, pizza));// TODO
     }
 }

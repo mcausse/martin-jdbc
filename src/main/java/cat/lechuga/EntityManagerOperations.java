@@ -3,16 +3,9 @@ package cat.lechuga;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.query.QueryObject;
 
-public class EntityManagerOperations<E> {
+public class EntityManagerOperations {
 
-    private final EntityMeta<E> entityMeta;
-
-    public EntityManagerOperations(EntityMeta<E> entityMeta) {
-        super();
-        this.entityMeta = entityMeta;
-    }
-
-    public IQueryObject loadAll() {
+    public IQueryObject loadAll(EntityMeta<?> entityMeta) {
         QueryObject q = new QueryObject();
         q.append("select ");
         {
@@ -30,7 +23,7 @@ public class EntityManagerOperations<E> {
         return q;
     }
 
-    public IQueryObject loadById(Object id) {
+    public IQueryObject loadById(EntityMeta<?> entityMeta, Object id) {
         QueryObject q = new QueryObject();
         q.append("select ");
         {
@@ -61,7 +54,7 @@ public class EntityManagerOperations<E> {
         return q;
     }
 
-    public IQueryObject refresh(E entity) {
+    public IQueryObject refresh(EntityMeta<?> entityMeta, Object entity) {
         QueryObject q = new QueryObject();
         q.append("select ");
         {
@@ -92,7 +85,7 @@ public class EntityManagerOperations<E> {
         return q;
     }
 
-    public IQueryObject insert(E entity) {
+    public IQueryObject insert(EntityMeta<?> entityMeta, Object entity) {
         QueryObject q = new QueryObject();
         q.append("insert into ");
         q.append(entityMeta.getTableName());
@@ -123,7 +116,7 @@ public class EntityManagerOperations<E> {
         return q;
     }
 
-    public IQueryObject update(E entity) {
+    public IQueryObject update(EntityMeta<?> entityMeta, Object entity) {
         QueryObject q = new QueryObject();
         q.append("update ");
         q.append(entityMeta.getTableName());
@@ -156,7 +149,7 @@ public class EntityManagerOperations<E> {
         return q;
     }
 
-    public IQueryObject delete(E entity) {
+    public IQueryObject delete(EntityMeta<?> entityMeta, Object entity) {
         QueryObject q = new QueryObject();
         q.append("delete from ");
         q.append(entityMeta.getTableName());
@@ -176,7 +169,7 @@ public class EntityManagerOperations<E> {
         return q;
     }
 
-    public IQueryObject deleteById(Object id) {
+    public IQueryObject deleteById(EntityMeta<?> entityMeta, Object id) {
         QueryObject q = new QueryObject();
         q.append("delete from ");
         q.append(entityMeta.getTableName());
@@ -196,7 +189,7 @@ public class EntityManagerOperations<E> {
         return q;
     }
 
-    public IQueryObject existsById(Object id) {
+    public IQueryObject existsById(EntityMeta<?> entityMeta, Object id) {
         QueryObject q = new QueryObject();
         q.append("select count(*) from ");
         q.append(entityMeta.getTableName());
@@ -216,7 +209,7 @@ public class EntityManagerOperations<E> {
         return q;
     }
 
-    public IQueryObject exists(E entity) {
+    public IQueryObject exists(EntityMeta<?> entityMeta, Object entity) {
         QueryObject q = new QueryObject();
         q.append("select count(*) from ");
         q.append(entityMeta.getTableName());

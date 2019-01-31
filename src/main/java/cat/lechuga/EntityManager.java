@@ -1,8 +1,8 @@
 package cat.lechuga;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.exception.JdbcException;
@@ -11,71 +11,70 @@ import org.lenteja.jdbc.query.IQueryObject;
 
 import cat.lechuga.generator.Generator;
 import cat.lechuga.generator.ScalarMappers;
-import cat.lechuga.reflect.ReflectUtils;
+import cat.lechuga.mql.QueryBuilder;
+import cat.lechuga.tsmql.TypeSafeQueryBuilder;
 
-//TODO i si l'EntityManager no té tipus i pot manipular vàries entitats???
-public class EntityManager<E, ID> implements Facaded, Mapable<E>, EntityMetable<E> {
+public class EntityManager {
 
     private final DataAccesFacade facade;
-    private final EntityMeta<E> entityMeta;
-    private final EntityManagerOperations<E> ops;
+    private final Map<Class<?>, EntityMeta<?>> entityMetas;
+    private final EntityManagerOperations ops;
 
-    public EntityManager(DataAccesFacade facade, EntityMeta<E> entityMeta) {
+    public EntityManager(DataAccesFacade facade, List<EntityMeta<?>> entityMetas) {
         super();
         this.facade = facade;
-        this.entityMeta = entityMeta;
-        this.ops = new EntityManagerOperations<>(entityMeta);
-    }
-
-    // ===========================================================
-    // ================= FacadedMapable ========================
-    // ===========================================================
-
-    @Override
-    public E map(ResultSet rs) throws SQLException {
-        E entity = ReflectUtils.newInstance(entityMeta.getEntityClass());
-        for (PropertyMeta p : entityMeta.getAllProps()) {
-            p.readValue(entity, rs);
+        this.entityMetas = new LinkedHashMap<>();
+        for (EntityMeta<?> em : entityMetas) {
+            this.entityMetas.put(em.getEntityClass(), em);
         }
+        this.ops = new EntityManagerOperations();
+    }
 
-        if (entityMeta.getListeners() != null) {
-            entityMeta.getListeners().forEach(l -> l.afterLoad(entity));
+    // ===========================================================
+    // ===========================================================
+    // ===========================================================
+
+    public QueryBuilder buildQuery() {
+        return new QueryBuilder(this);
+    }
+
+    public TypeSafeQueryBuilder buildTypeSafeQuery() {
+        return new TypeSafeQueryBuilder(this);
+    }
+
+    // ===========================================================
+    // ===========================================================
+    // ===========================================================
+
+    @SuppressWarnings("unchecked")
+    public <E> EntityMeta<E> getEntityMeta(Class<E> entityClass) {
+        if (!entityMetas.containsKey(entityClass)) {
+            throw new RuntimeException(
+                    "entity not defined: " + entityClass.getName() + "; valid ones=" + entityMetas.keySet().toString());
         }
-
-        return entity;
+        return (EntityMeta<E>) entityMetas.get(entityClass);
     }
 
-    @Override
-    public DataAccesFacade getFacade() {
-        return facade;
-    }
-
-    // ===========================================================
-    // ===========================================================
-    // ===========================================================
-
-    @Override
-    public EntityMeta<E> getEntityMeta() {
-        return entityMeta;
-    }
-
-    public EntityManagerOperations<E> getOperations() {
+    public EntityManagerOperations getOperations() {
         return ops;
     }
 
-    public List<E> loadAll() {
-        IQueryObject q = ops.loadAll();
-        return facade.load(q, this);
+    public <E> List<E> loadAll(Class<E> entityClass) {
+        EntityMeta<E> entityMeta = getEntityMeta(entityClass);
+        IQueryObject q = ops.loadAll(entityMeta);
+        return facade.load(q, entityMeta);
     }
 
-    public E loadById(ID id) {
-        IQueryObject q = ops.loadById(id);
-        return facade.loadUnique(q, this);
+    public <E, ID> E loadById(Class<E> entityClass, ID id) {
+        EntityMeta<E> entityMeta = getEntityMeta(entityClass);
+        IQueryObject q = ops.loadById(entityMeta, id);
+        return facade.loadUnique(q, entityMeta);
     }
 
-    public void refresh(E entity) {
-        IQueryObject q = ops.refresh(entity);
-        E e = facade.loadUnique(q, this);
+    public <E> void refresh(Class<E> entityClass, E entity) {
+        EntityMeta<E> entityMeta = getEntityMeta(entityClass);
+        IQueryObject q = ops.refresh(entityMeta, entity);
+        E e = facade.loadUnique(q, entityMeta);
 
         for (PropertyMeta p : entityMeta.getAllProps()) {
             Object value = p.getProp().get(e);
@@ -102,7 +101,12 @@ public class EntityManager<E, ID> implements Facaded, Mapable<E>, EntityMetable<
      * fisi
      * </pre>
      */
-    public void store(E entity) {
+    @SuppressWarnings("unchecked")
+    public <E> void store(E entity) {
+
+        Class<E> entityClass = (Class<E>) entity.getClass();
+
+        EntityMeta<E> entityMeta = getEntityMeta(entityClass);
 
         if (entityMeta.getListeners() != null) {
             entityMeta.getListeners().forEach(l -> l.beforeStore(entity));
@@ -182,13 +186,18 @@ public class EntityManager<E, ID> implements Facaded, Mapable<E>, EntityMetable<
 
     }
 
-    public void update(E entity) {
+    @SuppressWarnings("unchecked")
+    public <E> void update(E entity) {
+
+        Class<E> entityClass = (Class<E>) entity.getClass();
+
+        EntityMeta<E> entityMeta = getEntityMeta(entityClass);
 
         if (entityMeta.getListeners() != null) {
             entityMeta.getListeners().forEach(l -> l.beforeUpdate(entity));
         }
 
-        IQueryObject q = ops.update(entity);
+        IQueryObject q = ops.update(entityMeta, entity);
         int affectedRows = facade.update(q);
         if (affectedRows != 1) {
             throw new UnexpectedResultException(
@@ -200,7 +209,11 @@ public class EntityManager<E, ID> implements Facaded, Mapable<E>, EntityMetable<
         }
     }
 
-    public void insert(E entity) {
+    @SuppressWarnings("unchecked")
+    public <E> void insert(E entity) {
+
+        Class<E> entityClass = (Class<E>) entity.getClass();
+        EntityMeta<E> entityMeta = getEntityMeta(entityClass);
 
         if (entityMeta.getListeners() != null) {
             entityMeta.getListeners().forEach(l -> l.beforeInsert(entity));
@@ -218,7 +231,7 @@ public class EntityManager<E, ID> implements Facaded, Mapable<E>, EntityMetable<
             }
         }
 
-        IQueryObject q = ops.insert(entity);
+        IQueryObject q = ops.insert(entityMeta, entity);
         facade.update(q);
 
         for (PropertyMeta autoGenProp : entityMeta.getAutogenProps()) {
@@ -239,31 +252,17 @@ public class EntityManager<E, ID> implements Facaded, Mapable<E>, EntityMetable<
 
     }
 
-    // public void deleteById(ID id) {
-    //
-    // if (entityMeta.getListeners() != null) {
-    // entityMeta.getListeners().forEach(l -> l.beforeDelete(entity));
-    // }
-    //
-    // IQueryObject q = ops.deleteById(id);
-    // int affectedRows = facade.update(q);
-    // if (affectedRows != 1) {
-    // throw new UnexpectedResultException(
-    // "expected affectedRows=1, but affectedRows=" + affectedRows + " for " + q);
-    // }
-    //
-    // if (entityMeta.getListeners() != null) {
-    // entityMeta.getListeners().forEach(l -> l.afterDelete(entity));
-    // }
-    // }
+    @SuppressWarnings("unchecked")
+    public <E> void delete(E entity) {
 
-    public void delete(E entity) {
+        Class<E> entityClass = (Class<E>) entity.getClass();
+        EntityMeta<E> entityMeta = getEntityMeta(entityClass);
 
         if (entityMeta.getListeners() != null) {
             entityMeta.getListeners().forEach(l -> l.beforeDelete(entity));
         }
 
-        IQueryObject q = ops.delete(entity);
+        IQueryObject q = ops.delete(entityMeta, entity);
         int affectedRows = facade.update(q);
         if (affectedRows != 1) {
             throw new UnexpectedResultException(
@@ -275,16 +274,28 @@ public class EntityManager<E, ID> implements Facaded, Mapable<E>, EntityMetable<
         }
     }
 
-    public boolean existsById(ID id) {
-        IQueryObject q = ops.existsById(id);
+    public <E, ID> boolean existsById(Class<E> entityClass, ID id) {
+
+        EntityMeta<E> entityMeta = getEntityMeta(entityClass);
+
+        IQueryObject q = ops.existsById(entityMeta, id);
         long rows = facade.loadUnique(q, ScalarMappers.LONG);
         return rows > 0L;
     }
 
-    public boolean exists(E entity) {
-        IQueryObject q = ops.exists(entity);
+    @SuppressWarnings("unchecked")
+    public <E> boolean exists(E entity) {
+
+        Class<E> entityClass = (Class<E>) entity.getClass();
+        EntityMeta<E> entityMeta = getEntityMeta(entityClass);
+
+        IQueryObject q = ops.exists(entityMeta, entity);
         long rows = facade.loadUnique(q, ScalarMappers.LONG);
         return rows > 0L;
+    }
+
+    public DataAccesFacade getFacade() {
+        return facade;
     }
 
 }

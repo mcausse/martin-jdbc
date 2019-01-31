@@ -16,6 +16,7 @@ import org.lenteja.jdbc.txproxy.TransactionalMethod;
 import org.lenteja.jdbc.txproxy.TransactionalServiceProxyfier;
 
 import cat.lechuga.BetterGenericDao;
+import cat.lechuga.EntityManager;
 import cat.lechuga.EntityManagerFactory;
 import cat.lechuga.Orders;
 import cat.lechuga.Orders.Order;
@@ -160,12 +161,14 @@ public class VotrTest {
         public VotrServiceImpl(DataAccesFacade facade) {
             super();
             this.facade = facade;
-            EntityManagerFactory emf = new EntityManagerFactory();
 
-            this.votrDao = new BetterGenericDao<>(emf.buildEntityManager(facade, Votr.class), new Votr_());
-            this.userDao = new BetterGenericDao<>(emf.buildEntityManager(facade, User.class), new User_());
-            this.optionDao = new BetterGenericDao<>(emf.buildEntityManager(facade, Option.class), new Option_());
-            this.commentDao = new BetterGenericDao<>(emf.buildEntityManager(facade, Comment.class), new Comment_());
+            EntityManagerFactory emf = new EntityManagerFactory();
+            EntityManager em = emf.buildEntityManager(facade, Votr.class, User.class, Option.class, Comment.class);
+
+            this.votrDao = new BetterGenericDao<>(em, new Votr_());
+            this.userDao = new BetterGenericDao<>(em, new User_());
+            this.optionDao = new BetterGenericDao<>(em, new Option_());
+            this.commentDao = new BetterGenericDao<>(em, new Comment_());
         }
 
         protected String generaHash(String input) {
@@ -391,13 +394,14 @@ public class VotrTest {
                     // optId.setVotrId(votr.getId());
                     // opcions = optionDao.loadByExample(opt);
 
-                    TypeSafeQueryBuilder q = new TypeSafeQueryBuilder();
+                    // TypeSafeQueryBuilder q = new TypeSafeQueryBuilder();
                     Option_ o = new Option_();
+                    TypeSafeQueryBuilder q = optionDao.buildTypedQuery();
                     q.addAlias(o);
                     q.append("select {} from {} ", o.all(), o);
                     q.append("where {} ", o.votrId.eq(votr.getId()));
                     q.append("order by {}", TOrders.by(TOrder.asc(o.order)));
-                    opcions = q.getExecutor(optionDao).load();
+                    opcions = q.getExecutor(Option.class).load();
                 }
                 for (Option o : opcions) {
                     // User example = new User();
@@ -405,11 +409,12 @@ public class VotrTest {
                     // example.setVotedOptionOrder(o.getId().getOrder());
                     // optionsVots.put(o, userDao.loadByExample(example));
 
-                    QueryBuilder q = new QueryBuilder();
-                    q.addAlias("u", userDao);
+                    // QueryBuilder q = new QueryBuilder(em);
+                    QueryBuilder q = userDao.buildQuery();
+                    q.addAlias("u", User.class);
                     q.append("select {u.*} from {u.#} where {u.votrId=?} and {u.votedOptionOrder=?}", votr.getId(),
                             o.getId().getOrder());
-                    optionsVots.put(o, q.getExecutor(userDao).load());
+                    optionsVots.put(o, q.getExecutor(User.class).load());
                 }
             }
 

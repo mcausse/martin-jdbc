@@ -49,7 +49,7 @@ public class ExpTest {
 
         EntityManagerFactory emf = new EntityManagerFactory();
 
-        EntityManager<Exp, ExpId> expEm = emf.buildEntityManager(facade, Exp.class);
+        EntityManager em = emf.buildEntityManager(facade, Exp.class);
 
         facade.begin();
         try {
@@ -70,48 +70,48 @@ public class ExpTest {
                     "Exp [id=ExpId [idEns=8, anyExp=2019, numExp=null], name=jou, fecIni=19700101, sex=MALE, alive=true]",
                     exp1.toString());
 
-            expEm.insert(exp1);
+            em.insert(exp1);
 
             assertEquals(
                     "Exp [id=ExpId [idEns=8, anyExp=2019, numExp=10], name=jou, fecIni=19700101, sex=MALE, alive=true]",
                     exp1.toString());
 
             exp1.sex = ESex.FEMALE;
-            expEm.update(exp1);
-            exp1 = expEm.loadById(exp1.getId());
+            em.update(exp1);
+            exp1 = em.loadById(Exp.class, exp1.getId());
 
             assertEquals(
                     "Exp [id=ExpId [idEns=8, anyExp=2019, numExp=10], name=jou, fecIni=19700101, sex=FEMALE, alive=true]",
                     exp1.toString());
 
             {
-                QueryBuilder qb = new QueryBuilder();
-                qb.addAlias("e", expEm);
+                QueryBuilder qb = new QueryBuilder(em);
+                qb.addAlias("e", Exp.class);
                 qb.append("select {e.*} ");
                 qb.append("from {e.#} ");
                 qb.append("where {e.id.anyExp=?} and {e.sex in (?,?)}", exp1.getId().anyExp, ESex.FEMALE, ESex.MALE);
-                exp1 = qb.getExecutor(expEm).loadUnique();
+                exp1 = qb.getExecutor(Exp.class).loadUnique();
             }
             {
-                QueryBuilder qb = new QueryBuilder();
-                qb.addAlias("e", expEm);
+                QueryBuilder qb = new QueryBuilder(em);
+                qb.addAlias("e", Exp.class);
                 qb.append("select count(*) from {e.#}");
-                long total = qb.getExecutor(facade, ScalarMappers.LONG).loadUnique();
+                long total = qb.getExecutor(ScalarMappers.LONG).loadUnique();
                 assertEquals(1, total);
             }
-            assertTrue(expEm.exists(exp1));
-            assertTrue(expEm.existsById(id1));
+            assertTrue(em.exists(exp1));
+            assertTrue(em.existsById(Exp.class, id1));
 
-            expEm.refresh(exp1);
+            em.refresh(Exp.class, exp1);
             assertEquals(
                     "Exp [id=ExpId [idEns=8, anyExp=2019, numExp=10], name=jou, fecIni=19700101, sex=FEMALE, alive=true]",
                     exp1.toString());
 
-            expEm.delete(exp1);
+            em.delete(exp1);
 
-            assertFalse(expEm.exists(exp1));
-            assertFalse(expEm.existsById(id1));
-            List<Exp> exps = expEm.loadAll();
+            assertFalse(em.exists(exp1));
+            assertFalse(em.existsById(Exp.class, id1));
+            List<Exp> exps = em.loadAll(Exp.class);
             assertTrue(exps.isEmpty());
 
             facade.commit();

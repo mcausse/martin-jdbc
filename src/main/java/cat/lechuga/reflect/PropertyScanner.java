@@ -16,7 +16,7 @@ import cat.lechuga.reflect.anno.Embeddable;
 /**
  * <pre>
  *
- * TODO
+ * XXX
  *
  *  1) rollo hql
  *  2) generar constants per a entitats, typed.

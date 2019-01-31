@@ -1,6 +1,7 @@
 package cat.lechuga;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -33,9 +34,16 @@ public class EntityManagerFactory {
         this.ps = new PropertyScanner();
     }
 
-    public <E, ID> EntityManager<E, ID> buildEntityManager(DataAccesFacade facade, Class<E> entityClass) {
-        EntityMeta<E> entityMeta = buildEntityMeta(entityClass);
-        return new EntityManager<>(facade, entityMeta);
+    public EntityManager buildEntityManager(DataAccesFacade facade, Class<?>... entityClasses) {
+        return buildEntityManager(facade, Arrays.asList(entityClasses));
+    }
+
+    public EntityManager buildEntityManager(DataAccesFacade facade, List<Class<?>> entityClasses) {
+        List<EntityMeta<?>> entityMetas = new ArrayList<>();
+        for (Class<?> entityClass : entityClasses) {
+            entityMetas.add(buildEntityMeta(entityClass));
+        }
+        return new EntityManager(facade, entityMetas);
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
