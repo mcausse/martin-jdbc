@@ -3,7 +3,8 @@ package cat.lechuga;
 import java.util.ArrayList;
 import java.util.List;
 
-import cat.lechuga.Orders.Order;
+import cat.lechuga.mql.Orders;
+import cat.lechuga.mql.Orders.Order;
 import cat.lechuga.mql.QueryBuilder;
 import cat.lechuga.tsmql.Criterion;
 import cat.lechuga.tsmql.MetaTable;

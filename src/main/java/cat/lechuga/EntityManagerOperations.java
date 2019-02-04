@@ -169,26 +169,6 @@ public class EntityManagerOperations {
         return q;
     }
 
-    public IQueryObject deleteById(EntityMeta<?> entityMeta, Object id) {
-        QueryObject q = new QueryObject();
-        q.append("delete from ");
-        q.append(entityMeta.getTableName());
-        q.append(" where ");
-        {
-            int c = 0;
-            for (PropertyMeta p : entityMeta.getIdProps()) {
-                if (c > 0) {
-                    q.append(" and ");
-                }
-                q.append(p.getColumnName());
-                q.append("=?");
-                q.addArg(p.getJdbcValue(1, id));
-                c++;
-            }
-        }
-        return q;
-    }
-
     public IQueryObject existsById(EntityMeta<?> entityMeta, Object id) {
         QueryObject q = new QueryObject();
         q.append("select count(*) from ");

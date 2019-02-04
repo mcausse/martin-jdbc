@@ -5,7 +5,10 @@ import java.util.StringJoiner;
 
 import org.lenteja.jdbc.query.QueryObject;
 
-import cat.lechuga.Orders.Order;
+import cat.lechuga.mql.Orders;
+import cat.lechuga.mql.Orders.Order;
+import cat.lechuga.mql.QueryBuilder;
+import cat.lechuga.tsmql.TypeSafeQueryBuilder;
 
 public class GenericDao<E, ID> {
 
@@ -27,6 +30,22 @@ public class GenericDao<E, ID> {
     public Class<E> getEntityClass() {
         return entityClass;
     }
+
+    // ===========================================================
+    // ===========================================================
+    // ===========================================================
+
+    public QueryBuilder buildQuery() {
+        return em.buildQuery();
+    }
+
+    public TypeSafeQueryBuilder buildTypedQuery() {
+        return em.buildTypeSafeQuery();
+    }
+
+    // ===========================================================
+    // ===========================================================
+    // ===========================================================
 
     public E loadUniqueByExample(E example) {
         QueryObject q = new QueryObject();

@@ -1,4 +1,4 @@
-package cat.lechuga;
+package cat.lechuga.mql;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,6 +19,10 @@ public class Orders<E> {
     @SafeVarargs
     public static <E> Orders<E> by(Order<E>... orders) {
         return new Orders<>(Arrays.asList(orders));
+    }
+
+    public static <E> Orders<E> by(List<Order<E>> orders) {
+        return new Orders<>(orders);
     }
 
     public static class Order<E> {

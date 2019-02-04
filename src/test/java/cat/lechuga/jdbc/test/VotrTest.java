@@ -16,19 +16,22 @@ import org.lenteja.jdbc.txproxy.TransactionalMethod;
 import org.lenteja.jdbc.txproxy.TransactionalServiceProxyfier;
 
 import cat.lechuga.BetterGenericDao;
+import cat.lechuga.EntityListener;
 import cat.lechuga.EntityManager;
 import cat.lechuga.EntityManagerFactory;
-import cat.lechuga.Orders;
-import cat.lechuga.Orders.Order;
 import cat.lechuga.anno.Column;
+import cat.lechuga.anno.EntityListeners;
 import cat.lechuga.anno.Generated;
 import cat.lechuga.anno.Id;
 import cat.lechuga.anno.Table;
+import cat.lechuga.anno.Transient;
 import cat.lechuga.generator.impl.HsqldbSequence;
 import cat.lechuga.jdbc.MetaGeneratorTest.Comment_;
 import cat.lechuga.jdbc.MetaGeneratorTest.Option_;
 import cat.lechuga.jdbc.MetaGeneratorTest.User_;
 import cat.lechuga.jdbc.MetaGeneratorTest.Votr_;
+import cat.lechuga.mql.Orders;
+import cat.lechuga.mql.Orders.Order;
 import cat.lechuga.mql.QueryBuilder;
 import cat.lechuga.reflect.anno.Embeddable;
 import cat.lechuga.tsmql.Restrictions;
@@ -394,7 +397,6 @@ public class VotrTest {
                     // optId.setVotrId(votr.getId());
                     // opcions = optionDao.loadByExample(opt);
 
-                    // TypeSafeQueryBuilder q = new TypeSafeQueryBuilder();
                     Option_ o = new Option_();
                     TypeSafeQueryBuilder q = optionDao.buildTypedQuery();
                     q.addAlias(o);
@@ -409,7 +411,6 @@ public class VotrTest {
                     // example.setVotedOptionOrder(o.getId().getOrder());
                     // optionsVots.put(o, userDao.loadByExample(example));
 
-                    // QueryBuilder q = new QueryBuilder(em);
                     QueryBuilder q = userDao.buildQuery();
                     q.addAlias("u", User.class);
                     q.append("select {u.*} from {u.#} where {u.votrId=?} and {u.votedOptionOrder=?}", votr.getId(),
@@ -540,6 +541,19 @@ public class VotrTest {
 
     }
 
+    public static class UserEntityListener extends EntityListener<User> {
+
+        @Override
+        public void afterLoad(User user) {
+            if (user.getAlias() == null) {
+                user.setCurrentName(user.getEmail());
+            } else {
+                user.setCurrentName(user.getAlias());
+            }
+        }
+    }
+
+    @EntityListeners(UserEntityListener.class)
     @Table("users")
     public static class User {
 
@@ -554,6 +568,9 @@ public class VotrTest {
         String alias;
 
         Integer votrId;
+
+        @Transient
+        String currentName;
 
         @Column("option_norder")
         Long votedOptionOrder;
@@ -617,10 +634,18 @@ public class VotrTest {
             this.votedDate = votedDate;
         }
 
+        public String getCurrentName() {
+            return currentName;
+        }
+
+        public void setCurrentName(String currentName) {
+            this.currentName = currentName;
+        }
+
         @Override
         public String toString() {
-            return "User [userId=" + userId + ", userHash=" + userHash + ", email=" + email + ", alias=" + alias
-                    + ", votrId=" + votrId + ", votedOptionId=" + votedOptionOrder + ", votedDate=" + votedDate + "]";
+            return "User [userId=" + userId + ", userHash=" + userHash + ", votrId=" + votrId + ", currentName="
+                    + currentName + ", votedOptionOrder=" + votedOptionOrder + ", votedDate=" + votedDate + "]";
         }
 
     }

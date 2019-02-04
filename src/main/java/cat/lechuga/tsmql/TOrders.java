@@ -3,13 +3,13 @@ package cat.lechuga.tsmql;
 import java.util.Arrays;
 import java.util.List;
 
-import cat.lechuga.Orders.Order;
+import cat.lechuga.mql.Orders.Order;
 
 public class TOrders<E> {
 
     private final List<TOrder<E>> orders;
 
-    public TOrders(List<TOrder<E>> orders) {
+    private TOrders(List<TOrder<E>> orders) {
         super();
         this.orders = orders;
     }
@@ -21,6 +21,10 @@ public class TOrders<E> {
     @SafeVarargs
     public static <E> TOrders<E> by(TOrder<E>... orders) {
         return new TOrders<>(Arrays.asList(orders));
+    }
+
+    public static <E> TOrders<E> by(List<TOrder<E>> orders) {
+        return new TOrders<>(orders);
     }
 
     public static class TOrder<E> {

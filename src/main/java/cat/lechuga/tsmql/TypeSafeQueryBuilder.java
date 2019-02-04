@@ -64,6 +64,11 @@ public class TypeSafeQueryBuilder {
                     qo.append("{" + metac.getAlias() + "." + metac.getPropertyName() + "} " + o.getOrder());
                     qb.append("{" + metac.getAlias() + "." + metac.getPropertyName() + "} " + o.getOrder());
                 }
+            } else if (arg instanceof TOrder) {
+                TOrder<?> o = (TOrder<?>) arg;
+                MetaColumn<?, ?> metac = o.getMetaColumn();
+                qo.append("{" + metac.getAlias() + "." + metac.getPropertyName() + "} " + o.getOrder());
+                qb.append("{" + metac.getAlias() + "." + metac.getPropertyName() + "} " + o.getOrder());
             } else {
                 throw new RuntimeException(String.valueOf(arg));
             }
