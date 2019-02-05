@@ -30,10 +30,6 @@ public abstract class MetaTable<E> {
         return alias;
     }
 
-    public List<MetaColumn<E, ?>> getCols() {
-        return cols;
-    }
-
     //////////////////////////////////////////////
 
     public Criterion star() {

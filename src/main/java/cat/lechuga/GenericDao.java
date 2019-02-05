@@ -1,5 +1,6 @@
 package cat.lechuga;
 
+import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.StringJoiner;
 
@@ -23,12 +24,16 @@ public class GenericDao<E, ID> {
         this.entityMeta = em.getEntityMeta(entityClass);
     }
 
-    public EntityManager getEntityManager() {
-        return em;
-    }
-
-    public Class<E> getEntityClass() {
-        return entityClass;
+    /**
+     * for derived classes only
+     */
+    @SuppressWarnings("unchecked")
+    public GenericDao(EntityManager em) {
+        super();
+        this.em = em;
+        this.entityClass = (Class<E>) ((ParameterizedType) getClass().getGenericSuperclass())
+                .getActualTypeArguments()[0];
+        this.entityMeta = em.getEntityMeta(entityClass);
     }
 
     // ===========================================================
@@ -41,6 +46,14 @@ public class GenericDao<E, ID> {
 
     public TypeSafeQueryBuilder buildTypedQuery() {
         return em.buildTypeSafeQuery();
+    }
+
+    public EntityManager getEntityManager() {
+        return em;
+    }
+
+    public Class<E> getEntityClass() {
+        return entityClass;
     }
 
     // ===========================================================

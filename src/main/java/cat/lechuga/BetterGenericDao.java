@@ -71,6 +71,14 @@ public class BetterGenericDao<E, ID> {
         return em.buildTypeSafeQuery();
     }
 
+    public EntityManager getEntityManager() {
+        return em;
+    }
+
+    public Class<E> getEntityClass() {
+        return this.metaTable.getEntityClass();
+    }
+
     // ===========================================================
     // ===========================================================
     // ===========================================================

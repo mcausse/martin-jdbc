@@ -36,8 +36,12 @@ public class TypeSafeQueryBuilder {
             if (p2 < 0) {
                 break;
             }
-            qo.append(queryFragment.substring(p, p2));
-            qb.append(queryFragment.substring(p, p2));
+
+            {
+                String exp = queryFragment.substring(p, p2);
+                qo.append(exp);
+                qb.append(exp);
+            }
 
             Object arg = args[argIndex++];
             if (arg instanceof Criterion) {
@@ -46,12 +50,14 @@ public class TypeSafeQueryBuilder {
                 qb.append(arg2.getQuery(), arg2.getArgs());
             } else if (arg instanceof MetaTable) {
                 MetaTable<?> arg2 = (MetaTable<?>) arg;
-                qo.append("{" + arg2.getAlias() + ".#}");
-                qb.append("{" + arg2.getAlias() + ".#}");
+                String exp = "{" + arg2.getAlias() + ".#}";
+                qo.append(exp);
+                qb.append(exp);
             } else if (arg instanceof MetaColumn) {
                 MetaColumn<?, ?> arg2 = (MetaColumn<?, ?>) arg;
-                qo.append("{" + arg2.getAlias() + "." + arg2.getPropertyName() + "}");
-                qb.append("{" + arg2.getAlias() + "." + arg2.getPropertyName() + "}");
+                String exp = "{" + arg2.getAlias() + "." + arg2.getPropertyName() + "}";
+                qo.append(exp);
+                qb.append(exp);
             } else if (arg instanceof TOrders) {
                 TOrders<?> arg2 = (TOrders<?>) arg;
                 int c = 0;
@@ -61,14 +67,16 @@ public class TypeSafeQueryBuilder {
                     }
                     c++;
                     MetaColumn<?, ?> metac = o.getMetaColumn();
-                    qo.append("{" + metac.getAlias() + "." + metac.getPropertyName() + "} " + o.getOrder());
-                    qb.append("{" + metac.getAlias() + "." + metac.getPropertyName() + "} " + o.getOrder());
+                    String exp = "{" + metac.getAlias() + "." + metac.getPropertyName() + "} " + o.getOrder();
+                    qo.append(exp);
+                    qb.append(exp);
                 }
             } else if (arg instanceof TOrder) {
                 TOrder<?> o = (TOrder<?>) arg;
                 MetaColumn<?, ?> metac = o.getMetaColumn();
-                qo.append("{" + metac.getAlias() + "." + metac.getPropertyName() + "} " + o.getOrder());
-                qb.append("{" + metac.getAlias() + "." + metac.getPropertyName() + "} " + o.getOrder());
+                String exp = "{" + metac.getAlias() + "." + metac.getPropertyName() + "} " + o.getOrder();
+                qo.append(exp);
+                qb.append(exp);
             } else {
                 throw new RuntimeException(String.valueOf(arg));
             }
@@ -76,8 +84,9 @@ public class TypeSafeQueryBuilder {
             p = p2 + "{}".length();
         }
 
-        qo.append(queryFragment.substring(p));
-        qb.append(queryFragment.substring(p));
+        String exp = queryFragment.substring(p);
+        qo.append(exp);
+        qb.append(exp);
 
         return this;
     }
