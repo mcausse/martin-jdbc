@@ -44,7 +44,7 @@ public class GenericDao<E, ID> {
         return em.buildQuery();
     }
 
-    public TypeSafeQueryBuilder buildTypedQuery() {
+    public TypeSafeQueryBuilder buildTypeSafeQuery() {
         return em.buildTypeSafeQuery();
     }
 
@@ -93,7 +93,7 @@ public class GenericDao<E, ID> {
                 q.addArg(p.getJdbcValue(example));
             }
         }
-        if (orders != null) {
+        if (orders != null && !orders.getOrders().isEmpty()) {
             q.append(" order by ");
             StringJoiner j = new StringJoiner(", ");
             for (Order<E> o : orders.getOrders()) {
@@ -118,7 +118,7 @@ public class GenericDao<E, ID> {
     }
 
     public void refresh(E entity) {
-        em.refresh(entityClass, entity);
+        em.refresh(entity);
     }
 
     public void store(E entity) {

@@ -71,7 +71,9 @@ public class EntityManager {
         return facade.loadUnique(q, entityMeta);
     }
 
-    public <E> void refresh(Class<E> entityClass, E entity) {
+    @SuppressWarnings("unchecked")
+    public <E> void refresh(E entity) {
+        Class<E> entityClass = (Class<E>) entity.getClass();
         EntityMeta<E> entityMeta = getEntityMeta(entityClass);
         IQueryObject q = ops.refresh(entityMeta, entity);
         E e = facade.loadUnique(q, entityMeta);

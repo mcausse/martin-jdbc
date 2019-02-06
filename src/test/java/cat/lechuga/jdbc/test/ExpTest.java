@@ -85,7 +85,7 @@ public class ExpTest {
                     exp1.toString());
 
             {
-                QueryBuilder qb = new QueryBuilder(em);
+                QueryBuilder qb = em.buildQuery();
                 qb.addAlias("e", Exp.class);
                 qb.append("select {e.*} ");
                 qb.append("from {e.#} ");
@@ -93,7 +93,7 @@ public class ExpTest {
                 exp1 = qb.getExecutor(Exp.class).loadUnique();
             }
             {
-                QueryBuilder qb = new QueryBuilder(em);
+                QueryBuilder qb = em.buildQuery();
                 qb.addAlias("e", Exp.class);
                 qb.append("select count(*) from {e.#}");
                 long total = qb.getExecutor(ScalarMappers.LONG).loadUnique();
@@ -102,7 +102,7 @@ public class ExpTest {
             assertTrue(em.exists(exp1));
             assertTrue(em.existsById(Exp.class, id1));
 
-            em.refresh(Exp.class, exp1);
+            em.refresh(exp1);
             assertEquals(
                     "Exp [id=ExpId [idEns=8, anyExp=2019, numExp=10], name=jou, fecIni=19700101, sex=FEMALE, alive=true]",
                     exp1.toString());

@@ -3,10 +3,13 @@ package cat.lechuga.tsmql;
 import java.util.Arrays;
 import java.util.List;
 
+import org.lenteja.jdbc.query.IQueryObject;
+import org.lenteja.jdbc.query.QueryObject;
+
 public class Restrictions {
 
-    protected static Criterion composition(String op, List<? extends Criterion> qs) {
-        Criterion r = new Criterion();
+    protected static IQueryObject composition(String op, List<? extends IQueryObject> qs) {
+        QueryObject r = new QueryObject();
         for (int i = 0; i < qs.size(); i++) {
             if (i > 0) {
                 r.append(op);
@@ -26,32 +29,32 @@ public class Restrictions {
     // return r;
     // }
 
-    public static Criterion and(List<? extends Criterion> qs) {
+    public static IQueryObject and(List<IQueryObject> qs) {
         return composition(" and ", qs);
     }
 
-    public static Criterion or(List<? extends Criterion> qs) {
+    public static IQueryObject or(List<IQueryObject> qs) {
         return composition(" or ", qs);
     }
 
-    public static Criterion list(List<? extends Criterion> qs) {
+    public static IQueryObject list(List<IQueryObject> qs) {
         return composition(", ", qs);
     }
 
-    public static Criterion and(Criterion... qs) {
+    public static IQueryObject and(IQueryObject... qs) {
         return and(Arrays.asList(qs));
     }
 
-    public static Criterion or(Criterion... qs) {
+    public static IQueryObject or(IQueryObject... qs) {
         return or(Arrays.asList(qs));
     }
 
-    public static Criterion list(Criterion... qs) {
+    public static IQueryObject list(IQueryObject... qs) {
         return list(Arrays.asList(qs));
     }
 
-    public static Criterion not(Criterion q) {
-        Criterion r = new Criterion();
+    public static IQueryObject not(IQueryObject q) {
+        QueryObject r = new QueryObject();
         r.append("not(");
         r.append(q);
         r.append(")");
@@ -59,7 +62,7 @@ public class Restrictions {
     }
 
     // public static Object orderBy(List<Order<?>> orders) {
-    // Criterion r = new Criterion();
+    // IQueryObject r = new IQueryObject();
     // for (Order<?> o : orders) {
     // r.append("not(");
     // o.getPropName()
@@ -70,8 +73,8 @@ public class Restrictions {
     // return r;
     // }
 
-    // public static Criterion all() {
-    // return new Criterion("1=1");
+    // public static IQueryObject all() {
+    // return new IQueryObject("1=1");
     // }
 
 }

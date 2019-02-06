@@ -43,7 +43,7 @@ public class MetaGeneratorTest {
         EntityManager em = emf.buildEntityManager(null, Votr.class, User.class, Option.class, Comment.class);
 
         {
-            TypeSafeQueryBuilder q = new TypeSafeQueryBuilder(em);
+            TypeSafeQueryBuilder q = em.buildTypeSafeQuery();
             q.addAlias(votr_);
             q.append("select max({}) ", votr_.id);
             q.append("from {} ", votr_);
@@ -54,7 +54,7 @@ public class MetaGeneratorTest {
         }
 
         {
-            TypeSafeQueryBuilder q = new TypeSafeQueryBuilder(em);
+            TypeSafeQueryBuilder q = em.buildTypeSafeQuery();
             q.addAlias(option_);
             q.addAlias(user_);
             q.append("select {},count(*) ", option_.star());
@@ -76,7 +76,7 @@ public class MetaGeneratorTest {
         }
 
         {
-            TypeSafeQueryBuilder q = new TypeSafeQueryBuilder(em);
+            TypeSafeQueryBuilder q = em.buildTypeSafeQuery();
             q.addAlias(votr_);
             q.append("select max({}) ", votr_.id);
             q.append("from {} ", votr_);

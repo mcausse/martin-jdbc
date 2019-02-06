@@ -1,10 +1,14 @@
 package cat.lechuga.tsmql;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
 
-public abstract class MetaTable<E> {
+import org.lenteja.jdbc.query.IQueryObject;
+import org.lenteja.jdbc.query.QueryObject;
+
+public abstract class MetaTable<E> implements IQueryObject {
 
     final Class<E> entityClass;
     final String alias;
@@ -32,8 +36,8 @@ public abstract class MetaTable<E> {
 
     //////////////////////////////////////////////
 
-    public Criterion star() {
-        Criterion c = new Criterion();
+    public IQueryObject star() {
+        QueryObject c = new QueryObject();
         c.append("{");
         c.append(alias);
         c.append(".*");
@@ -41,8 +45,8 @@ public abstract class MetaTable<E> {
         return c;
     }
 
-    public Criterion all() {
-        Criterion c = new Criterion();
+    public IQueryObject all() {
+        QueryObject c = new QueryObject();
 
         StringJoiner j = new StringJoiner(", ");
         for (MetaColumn<E, ?> p : cols) {
@@ -53,5 +57,25 @@ public abstract class MetaTable<E> {
     }
 
     //////////////////////////////////////////////
+
+    @Override
+    public String getQuery() {
+        return "{" + getAlias() + ".#}";
+    }
+
+    @Override
+    public Object[] getArgs() {
+        return new Object[] {};
+    }
+
+    @Override
+    public List<Object> getArgsList() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public String toString() {
+        return "MetaTable [entityClass=" + entityClass + ", alias=" + alias + ", cols=" + cols + "]";
+    }
 
 }

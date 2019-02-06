@@ -1,24 +1,16 @@
 package cat.lechuga.jdbc.test;
 
-import java.util.Arrays;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.hsqldb.jdbc.JDBCDataSource;
 import org.junit.Before;
-import org.junit.Test;
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.JdbcDataAccesFacade;
 import org.lenteja.jdbc.script.SqlScriptExecutor;
-import org.lenteja.jdbc.txproxy.TransactionalMethod;
-import org.lenteja.jdbc.txproxy.TransactionalServiceProxyfier;
 
-import cat.lechuga.BetterGenericDao;
 import cat.lechuga.EntityListener;
-import cat.lechuga.EntityManager;
-import cat.lechuga.EntityManagerFactory;
 import cat.lechuga.anno.Column;
 import cat.lechuga.anno.EntityListeners;
 import cat.lechuga.anno.Generated;
@@ -26,18 +18,7 @@ import cat.lechuga.anno.Id;
 import cat.lechuga.anno.Table;
 import cat.lechuga.anno.Transient;
 import cat.lechuga.generator.impl.HsqldbSequence;
-import cat.lechuga.jdbc.MetaGeneratorTest.Comment_;
-import cat.lechuga.jdbc.MetaGeneratorTest.Option_;
-import cat.lechuga.jdbc.MetaGeneratorTest.User_;
-import cat.lechuga.jdbc.MetaGeneratorTest.Votr_;
-import cat.lechuga.mql.Orders;
-import cat.lechuga.mql.Orders.Order;
-import cat.lechuga.mql.QueryBuilder;
 import cat.lechuga.reflect.anno.Embeddable;
-import cat.lechuga.tsmql.Restrictions;
-import cat.lechuga.tsmql.TOrders;
-import cat.lechuga.tsmql.TOrders.TOrder;
-import cat.lechuga.tsmql.TypeSafeQueryBuilder;
 
 public class VotrTest {
 
@@ -64,75 +45,57 @@ public class VotrTest {
         }
     }
 
-    @Test
-    public void testName() throws Exception {
-
-        VotrService service = TransactionalServiceProxyfier.proxyfy(facade, new VotrServiceImpl(facade),
-                VotrService.class);
-
-        Votr v = new Votr();
-        v.setTitle("best poem");
-        v.setDesc("Votr for best poem");
-
-        User creator = new User();
-        creator.setEmail("mhc@votr.com");
-
-        service.createVotr(v, creator);
-
-        Option o1 = new Option();
-        o1.setTitle("aeneid");
-        o1.setDesc("the aeneid");
-
-        Option o2 = new Option();
-        o2.setTitle("odissey");
-        o2.setDesc("the odissey");
-
-        service.createOptions(v.getVotrHash(), Arrays.asList(o1, o2), creator.getUserHash());
-        service.createOptions(v.getVotrHash(), Arrays.asList(o1, o2), creator.getUserHash());
-
-        User user2 = new User();
-        user2.setEmail("mem@votr.com");
-
-        service.createUsers(v.getVotrHash(), Arrays.asList(creator, user2));
-
-        service.createOptions(v.getVotrHash(), Arrays.asList(o1, o2), creator.getUserHash());
-
-        service.updateUser(v.getVotrHash(), creator.getUserHash(), o1.getId().getOrder(), "mhc");
-        service.updateUser(v.getVotrHash(), user2.getUserHash(), o1.getId().getOrder(), "mem");
-
-        System.out.println(service.getVotrInfo(v.getVotrHash(), user2.getUserHash()));
-
-        // VotrInfo [votr=Votr [id=100, votrHash=4ceec84a, title=best poem, desc=Votr
-        // for best poem, creacio=1970-01-01 01:00:00.0], you=User [userId=202,
-        // userHash=fd702155, email=mem@votr.com, alias=mem, votrId=100,
-        // votedOptionId=0, votedDate=1970-01-01 01:00:00.0], allUsers=[User
-        // [userId=200, userHash=eafbf122, email=mhc@votr.com, alias=null, votrId=100,
-        // votedOptionId=null, votedDate=null], User [userId=201, userHash=24831ba8,
-        // email=mhc@votr.com, alias=mhc, votrId=100, votedOptionId=0,
-        // votedDate=1970-01-01 01:00:00.0], User [userId=202, userHash=fd702155,
-        // email=mem@votr.com, alias=mem, votrId=100, votedOptionId=0,
-        // votedDate=1970-01-01 01:00:00.0]], optionsVots={Option [id=Option
-        // [votrId=100, order=0], title=aeneid, desc=the aeneid]=[User [userId=201,
-        // userHash=24831ba8, email=mhc@votr.com, alias=mhc, votrId=100,
-        // votedOptionId=0, votedDate=1970-01-01 01:00:00.0], User [userId=202,
-        // userHash=fd702155, email=mem@votr.com, alias=mem, votrId=100,
-        // votedOptionId=0, votedDate=1970-01-01 01:00:00.0]], Option [id=Option
-        // [votrId=100, order=1], title=odissey, desc=the odissey]=[]},
-        // comments=[Comment [commentId=400, commentDate=1970-01-01 01:00:00.0,
-        // comment=alo, votr created., votrId=100, userId=200], Comment [commentId=401,
-        // commentDate=1970-01-01 01:00:00.0, comment=s'ha recreat les opcions,
-        // votrId=100, userId=200], Comment [commentId=402, commentDate=1970-01-01
-        // 01:00:00.0, comment=s'ha recreat les opcions, votrId=100, userId=200],
-        // Comment [commentId=403, commentDate=1970-01-01 01:00:00.0, comment=he sigut
-        // convidat, votrId=100, userId=201], Comment [commentId=404,
-        // commentDate=1970-01-01 01:00:00.0, comment=he sigut convidat, votrId=100,
-        // userId=202], Comment [commentId=405, commentDate=1970-01-01 01:00:00.0,
-        // comment=s'ha recreat les opcions, votrId=100, userId=201], Comment
-        // [commentId=406, commentDate=1970-01-01 01:00:00.0, comment=he votat: aeneid,
-        // votrId=100, userId=201], Comment [commentId=407, commentDate=1970-01-01
-        // 01:00:00.0, comment=he votat: aeneid, votrId=100, userId=202]]]
-
-    }
+    // // TODO utilitzar type-safe queries
+    // @Test
+    // public void testName() throws Exception {
+    //
+    // VotrService service = TransactionalServiceProxyfier.proxyfy(facade, new
+    // VotrServiceImpl(facade),
+    // VotrService.class);
+    //
+    // Votr v = new Votr();
+    // v.setTitle("best poem");
+    // v.setDesc("Votr for best poem");
+    //
+    // User creator = new User();
+    // creator.setEmail("mhc@votr.com");
+    //
+    // service.createVotr(v, creator);
+    //
+    // Option o1 = new Option();
+    // o1.setTitle("aeneid");
+    // o1.setDesc("the aeneid");
+    //
+    // Option o2 = new Option();
+    // o2.setTitle("odissey");
+    // o2.setDesc("the odissey");
+    //
+    // service.createOptions(v.getVotrHash(), Arrays.asList(o1, o2),
+    // creator.getUserHash());
+    // service.createOptions(v.getVotrHash(), Arrays.asList(o1, o2),
+    // creator.getUserHash());
+    //
+    // User user2 = new User();
+    // user2.setEmail("mem@votr.com");
+    //
+    // service.createUsers(v.getVotrHash(), Arrays.asList(creator, user2));
+    //
+    // service.createOptions(v.getVotrHash(), Arrays.asList(o1, o2),
+    // creator.getUserHash());
+    //
+    // service.updateUser(v.getVotrHash(), creator.getUserHash(), null, "mhc");
+    // service.updateUser(v.getVotrHash(), creator.getUserHash(),
+    // o1.getId().getOrder(), null);
+    //
+    // service.updateUser(v.getVotrHash(), creator.getUserHash(),
+    // o1.getId().getOrder(), "mhc");
+    // service.updateUser(v.getVotrHash(), user2.getUserHash(),
+    // o1.getId().getOrder(), "mem");
+    //
+    // System.out.println(service.getVotrInfo(v.getVotrHash(),
+    // user2.getUserHash()));
+    //
+    // }
 
     protected String generaHash(String input) {
         return Integer.toHexString(input.hashCode());
@@ -140,302 +103,347 @@ public class VotrTest {
 
     public static interface VotrService {
 
+        /**
+         * Crea votació base amb usuari creador. Inserta missatge de creació,
+         */
         void createVotr(Votr v, User creator);
 
+        /**
+         * els usuaris desvoten i les opcions es re-creen. Inserta missatge d'opcions
+         * reecreades i que tothom desvota.
+         */
         void createOptions(String hashVotr, List<Option> options, String hashUserModifier);
 
+        /**
+         * esborra comments i re-crea usuaris. Inserta missatge d'usuaris convidats.
+         */
         void createUsers(String hashVotr, List<User> us);
 
+        /**
+         * Actualitza usuari amb orderOpcioVotada i/o alias, segons s'informi. Inserta
+         * missatge(s) dels canvis.
+         */
         void updateUser(String hashVotr, String hashUser, Long orderOpcioVotada, String alias);
 
         VotrInfo getVotrInfo(String hashVotr, String hashUser);
 
+        /**
+         * Un usuari inserta un comentari
+         */
         void createComment(String hashVotr, String hashUser, String message);
     }
 
-    public static class VotrServiceImpl implements VotrService {
-
-        final DataAccesFacade facade;
-        final BetterGenericDao<Votr, Integer> votrDao;
-        final BetterGenericDao<User, Long> userDao;
-        final BetterGenericDao<Option, OptionId> optionDao;
-        final BetterGenericDao<Comment, Long> commentDao;
-
-        public VotrServiceImpl(DataAccesFacade facade) {
-            super();
-            this.facade = facade;
-
-            EntityManagerFactory emf = new EntityManagerFactory();
-            EntityManager em = emf.buildEntityManager(facade, Votr.class, User.class, Option.class, Comment.class);
-
-            this.votrDao = new BetterGenericDao<>(em, new Votr_());
-            this.userDao = new BetterGenericDao<>(em, new User_());
-            this.optionDao = new BetterGenericDao<>(em, new Option_());
-            this.commentDao = new BetterGenericDao<>(em, new Comment_());
-        }
-
-        protected String generaHash(String input) {
-            return Integer.toHexString(input.hashCode());
-        }
-
-        @TransactionalMethod
-        @Override
-        public void createVotr(Votr v, User creator) {
-            v.setId(null);
-            v.setCreacio(new Date(0L));
-            v.setVotrHash(generaHash(v.getTitle() + v.getDesc() + v.getCreacio().getTime()));
-            votrDao.store(v);
-
-            creator.setUserId(null);
-            creator.setVotedDate(null);
-            creator.setVotedOptionOrder(null);
-            creator.setVotrId(v.getId());
-            creator.setUserHash(generaHash(creator.getEmail()));
-            userDao.store(creator);
-
-            createComment("alo, votr created.", v.getId(), creator.getUserId());
-        }
-
-        @TransactionalMethod
-        @Override
-        public void createOptions(String hashVotr, List<Option> options, String hashUserModifier) {
-
-            Votr votr;
-            {
-                Votr example = new Votr();
-                example.setVotrHash(hashVotr);
-                votr = votrDao.loadUniqueByExample(example);
-            }
-
-            User userModifier;
-            {
-                User example = new User();
-                example.setUserHash(hashUserModifier);
-                example.setVotrId(votr.getId());
-                userModifier = userDao.loadUniqueByExample(example);
-            }
-
-            // 1) tots els usuaris desvoten
-            List<User> us;
-            {
-                User example = new User();
-                example.setVotrId(votr.getId());
-                us = userDao.loadByExample(example, Orders.by(Order.asc("userId")));
-            }
-            for (User u : us) {
-                u.setVotedOptionOrder(null);
-                u.setVotedDate(null);
-                userDao.store(u);
-            }
-
-            // 2) s'esborren totes les opcions antigues
-            {
-                Option example = new Option();
-                example.setId(new OptionId());
-                example.getId().setVotrId(votr.getId());
-                List<Option> opts = optionDao.loadByExample(example);
-                for (Option o : opts) {
-                    optionDao.delete(o);
-                }
-            }
-
-            // 3) es creen les noves opcions
-            long order = 0;
-            for (Option o : options) {
-                o.setId(new OptionId());
-                o.getId().setVotrId(votr.getId());
-                o.getId().setOrder(order++);
-                optionDao.store(o);
-            }
-
-            createComment("s'ha recreat les opcions", votr.getId(), userModifier.getUserId());
-        }
-
-        @TransactionalMethod
-        @Override
-        public void createUsers(String hashVotr, List<User> us) {
-
-            Votr votr;
-            {
-                Votr example = new Votr();
-                example.setVotrHash(hashVotr);
-                votr = votrDao.loadUniqueByExample(example);
-            }
-
-            for (User u : us) {
-                u.setUserId(null);
-                u.setVotedDate(null);
-                u.setVotedOptionOrder(null);
-                u.setVotrId(votr.getId());
-                u.setUserHash(generaHash(u.getEmail() + u.getAlias() + votr.getId()));
-                userDao.insert(u);
-
-                createComment("he sigut convidat", votr.getId(), u.getUserId());
-            }
-
-        }
-
-        @TransactionalMethod
-        @Override
-        public void updateUser(String hashVotr, String hashUser, Long orderOpcioVotada, String alias) {
-
-            Votr votr;
-            {
-                Votr example = new Votr();
-                example.setVotrHash(hashVotr);
-                votr = votrDao.loadUniqueByExample(example);
-            }
-
-            User u;
-            {
-                User example = new User();
-                example.setUserHash(hashUser);
-                example.setVotrId(votr.getId());
-                u = userDao.loadUniqueByExample(example);
-            }
-
-            // valida opció
-            Option opcioVotada;
-            {
-                OptionId optId = new OptionId();
-                optId.setVotrId(votr.getId());
-                optId.setOrder(orderOpcioVotada);
-                opcioVotada = optionDao.loadById(optId);
-            }
-
-            if (u.getVotedOptionOrder() == null && orderOpcioVotada != null ||
-            /**/u.getVotedOptionOrder() != null && orderOpcioVotada != null
-                    && !u.getVotedOptionOrder().equals(orderOpcioVotada)) {
-                createComment("he votat: " + opcioVotada.getTitle(), votr.getId(), u.getUserId());
-            }
-
-            u.setVotedOptionOrder(orderOpcioVotada);
-            u.setVotedDate(new Date(0L));
-            u.setAlias(alias);
-            userDao.store(u);
-        }
-
-        @TransactionalMethod
-        @Override
-        public void createComment(String hashVotr, String hashUser, String message) {
-
-            Votr votr;
-            {
-                Votr example = new Votr();
-                example.setVotrHash(hashVotr);
-                votr = votrDao.loadUniqueByExample(example);
-            }
-
-            User u;
-            {
-                User example = new User();
-                example.setUserHash(hashUser);
-                example.setVotrId(votr.getId());
-                u = userDao.loadUniqueByExample(example);
-            }
-
-            createComment(message, votr.getId(), u.getUserId());
-        }
-
-        protected void createComment(String message, Integer votrId, Long userId) {
-            Comment c = new Comment();
-            c.setCommentId(null);
-            c.setComment(message);
-            c.setCommentDate(new Date(0L));
-            c.setUserId(userId);
-            c.setVotrId(votrId);
-            commentDao.store(c);
-        }
-
-        @TransactionalMethod(readOnly = true)
-        @Override
-        public VotrInfo getVotrInfo(String hashVotr, String hashUser) {
-
-            Votr votr;
-            {
-                Votr example = new Votr();
-                example.setVotrHash(hashVotr);
-                votr = votrDao.loadUniqueByExample(example);
-            }
-
-            User you;
-            {
-                User_ user_ = new User_();
-
-                you = userDao.loadUniqueBy( //
-                        Restrictions.and( //
-                                user_.userHash.eq(hashUser), //
-                                user_.votrId.eq(votr.getId()) //
-                        ));
-
-                // User example = new User();
-                // example.setUserHash(hashUser);
-                // example.setVotrId(votr.getId());
-                // you = userDao.loadUniqueByExample(example);
-            }
-
-            List<User> allUsers;
-            {
-                // User example = new User();
-                // example.setVotrId(votr.getId());
-                // allUsers = userDao.loadByExample(example);
-
-                User_ user_ = new User_();
-
-                allUsers = userDao.loadBy( //
-                        user_.votrId.eq(votr.getId()), //
-                        TOrders.by(TOrder.asc(user_.userId)));
-            }
-
-            Map<Option, List<User>> optionsVots = new LinkedHashMap<>();
-            {
-                List<Option> opcions;
-                {
-                    // OptionId optId = new OptionId();
-                    // Option opt = new Option();
-                    // opt.setId(optId);
-                    // optId.setVotrId(votr.getId());
-                    // opcions = optionDao.loadByExample(opt);
-
-                    Option_ o = new Option_();
-                    TypeSafeQueryBuilder q = optionDao.buildTypedQuery();
-                    q.addAlias(o);
-                    q.append("select {} from {} ", o.all(), o);
-                    q.append("where {} ", o.votrId.eq(votr.getId()));
-                    q.append("order by {}", TOrders.by(TOrder.asc(o.order)));
-                    opcions = q.getExecutor(Option.class).load();
-                }
-                for (Option o : opcions) {
-                    // User example = new User();
-                    // example.setVotrId(votr.getId());
-                    // example.setVotedOptionOrder(o.getId().getOrder());
-                    // optionsVots.put(o, userDao.loadByExample(example));
-
-                    QueryBuilder q = userDao.buildQuery();
-                    q.addAlias("u", User.class);
-                    q.append("select {u.*} from {u.#} where {u.votrId=?} and {u.votedOptionOrder=?}", votr.getId(),
-                            o.getId().getOrder());
-                    optionsVots.put(o, q.getExecutor(User.class).load());
-                }
-            }
-
-            List<Comment> comments;
-            {
-                // Comment example = new Comment();
-                // example.setVotrId(votr.getId());
-                // comments = commentDao.loadByExample(example,
-                // Orders.by(Order.asc("commentDate"), Order.asc("commentId")));
-
-                Comment_ c = new Comment_();
-
-                comments = commentDao.loadBy(c.votrId.eq(votr.getId()),
-                        TOrders.by(TOrder.asc(c.commentDate), TOrder.asc(c.commentId)));
-            }
-
-            return new VotrInfo(votr, you, allUsers, optionsVots, comments);
-        }
-
-    }
+    // // TODO utilitzar type-safe queries
+    //
+    // public static class VotrServiceImpl implements VotrService {
+    //
+    // final DataAccesFacade facade;
+    //
+    // final Votr_ v = new Votr_();
+    // final User_ u = new User_();
+    // final Option_ o = new Option_();
+    // final Comment_ c = new Comment_();
+    //
+    // final GenericDao<Votr, Integer> votrDao;
+    // final GenericDao<User, Long> userDao;
+    // final GenericDao<Option, OptionId> optionDao;
+    // final GenericDao<Comment, Long> commentDao;
+    //
+    // public VotrServiceImpl(DataAccesFacade facade) {
+    // super();
+    // this.facade = facade;
+    //
+    // EntityManagerFactory emf = new EntityManagerFactory();
+    // EntityManager em = emf.buildEntityManager(facade, Votr.class, User.class,
+    // Option.class, Comment.class);
+    //
+    // this.votrDao = new GenericDao<>(em, Votr.class);
+    // this.userDao = new GenericDao<>(em, User.class);
+    // this.optionDao = new GenericDao<>(em, Option.class);
+    // this.commentDao = new GenericDao<>(em, Comment.class);
+    // }
+    //
+    // protected String generaHash(String input) {
+    // return Integer.toHexString(input.hashCode());
+    // }
+    //
+    // @TransactionalMethod
+    // @Override
+    // public void createVotr(Votr v, User creator) {
+    // v.setId(null);
+    // v.setCreacio(new Date(0L));
+    // v.setVotrHash(generaHash(v.getTitle() + v.getDesc() +
+    // v.getCreacio().getTime()));
+    // votrDao.store(v);
+    //
+    // creator.setUserId(null);
+    // creator.setVotedDate(null);
+    // creator.setVotedOptionOrder(null);
+    // creator.setVotrId(v.getId());
+    // creator.setUserHash(generaHash(creator.getEmail()));
+    // userDao.store(creator);
+    //
+    // createComment("alo, votr created.", v.getId(), creator.getUserId());
+    // }
+    //
+    // @TransactionalMethod
+    // @Override
+    // public void createOptions(String hashVotr, List<Option> options, String
+    // hashUserModifier) {
+    //
+    // Votr votr;
+    // {
+    // Votr example = new Votr();
+    // example.setVotrHash(hashVotr);
+    // votr = votrDao.loadUniqueByExample(example);
+    // }
+    //
+    // User userModifier;
+    // {
+    // User example = new User();
+    // example.setUserHash(hashUserModifier);
+    // example.setVotrId(votr.getId());
+    // userModifier = userDao.loadUniqueByExample(example);
+    // }
+    //
+    // // 1) tots els usuaris desvoten
+    // List<User> us;
+    // {
+    // User example = new User();
+    // example.setVotrId(votr.getId());
+    // us = userDao.loadByExample(example, Orders.by(Order.asc("userId")));
+    // }
+    // for (User u : us) {
+    // u.setVotedOptionOrder(null);
+    // u.setVotedDate(null);
+    // userDao.store(u);
+    // }
+    //
+    // // 2) s'esborren totes les opcions antigues
+    // {
+    // Option example = new Option();
+    // example.setId(new OptionId());
+    // example.getId().setVotrId(votr.getId());
+    // List<Option> opts = optionDao.loadByExample(example);
+    // for (Option o : opts) {
+    // optionDao.delete(o);
+    // }
+    // }
+    //
+    // // 3) es creen les noves opcions
+    // long order = 0;
+    // for (Option o : options) {
+    // o.setId(new OptionId());
+    // o.getId().setVotrId(votr.getId());
+    // o.getId().setOrder(order++);
+    // optionDao.store(o);
+    // }
+    //
+    // createComment("s'ha recreat les opcions, tothom desvota", votr.getId(),
+    // userModifier.getUserId());
+    // }
+    //
+    // @TransactionalMethod
+    // @Override
+    // public void createUsers(String hashVotr, List<User> us) {
+    //
+    // Votr votr;
+    // {
+    // Votr example = new Votr();
+    // example.setVotrHash(hashVotr);
+    // votr = votrDao.loadUniqueByExample(example);
+    // }
+    // {
+    // List<Comment> comments = commentDao.loadBy(c.votrId.eq(votr.id));
+    // commentDao.deleteAll(comments);
+    // }
+    // // {
+    // // List<Option> options = optionDao.loadBy(o.votrId.eq(votr.id));
+    // // optionDao.deleteAll(options);
+    // // }
+    // {
+    // List<User> currentUsers = userDao.loadBy(u.votrId.eq(votr.id));
+    // userDao.deleteAll(currentUsers);
+    // }
+    //
+    // for (User u : us) {
+    // u.setUserId(null);
+    // u.setVotedDate(null);
+    // u.setVotedOptionOrder(null);
+    // u.setVotrId(votr.getId());
+    // u.setUserHash(generaHash(u.getEmail() + u.getAlias() + votr.getId()));
+    // userDao.insert(u);
+    //
+    // createComment("he sigut convidat", votr.getId(), u.getUserId());
+    // }
+    //
+    // }
+    //
+    // @TransactionalMethod
+    // @Override
+    // public void updateUser(String hashVotr, String hashUser, Long
+    // orderOpcioVotada, String alias) {
+    //
+    // Votr votr;
+    // {
+    // Votr example = new Votr();
+    // example.setVotrHash(hashVotr);
+    // votr = votrDao.loadUniqueByExample(example);
+    // }
+    //
+    // User u;
+    // {
+    // User example = new User();
+    // example.setUserHash(hashUser);
+    // example.setVotrId(votr.getId());
+    // u = userDao.loadUniqueByExample(example);
+    // }
+    //
+    // // valida opció
+    // if (orderOpcioVotada != null) {
+    // Option opcioVotada;
+    // {
+    // OptionId optId = new OptionId();
+    // optId.setVotrId(votr.getId());
+    // optId.setOrder(orderOpcioVotada);
+    // opcioVotada = optionDao.loadById(optId);
+    // }
+    // u.setVotedOptionOrder(orderOpcioVotada);
+    // u.setVotedDate(new Date(0L));
+    //
+    // if (u.getVotedOptionOrder() == null && orderOpcioVotada != null ||
+    // /**/u.getVotedOptionOrder() != null && orderOpcioVotada != null
+    // && !u.getVotedOptionOrder().equals(orderOpcioVotada)) {
+    // createComment("he votat: " + opcioVotada.getTitle(), votr.getId(),
+    // u.getUserId());
+    // }
+    // }
+    //
+    // if (alias != null) {
+    // if (u.getAlias() == null && alias != null
+    // || u.getAlias() != null && alias != null && !u.getAlias().equals(alias)) {
+    // createComment(u.getEmail() + " => " + alias, votr.getId(), u.getUserId());
+    // }
+    // u.setAlias(alias);
+    // }
+    //
+    // userDao.store(u);
+    // }
+    //
+    // @TransactionalMethod
+    // @Override
+    // public void createComment(String hashVotr, String hashUser, String message) {
+    //
+    // Votr votr;
+    // {
+    // Votr example = new Votr();
+    // example.setVotrHash(hashVotr);
+    // votr = votrDao.loadUniqueByExample(example);
+    // }
+    //
+    // User u;
+    // {
+    // User example = new User();
+    // example.setUserHash(hashUser);
+    // example.setVotrId(votr.getId());
+    // u = userDao.loadUniqueByExample(example);
+    // }
+    //
+    // createComment(message, votr.getId(), u.getUserId());
+    // }
+    //
+    // protected void createComment(String message, Integer votrId, Long userId) {
+    // Comment c = new Comment();
+    // c.setCommentId(null);
+    // c.setComment(message);
+    // c.setCommentDate(new Date(0L));
+    // c.setUserId(userId);
+    // c.setVotrId(votrId);
+    // commentDao.store(c);
+    // }
+    //
+    // @TransactionalMethod(readOnly = true)
+    // @Override
+    // public VotrInfo getVotrInfo(String hashVotr, String hashUser) {
+    //
+    // Votr votr;
+    // {
+    // Votr example = new Votr();
+    // example.setVotrHash(hashVotr);
+    // votr = votrDao.loadUniqueByExample(example);
+    // }
+    //
+    // User you;
+    // {
+    // // User example = new User();
+    // // example.setUserHash(hashUser);
+    // // example.setVotrId(votr.getId());
+    // // you = userDao.loadUniqueByExample(example);
+    //
+    // you = userDao.loadUniqueBy( //
+    // u.userHash.eq(hashUser), //
+    // u.votrId.eq(votr.getId()) //
+    // );
+    // }
+    //
+    // List<User> allUsers;
+    // {
+    // // User example = new User();
+    // // example.setVotrId(votr.getId());
+    // // allUsers = userDao.loadByExample(example);
+    //
+    // allUsers = userDao.loadBy( //
+    // u.votrId.eq(votr.getId()), //
+    // TOrders.by(TOrder.asc(u.userId)));
+    // }
+    //
+    // Map<Option, List<User>> optionsVots = new LinkedHashMap<>();
+    // {
+    // List<Option> opcions;
+    // {
+    // // OptionId optId = new OptionId();
+    // // Option opt = new Option();
+    // // opt.setId(optId);
+    // // optId.setVotrId(votr.getId());
+    // // opcions = optionDao.loadByExample(opt);
+    //
+    // TypeSafeQueryBuilder q = optionDao.buildTypedQuery();
+    // q.addAlias(o);
+    // q.append("select {} from {} ", o.all(), o);
+    // q.append("where {} ", o.votrId.eq(votr.getId()));
+    // q.append("order by {}", TOrders.by(TOrder.asc(o.order)));
+    // opcions = q.getExecutor(Option.class).load();
+    // }
+    // for (Option o : opcions) {
+    // // User example = new User();
+    // // example.setVotrId(votr.getId());
+    // // example.setVotedOptionOrder(o.getId().getOrder());
+    // // optionsVots.put(o, userDao.loadByExample(example));
+    //
+    // QueryBuilder q = userDao.buildQuery();
+    // q.addAlias("u", User.class);
+    // q.append("select {u.*} from {u.#} where {u.votrId=?} and
+    // {u.votedOptionOrder=?}", votr.getId(),
+    // o.getId().getOrder());
+    // optionsVots.put(o, q.getExecutor(User.class).load());
+    // }
+    // }
+    //
+    // List<Comment> comments;
+    // {
+    // // Comment example = new Comment();
+    // // example.setVotrId(votr.getId());
+    // // comments = commentDao.loadByExample(example,
+    // // Orders.by(Order.asc("commentDate"), Order.asc("commentId")));
+    //
+    // comments = commentDao.loadBy(c.votrId.eq(votr.getId()),
+    // TOrders.by(TOrder.asc(c.commentDate), TOrder.asc(c.commentId)));
+    // }
+    //
+    // return new VotrInfo(votr, you, allUsers, optionsVots, comments);
+    // }
+    //
+    // }
 
     public static class VotrInfo {
 
@@ -657,6 +665,16 @@ public class VotrTest {
 
         @Column("norder")
         Long order;
+
+        public OptionId() {
+            super();
+        }
+
+        public OptionId(Integer votrId, Long order) {
+            super();
+            this.votrId = votrId;
+            this.order = order;
+        }
 
         public Integer getVotrId() {
             return votrId;

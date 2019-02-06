@@ -1,11 +1,13 @@
 package cat.lechuga.tsmql;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.lenteja.jdbc.query.IQueryObject;
+import org.lenteja.jdbc.query.QueryObject;
 
-public class MetaColumn<E, T> {
+public class MetaColumn<E, T> implements IQueryObject {
 
     final MetaTable<E> table;
     final String propertyName;
@@ -24,10 +26,14 @@ public class MetaColumn<E, T> {
         return propertyName;
     }
 
+    public MetaTable<E> getTable() {
+        return table;
+    }
+
     //////////////////////////////////////////////
 
-    protected Criterion binaryOp(String op, T value) {
-        Criterion q = new Criterion();
+    protected IQueryObject binaryOp(String op, T value) {
+        QueryObject q = new QueryObject();
         q.append("{");
         q.append(table.getAlias());
         q.append(".");
@@ -38,23 +44,23 @@ public class MetaColumn<E, T> {
         return q;
     }
 
-    public Criterion eq(T value) {
+    public IQueryObject eq(T value) {
         return binaryOp("=", value);
     }
 
-    public Criterion ne(T value) {
+    public IQueryObject ne(T value) {
         return binaryOp("<>", value);
     }
 
-    public Criterion le(T value) {
+    public IQueryObject le(T value) {
         return binaryOp("<=", value);
     }
 
-    public Criterion ge(T value) {
+    public IQueryObject ge(T value) {
         return binaryOp(">=", value);
     }
 
-    public Criterion lt(T value) {
+    public IQueryObject lt(T value) {
         return binaryOp("<", value);
     }
 
@@ -64,8 +70,8 @@ public class MetaColumn<E, T> {
 
     //////////////////////////////////////////////
 
-    protected Criterion binaryOp(String op, MetaColumn<?, T> column) {
-        Criterion q = new Criterion();
+    protected IQueryObject binaryOp(String op, MetaColumn<?, T> column) {
+        QueryObject q = new QueryObject();
         q.append("{");
         q.append(table.getAlias());
         q.append(".");
@@ -80,34 +86,34 @@ public class MetaColumn<E, T> {
         return q;
     }
 
-    public Criterion eq(MetaColumn<?, T> column) {
+    public IQueryObject eq(MetaColumn<?, T> column) {
         return binaryOp("=", column);
     }
 
-    public Criterion ne(MetaColumn<?, T> column) {
+    public IQueryObject ne(MetaColumn<?, T> column) {
         return binaryOp("<>", column);
     }
 
-    public Criterion le(MetaColumn<?, T> column) {
+    public IQueryObject le(MetaColumn<?, T> column) {
         return binaryOp("<=", column);
     }
 
-    public Criterion ge(MetaColumn<?, T> column) {
+    public IQueryObject ge(MetaColumn<?, T> column) {
         return binaryOp(">=", column);
     }
 
-    public Criterion lt(MetaColumn<?, T> column) {
+    public IQueryObject lt(MetaColumn<?, T> column) {
         return binaryOp("<", column);
     }
 
-    public Criterion gt(MetaColumn<?, T> column) {
+    public IQueryObject gt(MetaColumn<?, T> column) {
         return binaryOp(">", column);
     }
 
     //////////////////////////////////////////////
 
-    protected Criterion unaryOp(String prefix, String postfix) {
-        Criterion q = new Criterion();
+    protected IQueryObject unaryOp(String prefix, String postfix) {
+        QueryObject q = new QueryObject();
         q.append(prefix);
         q.append("{");
         q.append(table.getAlias());
@@ -118,26 +124,26 @@ public class MetaColumn<E, T> {
         return q;
     }
 
-    public Criterion isNull() {
+    public IQueryObject isNull() {
         return unaryOp("", " is null");
     }
 
-    public Criterion isNotNull() {
+    public IQueryObject isNotNull() {
         return unaryOp("", " is not null");
     }
 
-    public Criterion isTrue() {
+    public IQueryObject isTrue() {
         return unaryOp("", "=TRUE");
     }
 
-    public Criterion isFalse() {
+    public IQueryObject isFalse() {
         return unaryOp("", "=FALSE");
     }
 
     //////////////////////////////////////////////
 
-    public Criterion in(List<T> values) {
-        Criterion q = new Criterion();
+    public IQueryObject in(List<T> values) {
+        QueryObject q = new QueryObject();
         q.append("{");
         q.append(table.getAlias());
         q.append(".");
@@ -157,23 +163,23 @@ public class MetaColumn<E, T> {
     }
 
     @SuppressWarnings("unchecked")
-    public Criterion in(T... values) {
+    public IQueryObject in(T... values) {
         return in(Arrays.asList(values));
     }
 
-    public Criterion notIn(List<T> values) {
+    public IQueryObject notIn(List<T> values) {
         return Restrictions.not(in(values));
     }
 
     @SuppressWarnings("unchecked")
-    public Criterion notIn(T... values) {
+    public IQueryObject notIn(T... values) {
         return Restrictions.not(in(Arrays.asList(values)));
     }
 
     //////////////////////////////////////////////
 
-    public Criterion between(T value1, T value2) {
-        Criterion q = new Criterion();
+    public IQueryObject between(T value1, T value2) {
+        QueryObject q = new QueryObject();
         q.append("{");
         q.append(table.getAlias());
         q.append(".");
@@ -185,8 +191,8 @@ public class MetaColumn<E, T> {
     }
     //////////////////////////////////////////////
 
-    public Criterion like(ELike elike, String value) {
-        Criterion q = new Criterion();
+    public IQueryObject like(ELike elike, String value) {
+        QueryObject q = new QueryObject();
         q.append("{");
         q.append(table.getAlias());
         q.append(".");
@@ -197,8 +203,8 @@ public class MetaColumn<E, T> {
     }
 
     // XXX birgueria en MQL (o millor dit, en Martincho-QL)
-    public Criterion ilike(ELike elike, String value) {
-        Criterion q = new Criterion();
+    public IQueryObject ilike(ELike elike, String value) {
+        QueryObject q = new QueryObject();
         q.append("upper({");
         q.append(table.getAlias());
         q.append(".");
@@ -206,6 +212,28 @@ public class MetaColumn<E, T> {
         q.append(") like upper(?)}");
         q.addArg(elike.process(value));
         return q;
+    }
+
+    ///////////////////////////////////////////////////
+
+    @Override
+    public String getQuery() {
+        return "{" + getAlias() + "." + getPropertyName() + "}";
+    }
+
+    @Override
+    public Object[] getArgs() {
+        return new Object[] {};
+    }
+
+    @Override
+    public List<Object> getArgsList() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public String toString() {
+        return "MetaColumn [propertyName=" + propertyName + "]";
     }
 
 }

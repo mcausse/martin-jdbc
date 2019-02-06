@@ -20,6 +20,7 @@ import cat.lechuga.reflect.anno.Embeddable;
 import cat.lechuga.tsmql.MetaColumn;
 import cat.lechuga.tsmql.MetaGenerator;
 import cat.lechuga.tsmql.MetaTable;
+import cat.lechuga.tsmql.TOrders;
 import cat.lechuga.tsmql.TOrders.TOrder;
 
 public class TablaValoresTest {
@@ -117,7 +118,7 @@ public class TablaValoresTest {
                         .addAlias(t) //
                         .append("select {} from {} ", t.all(), t) //
                         .append("where {} and {} ", t.name.eq("CP"), t.code.eq("08208")) //
-                        .append("order by {}", TOrder.asc(t.value)) //
+                        .append("order by {}", TOrders.by(TOrder.asc(t.value))) //
                         .getExecutor(TablaValores.class) //
                         .loadUnique() //
                 ;

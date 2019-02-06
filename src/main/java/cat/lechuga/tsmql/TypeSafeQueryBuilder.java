@@ -7,7 +7,6 @@ import cat.lechuga.EntityManager;
 import cat.lechuga.Mapable;
 import cat.lechuga.mql.Executor;
 import cat.lechuga.mql.QueryBuilder;
-import cat.lechuga.tsmql.TOrders.TOrder;
 
 public class TypeSafeQueryBuilder {
 
@@ -27,7 +26,32 @@ public class TypeSafeQueryBuilder {
         return this;
     }
 
-    public TypeSafeQueryBuilder append(String queryFragment, Object... args) {
+    // public TypeSafeQueryBuilder<T> selectFrom(MetaColumn<?,T> column) {
+    // append("select {} from {}", column, column.getTable());
+    // return this;
+    // }
+    // public TypeSafeQueryBuilder<T> selectFrom(MetaTable<T> table) {
+    // append("select {} from {}", table.all(), table);
+    // return this;
+    // }
+    // public TypeSafeQueryBuilder<T> joinOn(MetaTable<T> table, Criterion on) {
+    // append(" join {} on {}", table, on);
+    // return this;
+    // }
+    // public TypeSafeQueryBuilder<T> where(Criterion criterion) {
+    // append(" where {}", criterion);
+    // return this;
+    // }
+    // public TypeSafeQueryBuilder<T> and(Criterion criterion) {
+    // append(" and {}", criterion);
+    // return this;
+    // }
+    // public TypeSafeQueryBuilder<T> orderBy(TOrders orders) {
+    // append(" order by {}", orders);
+    // return this;
+    // }
+
+    public TypeSafeQueryBuilder append(String queryFragment, IQueryObject... args) {
 
         int argIndex = 0;
         int p = 0;
@@ -43,43 +67,9 @@ public class TypeSafeQueryBuilder {
                 qb.append(exp);
             }
 
-            Object arg = args[argIndex++];
-            if (arg instanceof Criterion) {
-                Criterion arg2 = (Criterion) arg;
-                qo.append(arg2);
-                qb.append(arg2.getQuery(), arg2.getArgs());
-            } else if (arg instanceof MetaTable) {
-                MetaTable<?> arg2 = (MetaTable<?>) arg;
-                String exp = "{" + arg2.getAlias() + ".#}";
-                qo.append(exp);
-                qb.append(exp);
-            } else if (arg instanceof MetaColumn) {
-                MetaColumn<?, ?> arg2 = (MetaColumn<?, ?>) arg;
-                String exp = "{" + arg2.getAlias() + "." + arg2.getPropertyName() + "}";
-                qo.append(exp);
-                qb.append(exp);
-            } else if (arg instanceof TOrders) {
-                TOrders<?> arg2 = (TOrders<?>) arg;
-                int c = 0;
-                for (TOrder<?> o : arg2.getOrders()) {
-                    if (c > 0) {
-                        qo.append(",");
-                    }
-                    c++;
-                    MetaColumn<?, ?> metac = o.getMetaColumn();
-                    String exp = "{" + metac.getAlias() + "." + metac.getPropertyName() + "} " + o.getOrder();
-                    qo.append(exp);
-                    qb.append(exp);
-                }
-            } else if (arg instanceof TOrder) {
-                TOrder<?> o = (TOrder<?>) arg;
-                MetaColumn<?, ?> metac = o.getMetaColumn();
-                String exp = "{" + metac.getAlias() + "." + metac.getPropertyName() + "} " + o.getOrder();
-                qo.append(exp);
-                qb.append(exp);
-            } else {
-                throw new RuntimeException(String.valueOf(arg));
-            }
+            IQueryObject arg = args[argIndex++];
+            qo.append(arg);
+            qb.append(arg.getQuery(), arg.getArgs());
 
             p = p2 + "{}".length();
         }
