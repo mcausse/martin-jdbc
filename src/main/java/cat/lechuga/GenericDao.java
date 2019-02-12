@@ -4,11 +4,14 @@ import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.StringJoiner;
 
+import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.query.QueryObject;
 
 import cat.lechuga.mql.Orders;
 import cat.lechuga.mql.Orders.Order;
 import cat.lechuga.mql.QueryBuilder;
+import cat.lechuga.tsmql.MetaTable;
+import cat.lechuga.tsmql.TOrders;
 import cat.lechuga.tsmql.TypeSafeQueryBuilder;
 
 public class GenericDao<E, ID> {
@@ -54,6 +57,38 @@ public class GenericDao<E, ID> {
 
     public Class<E> getEntityClass() {
         return entityClass;
+    }
+
+    // ===========================================================
+    // ===========================================================
+    // ===========================================================
+
+    public E loadUniqueBy(MetaTable<E> metaTable, IQueryObject criterion) {
+        TypeSafeQueryBuilder tsq = buildTypeSafeQuery();
+        tsq.addAlias(metaTable);
+        tsq.append("select {} from {} where {}", metaTable.all(), metaTable, criterion);
+        return tsq.getExecutor(getEntityClass()).loadUnique();
+    }
+
+    public E loadFirstBy(MetaTable<E> metaTable, IQueryObject criterion) {
+        TypeSafeQueryBuilder tsq = buildTypeSafeQuery();
+        tsq.addAlias(metaTable);
+        tsq.append("select {} from {} where {}", metaTable.all(), metaTable, criterion);
+        return tsq.getExecutor(getEntityClass()).loadFirst();
+    }
+
+    public List<E> loadBy(MetaTable<E> metaTable, IQueryObject criterion) {
+        return loadBy(metaTable, criterion, null);
+    }
+
+    public List<E> loadBy(MetaTable<E> metaTable, IQueryObject criterion, TOrders orders) {
+        TypeSafeQueryBuilder tsq = buildTypeSafeQuery();
+        tsq.addAlias(metaTable);
+        tsq.append("select {} from {} where {}", metaTable.all(), metaTable, criterion);
+        if (orders != null && !orders.getOrders().isEmpty()) {
+            tsq.append(" order by {}", orders);
+        }
+        return tsq.getExecutor(getEntityClass()).load();
     }
 
     // ===========================================================

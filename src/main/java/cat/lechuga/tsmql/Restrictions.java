@@ -8,7 +8,7 @@ import org.lenteja.jdbc.query.QueryObject;
 
 public class Restrictions {
 
-    protected static IQueryObject composition(String op, List<? extends IQueryObject> qs) {
+    public static IQueryObject composition(String op, List<? extends IQueryObject> qs) {
         QueryObject r = new QueryObject();
         for (int i = 0; i < qs.size(); i++) {
             if (i > 0) {

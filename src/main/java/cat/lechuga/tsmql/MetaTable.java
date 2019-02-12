@@ -47,7 +47,6 @@ public abstract class MetaTable<E> implements IQueryObject {
 
     public IQueryObject all() {
         QueryObject c = new QueryObject();
-
         StringJoiner j = new StringJoiner(", ");
         for (MetaColumn<E, ?> p : cols) {
             j.add("{" + alias + "." + p.getPropertyName() + "}");

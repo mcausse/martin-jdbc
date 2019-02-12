@@ -142,6 +142,39 @@ public class MetaColumn<E, T> implements IQueryObject {
 
     //////////////////////////////////////////////
 
+    protected IQueryObject unaryOpAs(String prefix, String postfix) {
+        QueryObject q = new QueryObject();
+        q.append(prefix);
+        q.append("{");
+        q.append(table.getAlias());
+        q.append(".");
+        q.append(propertyName);
+        q.append("}");
+        q.append(postfix);
+        q.append(" as ");
+        q.append("{");
+        q.append(table.getAlias());
+        q.append(".");
+        q.append(propertyName);
+        q.append("}");
+        return q;
+    }
+
+    public IQueryObject min() {
+        return unaryOpAs("min(", ")");
+    }
+
+    public IQueryObject max() {
+        return unaryOpAs("min(", ")");
+    }
+
+    public IQueryObject sum() {
+        return unaryOpAs("sum(", ")");
+    }
+    // TODO ...
+
+    //////////////////////////////////////////////
+
     public IQueryObject in(List<T> values) {
         QueryObject q = new QueryObject();
         q.append("{");

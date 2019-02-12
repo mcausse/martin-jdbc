@@ -4,7 +4,7 @@
 
 	<groupId>org.jdbc</groupId>
 	<artifactId>martin-jdbc</artifactId>
-	<version>0.0.5-SNAPSHOT</version>
+	<version>0.0.6-SNAPSHOT</version>
 	
 
 	<dependencies>
