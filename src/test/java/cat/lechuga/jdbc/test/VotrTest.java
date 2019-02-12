@@ -263,26 +263,14 @@ public class VotrTest {
             {
                 // List<Comment> comments = commentDao.loadBy(c.votrId.eq(votr.id));
 
-                List<Comment> comments = commentDao.buildTypeSafeQuery() //
-                        // .addAlias(c) //
-                        .selectFrom(c) //
-                        .where(c.votrId.eq(votr.id)) //
-                        .getExecutor(Comment.class) //
-                        .load();
+                List<Comment> comments = commentDao.loadBy(c, c.votrId.eq(votr.id));
 
                 commentDao.deleteAll(comments);
             }
-            // {
-            // List<Option> options = optionDao.loadBy(o.votrId.eq(votr.id));
-            // optionDao.deleteAll(options);
-            // }
             {
                 // List<User> currentUsers = userDao.loadBy(u.votrId.eq(votr.id));
-                List<User> currentUsers = userDao.buildTypeSafeQuery() //
-                        .selectFrom(u) //
-                        .where(u.votrId.eq(votr.id)) //
-                        .getExecutor(User.class) //
-                        .load();
+
+                List<User> currentUsers = userDao.loadBy(u, u.votrId.eq(votr.id));
 
                 userDao.deleteAll(currentUsers);
             }
@@ -417,6 +405,18 @@ public class VotrTest {
                         u.votrId.eq(votr.getId()), //
                         TOrders.by(TOrder.asc(u.userId)));
             }
+
+            // int totalVots;
+            // {
+            // TypeSafeQueryBuilder q = optionDao.buildTypeSafeQuery();
+            // q.addAlias(o);
+            // q.addAlias(u);
+            // q.append("select {},{} ", o.all(), u.);
+            // q.append("from {} ", o);
+            // q.append("where {} ", o.votrId.eq(votr.getId()));
+            // q.append("order by {}", TOrders.by(TOrder.asc(o.order)));
+            // opcions = q.getExecutor(Option.class).load();
+            // }
 
             Map<Option, List<User>> optionsVots = new LinkedHashMap<>();
             {

@@ -143,6 +143,7 @@ public class TablaValoresTest {
                 ;
                 assertEquals(1L, count);
             }
+
             em.delete(v1);
             assertEquals("[]", em.loadAll(TablaValores.class).toString());
 

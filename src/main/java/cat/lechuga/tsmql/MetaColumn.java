@@ -165,7 +165,7 @@ public class MetaColumn<E, T> implements IQueryObject {
     }
 
     public IQueryObject max() {
-        return unaryOpAs("min(", ")");
+        return unaryOpAs("max(", ")");
     }
 
     public IQueryObject sum() {
