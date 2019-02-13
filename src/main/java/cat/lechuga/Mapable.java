@@ -4,9 +4,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * Interfície que tributa la capacitat de mapejar un valor d'un
- * {@link ResultSet}. Tal valor pot resultar ser una entitat, o un valor
- * escalar,
+ * Interfície que tributa la capacitat d'extreure un valor tipat d'un
+ * {@link ResultSet}. Aquest valor pot ser una entitat, o un valor escalar.
  *
  * @author mhoms
  *
@@ -14,7 +13,6 @@ import java.sql.SQLException;
  *
  * @see EntityManager
  * @see GenericDao
- * @see BetterGenericDao
  */
 public interface Mapable<T> {
 

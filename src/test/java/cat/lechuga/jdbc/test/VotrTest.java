@@ -30,8 +30,6 @@ import cat.lechuga.jdbc.MetaGeneratorTest.Comment_;
 import cat.lechuga.jdbc.MetaGeneratorTest.Option_;
 import cat.lechuga.jdbc.MetaGeneratorTest.User_;
 import cat.lechuga.jdbc.MetaGeneratorTest.Votr_;
-import cat.lechuga.mql.Orders;
-import cat.lechuga.mql.Orders.Order;
 import cat.lechuga.mql.QueryBuilder;
 import cat.lechuga.reflect.anno.Embeddable;
 import cat.lechuga.tsmql.Restrictions;
@@ -64,7 +62,6 @@ public class VotrTest {
         }
     }
 
-    // TODO utilitzar type-safe queries
     @Test
     public void testName() throws Exception {
 
@@ -144,8 +141,6 @@ public class VotrTest {
         void createComment(String hashVotr, String hashUser, String message);
     }
 
-    // TODO utilitzar type-safe queries
-
     public static class VotrServiceImpl implements VotrService {
 
         final DataAccesFacade facade;
@@ -199,28 +194,14 @@ public class VotrTest {
         @Override
         public void createOptions(String hashVotr, List<Option> options, String hashUserModifier) {
 
-            Votr votr;
-            {
-                Votr example = new Votr();
-                example.setVotrHash(hashVotr);
-                votr = votrDao.loadUniqueByExample(example);
-            }
+            Votr votr = votrDao.loadUniqueBy(v, v.votrHash.eq(hashVotr));
 
-            User userModifier;
-            {
-                User example = new User();
-                example.setUserHash(hashUserModifier);
-                example.setVotrId(votr.getId());
-                userModifier = userDao.loadUniqueByExample(example);
-            }
+            User userModifier = userDao.loadUniqueBy(u,
+                    Restrictions.and(u.userHash.eq(hashUserModifier), u.votrId.eq(votr.getId())));
 
             // 1) tots els usuaris desvoten
-            List<User> us;
-            {
-                User example = new User();
-                example.setVotrId(votr.getId());
-                us = userDao.loadByExample(example, Orders.by(Order.asc("userId")));
-            }
+            List<User> us = userDao.loadBy(u, u.votrId.eq(votr.getId()), TOrders.by(TOrder.asc(u.userId)));
+
             for (User u : us) {
                 u.setVotedOptionOrder(null);
                 u.setVotedDate(null);
@@ -229,13 +210,8 @@ public class VotrTest {
 
             // 2) s'esborren totes les opcions antigues
             {
-                Option example = new Option();
-                example.setId(new OptionId());
-                example.getId().setVotrId(votr.getId());
-                List<Option> opts = optionDao.loadByExample(example);
-                for (Option o : opts) {
-                    optionDao.delete(o);
-                }
+                List<Option> opts = optionDao.loadBy(o, o.votrId.eq(votr.getId()));
+                optionDao.deleteAll(opts);
             }
 
             // 3) es creen les noves opcions
@@ -244,8 +220,8 @@ public class VotrTest {
                 o.setId(new OptionId());
                 o.getId().setVotrId(votr.getId());
                 o.getId().setOrder(order++);
-                optionDao.store(o);
             }
+            optionDao.storeAll(options);
 
             createComment("s'ha recreat les opcions, tothom desvota", votr.getId(), userModifier.getUserId());
         }
@@ -254,26 +230,13 @@ public class VotrTest {
         @Override
         public void createUsers(String hashVotr, List<User> us) {
 
-            Votr votr;
-            {
-                Votr example = new Votr();
-                example.setVotrHash(hashVotr);
-                votr = votrDao.loadUniqueByExample(example);
-            }
-            {
-                // List<Comment> comments = commentDao.loadBy(c.votrId.eq(votr.id));
+            Votr votr = votrDao.loadUniqueBy(v, v.votrHash.eq(hashVotr));
+            List<Comment> comments = commentDao.loadBy(c, c.votrId.eq(votr.id));
 
-                List<Comment> comments = commentDao.loadBy(c, c.votrId.eq(votr.id));
+            commentDao.deleteAll(comments);
 
-                commentDao.deleteAll(comments);
-            }
-            {
-                // List<User> currentUsers = userDao.loadBy(u.votrId.eq(votr.id));
-
-                List<User> currentUsers = userDao.loadBy(u, u.votrId.eq(votr.id));
-
-                userDao.deleteAll(currentUsers);
-            }
+            List<User> currentUsers = userDao.loadBy(u, u.votrId.eq(votr.id));
+            userDao.deleteAll(currentUsers);
 
             for (User u : us) {
                 u.setUserId(null);
@@ -285,27 +248,14 @@ public class VotrTest {
 
                 createComment("he sigut convidat", votr.getId(), u.getUserId());
             }
-
         }
 
         @TransactionalMethod
         @Override
         public void updateUser(String hashVotr, String hashUser, Long orderOpcioVotada, String alias) {
 
-            Votr votr;
-            {
-                Votr example = new Votr();
-                example.setVotrHash(hashVotr);
-                votr = votrDao.loadUniqueByExample(example);
-            }
-
-            User u;
-            {
-                User example = new User();
-                example.setUserHash(hashUser);
-                example.setVotrId(votr.getId());
-                u = userDao.loadUniqueByExample(example);
-            }
+            Votr votr = votrDao.loadUniqueBy(v, v.votrHash.eq(hashVotr));
+            User us = userDao.loadUniqueBy(u, Restrictions.and(u.userHash.eq(hashUser), u.votrId.eq(votr.getId())));
 
             // valida opció
             if (orderOpcioVotada != null) {
@@ -316,47 +266,35 @@ public class VotrTest {
                     optId.setOrder(orderOpcioVotada);
                     opcioVotada = optionDao.loadById(optId);
                 }
-                u.setVotedOptionOrder(orderOpcioVotada);
-                u.setVotedDate(new Date(0L));
+                us.setVotedOptionOrder(orderOpcioVotada);
+                us.setVotedDate(new Date(0L));
 
-                if (u.getVotedOptionOrder() == null && orderOpcioVotada != null ||
-                /**/u.getVotedOptionOrder() != null && orderOpcioVotada != null
-                        && !u.getVotedOptionOrder().equals(orderOpcioVotada)) {
-                    createComment("he votat: " + opcioVotada.getTitle(), votr.getId(), u.getUserId());
+                if (us.getVotedOptionOrder() == null && orderOpcioVotada != null ||
+                /**/us.getVotedOptionOrder() != null && orderOpcioVotada != null
+                        && !us.getVotedOptionOrder().equals(orderOpcioVotada)) {
+                    createComment("he votat: " + opcioVotada.getTitle(), votr.getId(), us.getUserId());
                 }
             }
 
             if (alias != null) {
-                if (u.getAlias() == null && alias != null
-                        || u.getAlias() != null && alias != null && !u.getAlias().equals(alias)) {
-                    createComment(u.getEmail() + " => " + alias, votr.getId(), u.getUserId());
+                if (us.getAlias() == null && alias != null
+                        || us.getAlias() != null && alias != null && !us.getAlias().equals(alias)) {
+                    createComment(us.getEmail() + " => " + alias, votr.getId(), us.getUserId());
                 }
-                u.setAlias(alias);
+                us.setAlias(alias);
             }
 
-            userDao.store(u);
+            userDao.store(us);
         }
 
         @TransactionalMethod
         @Override
         public void createComment(String hashVotr, String hashUser, String message) {
 
-            Votr votr;
-            {
-                Votr example = new Votr();
-                example.setVotrHash(hashVotr);
-                votr = votrDao.loadUniqueByExample(example);
-            }
+            Votr votr = votrDao.loadUniqueBy(v, v.votrHash.eq(hashVotr));
+            User us = userDao.loadUniqueBy(u, Restrictions.and(u.userHash.eq(hashUser), u.votrId.eq(votr.getId())));
 
-            User u;
-            {
-                User example = new User();
-                example.setUserHash(hashUser);
-                example.setVotrId(votr.getId());
-                u = userDao.loadUniqueByExample(example);
-            }
-
-            createComment(message, votr.getId(), u.getUserId());
+            createComment(message, votr.getId(), us.getUserId());
         }
 
         protected void createComment(String message, Integer votrId, Long userId) {
@@ -373,61 +311,21 @@ public class VotrTest {
         @Override
         public VotrInfo getVotrInfo(String hashVotr, String hashUser) {
 
-            Votr votr;
-            {
-                Votr example = new Votr();
-                example.setVotrHash(hashVotr);
-                votr = votrDao.loadUniqueByExample(example);
-            }
-
-            User you;
-            {
-                // User example = new User();
-                // example.setUserHash(hashUser);
-                // example.setVotrId(votr.getId());
-                // you = userDao.loadUniqueByExample(example);
-
-                you = userDao.loadUniqueBy(u, //
-                        Restrictions.and( //
-                                u.userHash.eq(hashUser), //
-                                u.votrId.eq(votr.getId()) //
-                        ) //
-                );
-            }
-
-            List<User> allUsers;
-            {
-                // User example = new User();
-                // example.setVotrId(votr.getId());
-                // allUsers = userDao.loadByExample(example);
-
-                allUsers = userDao.loadBy(u, //
-                        u.votrId.eq(votr.getId()), //
-                        TOrders.by(TOrder.asc(u.userId)));
-            }
-
-            // int totalVots;
-            // {
-            // TypeSafeQueryBuilder q = optionDao.buildTypeSafeQuery();
-            // q.addAlias(o);
-            // q.addAlias(u);
-            // q.append("select {},{} ", o.all(), u.);
-            // q.append("from {} ", o);
-            // q.append("where {} ", o.votrId.eq(votr.getId()));
-            // q.append("order by {}", TOrders.by(TOrder.asc(o.order)));
-            // opcions = q.getExecutor(Option.class).load();
-            // }
+            Votr votr = votrDao.loadUniqueBy(v, v.votrHash.eq(hashVotr));
+            User you = userDao.loadUniqueBy(u, //
+                    Restrictions.and( //
+                            u.userHash.eq(hashUser), //
+                            u.votrId.eq(votr.getId()) //
+                    ) //
+            );
+            List<User> allUsers = userDao.loadBy(u, //
+                    u.votrId.eq(votr.getId()), //
+                    TOrders.by(TOrder.asc(u.userId)));
 
             Map<Option, List<User>> optionsVots = new LinkedHashMap<>();
             {
                 List<Option> opcions;
                 {
-                    // OptionId optId = new OptionId();
-                    // Option opt = new Option();
-                    // opt.setId(optId);
-                    // optId.setVotrId(votr.getId());
-                    // opcions = optionDao.loadByExample(opt);
-
                     TypeSafeQueryBuilder q = optionDao.buildTypeSafeQuery();
                     q.addAlias(o);
                     q.append("select {} from {} ", o.all(), o);
@@ -436,11 +334,6 @@ public class VotrTest {
                     opcions = q.getExecutor(Option.class).load();
                 }
                 for (Option o : opcions) {
-                    // User example = new User();
-                    // example.setVotrId(votr.getId());
-                    // example.setVotedOptionOrder(o.getId().getOrder());
-                    // optionsVots.put(o, userDao.loadByExample(example));
-
                     QueryBuilder q = userDao.buildQuery();
                     q.addAlias("u", User.class);
                     q.append("select {u.*} from {u.#} where {u.votrId=?} and {u.votedOptionOrder=?}", votr.getId(),
@@ -449,16 +342,8 @@ public class VotrTest {
                 }
             }
 
-            List<Comment> comments;
-            {
-                // Comment example = new Comment();
-                // example.setVotrId(votr.getId());
-                // comments = commentDao.loadByExample(example,
-                // Orders.by(Order.asc("commentDate"), Order.asc("commentId")));
-
-                comments = commentDao.loadBy(c, c.votrId.eq(votr.getId()),
-                        TOrders.by(TOrder.asc(c.commentDate), TOrder.asc(c.commentId)));
-            }
+            List<Comment> comments = commentDao.loadBy(c, c.votrId.eq(votr.getId()),
+                    TOrders.by(TOrder.asc(c.commentDate), TOrder.asc(c.commentId)));
 
             return new VotrInfo(votr, you, allUsers, optionsVots, comments);
         }

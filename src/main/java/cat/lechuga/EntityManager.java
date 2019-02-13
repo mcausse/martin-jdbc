@@ -296,8 +296,24 @@ public class EntityManager {
         return rows > 0L;
     }
 
+    // ===========================================================
+    // ===========================================================
+    // ===========================================================
+
     public DataAccesFacade getFacade() {
         return facade;
+    }
+
+    public void begin() {
+        facade.begin();
+    }
+
+    public void commit() {
+        facade.commit();
+    }
+
+    public void rollback() {
+        facade.rollback();
     }
 
 }

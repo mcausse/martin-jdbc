@@ -143,20 +143,22 @@ public class ResultSetUtils {
         return rs.getBigDecimal(columnLabel);
     }
 
-    public static Character getChar(final ResultSet rs) throws SQLException {
-        String v = rs.getString(1);
-        if (v == null || v.isEmpty()) {
-            return null;
-        }
-        return v.charAt(0);
-    }
-
-    public static Character getChar(final ResultSet rs, final String columnLabel) throws SQLException {
-        String v = rs.getString(columnLabel);
-        if (v == null || v.isEmpty()) {
-            return null;
-        }
-        return v.charAt(0);
-    }
+    // public static Character getCharacter(final ResultSet rs) throws SQLException
+    // {
+    // String v = rs.getString(1);
+    // if (v == null || v.isEmpty()) {
+    // return null;
+    // }
+    // return v.charAt(0);
+    // }
+    //
+    // public static Character getCharacter(final ResultSet rs, final String
+    // columnLabel) throws SQLException {
+    // String v = rs.getString(columnLabel);
+    // if (v == null || v.isEmpty()) {
+    // return null;
+    // }
+    // return v.charAt(0);
+    // }
 
 }

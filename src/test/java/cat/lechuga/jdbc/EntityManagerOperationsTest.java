@@ -69,17 +69,17 @@ public class EntityManagerOperationsTest {
         pizza.price = new BigDecimal("12.34");
 
         assertEquals(
-                "update pizza set name=?,price=? where id_pizza=? -- [romana(String), 12.34(BigDecimal), 42(Long)]",
+                "update pizzas set name=?,price=? where id_pizza=? -- [romana(String), 12.34(BigDecimal), 42(Long)]",
                 emo.update(entityMeta, pizza).toString());
-        assertEquals("select id_pizza,name,price from pizza where id_pizza=? -- [42(Long)]",
+        assertEquals("select id_pizza,name,price from pizzas where id_pizza=? -- [42(Long)]",
                 emo.loadById(entityMeta, 42L).toString());
         assertEquals(
-                "insert into pizza (id_pizza,name,price) values (?,?,?) -- [42(Long), romana(String), 12.34(BigDecimal)]",
+                "insert into pizzas (id_pizza,name,price) values (?,?,?) -- [42(Long), romana(String), 12.34(BigDecimal)]",
                 emo.insert(entityMeta, pizza).toString());
-        assertEquals("delete from pizza where id_pizza=? -- [42(Long)]", emo.delete(entityMeta, pizza).toString());
-        assertEquals("select count(*) from pizza where id_pizza=? -- [42(Long)]",
+        assertEquals("delete from pizzas where id_pizza=? -- [42(Long)]", emo.delete(entityMeta, pizza).toString());
+        assertEquals("select count(*) from pizzas where id_pizza=? -- [42(Long)]",
                 emo.existsById(entityMeta, 42L).toString());
-        assertEquals("select count(*) from pizza where id_pizza=? -- [42(Long)]",
+        assertEquals("select count(*) from pizzas where id_pizza=? -- [42(Long)]",
                 emo.exists(entityMeta, pizza).toString());
     }
 }

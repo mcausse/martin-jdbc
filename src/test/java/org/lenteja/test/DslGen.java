@@ -1,7 +1,5 @@
 package org.lenteja.test;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -101,24 +99,29 @@ public class DslGen {
 
         // new DslGen().new Impl().selectAll().from(new DogTable()).execute();
 
-        DogTable dt = new DogTable("dogs_");
-        PersonTable pt = new PersonTable("persons_");
-
-        IQueryObject q = new DslGen().new Select() //
-                .select(dt, pt) //
-                .from(dt).join(pt).on(dt.idJefe.eq(pt.idPerson)) //
-                .where(dt.alive.eq(true)) //
-                .orderBy(Order.asc(dt.idDog)) //
-                .getExecutor(null, dt) //
-                .getQuery() //
-        ;
-
-        // TODO és factible/val la pena?
-
-        assertEquals("select dogs_.id_dog,dogs_.name,dogs_.is_alive,dogs_.sex,dogs_.id_jefe,"
-                + "persons_.id_person,persons_.dni,persons_.name,persons_.age,persons_.birth_date "
-                + "from dogs dogs_ join persons persons_ on dogs_.id_jefe=persons_.id_person "
-                + "where dogs_.is_alive=? order by dogs_.id_dog asc -- [true(Boolean)]", q.toString());
+        // DogTable dt = new DogTable("dogs_");
+        // PersonTable pt = new PersonTable("persons_");
+        //
+        // IQueryObject q = new DslGen().new Select() //
+        // .select(dt, pt) //
+        // .from(dt).join(pt).on(dt.idJefe.eq(pt.idPerson)) //
+        // .where(dt.alive.eq(true)) //
+        // .orderBy(Order.asc(dt.idDog)) //
+        // .getExecutor(null, dt) //
+        // .getQuery() //
+        // ;
+        //
+        // // TODO és factible/val la pena?
+        //
+        // assertEquals("select
+        // dogs_.id_dog,dogs_.name,dogs_.is_alive,dogs_.sex,dogs_.id_jefe,"
+        // +
+        // "persons_.id_person,persons_.dni,persons_.name,persons_.age,persons_.birth_date
+        // "
+        // + "from dogs dogs_ join persons persons_ on dogs_.id_jefe=persons_.id_person
+        // "
+        // + "where dogs_.is_alive=? order by dogs_.id_dog asc -- [true(Boolean)]",
+        // q.toString());
     }
 
     private static void generateDsl(String rootName, List<Prod> roots) {

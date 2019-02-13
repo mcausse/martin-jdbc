@@ -11,12 +11,6 @@ create sequence seq_options start with 300;
 drop sequence seq_comments if exists;
 create sequence seq_comments start with 400;
 
-
-drop table actions if exists;
-drop table ticket_user if exists;
-drop table tickets if exists;
---drop table users if exists;
-
 drop table comments if exists;
 drop table users if exists;
 drop table options if exists;
