@@ -30,8 +30,10 @@ create table xyz (
 	
 	sex varchar(15),
 	
-	bytes1 BINARY(256),
+	bytes1 VARBINARY(256),
 	
-	big_decimal numeric(15,2)
+	big_decimal numeric(15,2),
+	
+	date1 timestamp
 );
 

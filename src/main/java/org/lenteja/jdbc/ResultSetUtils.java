@@ -55,6 +55,26 @@ public class ResultSetUtils {
         return v;
     }
 
+    public static String getString(final ResultSet rs) throws SQLException {
+        return rs.getString(1);
+    }
+
+    public static Boolean getBoolean(final ResultSet rs) throws SQLException {
+        boolean v = rs.getBoolean(1);
+        if (rs.wasNull()) {
+            return null;
+        }
+        return v;
+    }
+
+    public static byte[] getBytes(final ResultSet rs) throws SQLException {
+        return rs.getBytes(1);
+    }
+
+    public static Timestamp getTimestamp(final ResultSet rs) throws SQLException {
+        return rs.getTimestamp(1);
+    }
+
     public static Byte getByte(final ResultSet rs, final String columnLabel) throws SQLException {
         final byte v = rs.getByte(columnLabel);
         if (rs.wasNull()) {
@@ -103,28 +123,16 @@ public class ResultSetUtils {
         return v;
     }
 
-    public static String getString(final ResultSet rs) throws SQLException {
-        return rs.getString(1);
-    }
-
-    public static boolean getBoolean(final ResultSet rs) throws SQLException {
-        return rs.getBoolean(1);
-    }
-
-    public static byte[] getBytes(final ResultSet rs) throws SQLException {
-        return rs.getBytes(1);
-    }
-
-    public static Timestamp getTimestamp(final ResultSet rs) throws SQLException {
-        return rs.getTimestamp(1);
+    public static Boolean getBoolean(final ResultSet rs, final String columnLabel) throws SQLException {
+        boolean v = rs.getBoolean(columnLabel);
+        if (rs.wasNull()) {
+            return null;
+        }
+        return v;
     }
 
     public static String getString(final ResultSet rs, final String columnLabel) throws SQLException {
         return rs.getString(columnLabel);
-    }
-
-    public static boolean getBoolean(final ResultSet rs, final String columnLabel) throws SQLException {
-        return rs.getBoolean(columnLabel);
     }
 
     public static byte[] getBytes(final ResultSet rs, final String columnLabel) throws SQLException {

@@ -1,6 +1,11 @@
 package cat.lechuga.jdbc.test;
 
+import static org.junit.Assert.assertEquals;
+
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
 
 import org.hsqldb.jdbc.JDBCDataSource;
 import org.junit.Before;
@@ -54,20 +59,44 @@ public class XYZ {
 
             {
                 X x = new X(100, (byte) 1, (byte) 2, (short) 3, (short) 4, 5, 6, 7L, 8L, 9.1f, 9.2f, 10.1, 10.2, true,
-                        false, "alo", ESex.FEMALE, new byte[] { 11, 12, 13 }, new BigDecimal("14.15"));
+                        false, "alo", ESex.FEMALE, new byte[] { 11, 12, 13 }, new BigDecimal("14.15"), new Date(0L));
+
+                assertEquals(
+                        "X [id=100, byte1=1, byte2=2, short1=3, short2=4, int1=5, int2=6, long1=7, long2=8, float1=9.1, float2=9.2, double1=10.1, double2=10.2, boolean1=true, boolean2=false, string1=alo, sex=FEMALE, bytes1=[11, 12, 13], bigDecimal=14.15, date1=01/01/1970 01:00:00]",
+                        x.toString());
 
                 em.store(x);
 
+                assertEquals(
+                        "X [id=100, byte1=1, byte2=2, short1=3, short2=4, int1=5, int2=6, long1=7, long2=8, float1=9.1, float2=9.2, double1=10.1, double2=10.2, boolean1=true, boolean2=false, string1=alo, sex=FEMALE, bytes1=[11, 12, 13], bigDecimal=14.15, date1=01/01/1970 01:00:00]",
+                        x.toString());
+
                 x = em.loadById(X.class, 100);
+
+                assertEquals(
+                        "X [id=100, byte1=1, byte2=2, short1=3, short2=4, int1=5, int2=6, long1=7, long2=8, float1=9.1, float2=9.2, double1=10.1, double2=10.2, boolean1=true, boolean2=false, string1=alo, sex=FEMALE, bytes1=[11, 12, 13], bigDecimal=14.15, date1=01/01/1970 01:00:00]",
+                        x.toString());
             }
 
             {
                 X x = new X(100, (byte) 1, null, (short) 3, null, 5, null, 7L, null, 9.1f, null, 10.1, null, true, null,
-                        "alo", null, null, null);
+                        "alo", null, null, null, null);
+
+                assertEquals(
+                        "X [id=100, byte1=1, byte2=null, short1=3, short2=null, int1=5, int2=null, long1=7, long2=null, float1=9.1, float2=null, double1=10.1, double2=null, boolean1=true, boolean2=null, string1=alo, sex=null, bytes1=null, bigDecimal=null, date1=null]",
+                        x.toString());
 
                 em.store(x);
 
+                assertEquals(
+                        "X [id=100, byte1=1, byte2=null, short1=3, short2=null, int1=5, int2=null, long1=7, long2=null, float1=9.1, float2=null, double1=10.1, double2=null, boolean1=true, boolean2=null, string1=alo, sex=null, bytes1=null, bigDecimal=null, date1=null]",
+                        x.toString());
+
                 x = em.loadById(X.class, 100);
+
+                assertEquals(
+                        "X [id=100, byte1=1, byte2=null, short1=3, short2=null, int1=5, int2=null, long1=7, long2=null, float1=9.1, float2=null, double1=10.1, double2=null, boolean1=true, boolean2=null, string1=alo, sex=null, bytes1=null, bigDecimal=null, date1=null]",
+                        x.toString());
             }
             em.commit();
         } catch (Exception e) {
@@ -112,13 +141,15 @@ public class XYZ {
 
         public BigDecimal bigDecimal;
 
+        public Date date1;
+
         public X() {
             super();
         }
 
         public X(Integer id, byte byte1, Byte byte2, short short1, Short short2, int int1, Integer int2, long long1,
                 Long long2, float float1, Float float2, double double1, Double double2, boolean boolean1,
-                Boolean boolean2, String string1, ESex sex, byte[] bytes1, BigDecimal bigDecimal) {
+                Boolean boolean2, String string1, ESex sex, byte[] bytes1, BigDecimal bigDecimal, Date date1) {
             super();
             this.id = id;
             this.byte1 = byte1;
@@ -139,6 +170,18 @@ public class XYZ {
             this.sex = sex;
             this.bytes1 = bytes1;
             this.bigDecimal = bigDecimal;
+            this.date1 = date1;
+        }
+
+        @Override
+        public String toString() {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            String datef = date1 == null ? null : sdf.format(date1);
+            return "X [id=" + id + ", byte1=" + byte1 + ", byte2=" + byte2 + ", short1=" + short1 + ", short2=" + short2
+                    + ", int1=" + int1 + ", int2=" + int2 + ", long1=" + long1 + ", long2=" + long2 + ", float1="
+                    + float1 + ", float2=" + float2 + ", double1=" + double1 + ", double2=" + double2 + ", boolean1="
+                    + boolean1 + ", boolean2=" + boolean2 + ", string1=" + string1 + ", sex=" + sex + ", bytes1="
+                    + Arrays.toString(bytes1) + ", bigDecimal=" + bigDecimal + ", date1=" + datef + "]";
         }
 
     }
