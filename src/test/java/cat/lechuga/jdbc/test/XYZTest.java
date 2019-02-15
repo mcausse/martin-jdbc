@@ -18,14 +18,13 @@ import cat.lechuga.EntityManager;
 import cat.lechuga.EntityManagerFactory;
 import cat.lechuga.anno.Enumerated;
 import cat.lechuga.anno.Id;
-import cat.lechuga.anno.Table;
 import cat.lechuga.tsmql.MetaGenerator;
 
-public class XYZ {
+public class XYZTest {
 
     final DataAccesFacade facade;
 
-    public XYZ() {
+    public XYZTest() {
         final JDBCDataSource ds = new JDBCDataSource();
         ds.setUrl("jdbc:hsqldb:mem:a");
         ds.setUser("sa");
@@ -50,16 +49,17 @@ public class XYZ {
     public void testName() throws Exception {
 
         EntityManagerFactory emf = new EntityManagerFactory();
-        EntityManager em = emf.buildEntityManager(facade, X.class);
+        EntityManager em = emf.buildEntityManager(facade, Xyz.class);
 
-        System.out.println(MetaGenerator.generateMetaColumns(em.getEntityMeta(X.class), 0));
+        System.out.println(MetaGenerator.generateMetaColumns(em.getEntityMeta(Xyz.class), 0));
 
         em.begin();
         try {
 
             {
-                X x = new X(100, (byte) 1, (byte) 2, (short) 3, (short) 4, 5, 6, 7L, 8L, 9.1f, 9.2f, 10.1, 10.2, true,
-                        false, "alo", ESex.FEMALE, new byte[] { 11, 12, 13 }, new BigDecimal("14.15"), new Date(0L));
+                Xyz x = new Xyz(100, (byte) 1, (byte) 2, (short) 3, (short) 4, 5, 6, 7L, 8L, 9.1f, 9.2f, 10.1, 10.2,
+                        true, false, "alo", ESex.FEMALE, new byte[] { 11, 12, 13 }, new BigDecimal("14.15"),
+                        new Date(0L));
 
                 assertEquals(
                         "X [id=100, byte1=1, byte2=2, short1=3, short2=4, int1=5, int2=6, long1=7, long2=8, float1=9.1, float2=9.2, double1=10.1, double2=10.2, boolean1=true, boolean2=false, string1=alo, sex=FEMALE, bytes1=[11, 12, 13], bigDecimal=14.15, date1=01/01/1970 01:00:00]",
@@ -71,7 +71,7 @@ public class XYZ {
                         "X [id=100, byte1=1, byte2=2, short1=3, short2=4, int1=5, int2=6, long1=7, long2=8, float1=9.1, float2=9.2, double1=10.1, double2=10.2, boolean1=true, boolean2=false, string1=alo, sex=FEMALE, bytes1=[11, 12, 13], bigDecimal=14.15, date1=01/01/1970 01:00:00]",
                         x.toString());
 
-                x = em.loadById(X.class, 100);
+                x = em.loadById(Xyz.class, 100);
 
                 assertEquals(
                         "X [id=100, byte1=1, byte2=2, short1=3, short2=4, int1=5, int2=6, long1=7, long2=8, float1=9.1, float2=9.2, double1=10.1, double2=10.2, boolean1=true, boolean2=false, string1=alo, sex=FEMALE, bytes1=[11, 12, 13], bigDecimal=14.15, date1=01/01/1970 01:00:00]",
@@ -79,8 +79,8 @@ public class XYZ {
             }
 
             {
-                X x = new X(100, (byte) 1, null, (short) 3, null, 5, null, 7L, null, 9.1f, null, 10.1, null, true, null,
-                        "alo", null, null, null, null);
+                Xyz x = new Xyz(100, (byte) 1, null, (short) 3, null, 5, null, 7L, null, 9.1f, null, 10.1, null, true,
+                        null, "alo", null, null, null, null);
 
                 assertEquals(
                         "X [id=100, byte1=1, byte2=null, short1=3, short2=null, int1=5, int2=null, long1=7, long2=null, float1=9.1, float2=null, double1=10.1, double2=null, boolean1=true, boolean2=null, string1=alo, sex=null, bytes1=null, bigDecimal=null, date1=null]",
@@ -92,7 +92,7 @@ public class XYZ {
                         "X [id=100, byte1=1, byte2=null, short1=3, short2=null, int1=5, int2=null, long1=7, long2=null, float1=9.1, float2=null, double1=10.1, double2=null, boolean1=true, boolean2=null, string1=alo, sex=null, bytes1=null, bigDecimal=null, date1=null]",
                         x.toString());
 
-                x = em.loadById(X.class, 100);
+                x = em.loadById(Xyz.class, 100);
 
                 assertEquals(
                         "X [id=100, byte1=1, byte2=null, short1=3, short2=null, int1=5, int2=null, long1=7, long2=null, float1=9.1, float2=null, double1=10.1, double2=null, boolean1=true, boolean2=null, string1=alo, sex=null, bytes1=null, bigDecimal=null, date1=null]",
@@ -105,8 +105,7 @@ public class XYZ {
         }
     }
 
-    @Table("xyz")
-    public static class X {
+    public static class Xyz {
 
         @Id
         public Integer id;
@@ -143,11 +142,11 @@ public class XYZ {
 
         public Date date1;
 
-        public X() {
+        public Xyz() {
             super();
         }
 
-        public X(Integer id, byte byte1, Byte byte2, short short1, Short short2, int int1, Integer int2, long long1,
+        public Xyz(Integer id, byte byte1, Byte byte2, short short1, Short short2, int int1, Integer int2, long long1,
                 Long long2, float float1, Float float2, double double1, Double double2, boolean boolean1,
                 Boolean boolean2, String string1, ESex sex, byte[] bytes1, BigDecimal bigDecimal, Date date1) {
             super();
