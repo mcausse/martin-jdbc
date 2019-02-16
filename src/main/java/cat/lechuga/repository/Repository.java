@@ -6,8 +6,8 @@ import java.util.Optional;
 import org.lenteja.jdbc.exception.EmptyResultException;
 
 import cat.lechuga.EntityManager;
+import cat.lechuga.mql.QueryBuilder;
 import cat.lechuga.tsmql.MetaTable;
-import cat.lechuga.tsmql.TOrders;
 import cat.lechuga.tsmql.TypeSafeQueryBuilder;
 
 public class Repository<E, ID, E_ extends MetaTable<E>> implements IRepository<E, ID, E_> {
@@ -23,16 +23,50 @@ public class Repository<E, ID, E_ extends MetaTable<E>> implements IRepository<E
         this.entityClass = meta.getEntityClass();
     }
 
-    @Override
-    public void save(E entity) {
-        em.store(entity);
+    public EntityManager getEntityManager() {
+        return em;
+    }
+
+    public QueryBuilder buildQuery() {
+        return em.buildQuery();
+    }
+
+    public TypeSafeQueryBuilder buildTypeSafeQuery() {
+        return em.buildTypeSafeQuery();
     }
 
     @Override
-    public void saveAll(Iterable<E> entities) {
-        for (E e : entities) {
-            save(e);
+    public Optional<E> findUniqueBy(Specification<E_> spec) {
+        try {
+            TypeSafeQueryBuilder q = em.buildTypeSafeQuery().addAlias(meta);
+            q.append("select {} from {}", meta.all(), meta);
+            if (spec != null) {
+                q.append(" where {}", spec.toPredicate(meta));
+            }
+            E r = q.getExecutor(entityClass).loadUnique();
+            return Optional.of(r);
+        } catch (EmptyResultException e) {
+            return Optional.empty();
         }
+    }
+
+    @Override
+    public List<E> findBy(Specification<E_> spec) {
+        return findBy(spec, null);
+    }
+
+    @Override
+    public List<E> findBy(Specification<E_> spec, Sort<E_> sorting) {
+        TypeSafeQueryBuilder q = em.buildTypeSafeQuery().addAlias(meta);
+        q.append("select {} from {}", meta.all(), meta);
+        if (spec != null) {
+            q.append(" where {}", spec.toPredicate(meta));
+        }
+        if (sorting != null) {
+            q.append(" order by {}", sorting.toPredicate(meta));
+        }
+        List<E> r = q.getExecutor(entityClass).load();
+        return r;
     }
 
     @Override
@@ -42,6 +76,18 @@ public class Repository<E, ID, E_ extends MetaTable<E>> implements IRepository<E
             return Optional.of(e);
         } catch (EmptyResultException e) {
             return Optional.empty();
+        }
+    }
+
+    @Override
+    public void save(E entity) {
+        em.store(entity);
+    }
+
+    @Override
+    public void saveAll(Iterable<E> entities) {
+        for (E e : entities) {
+            save(e);
         }
     }
 
@@ -76,40 +122,6 @@ public class Repository<E, ID, E_ extends MetaTable<E>> implements IRepository<E
         for (E e : entities) {
             delete(e);
         }
-    }
-
-    @Override
-    public Optional<E> findUniqueBy(Specification<E_> spec) {
-        try {
-            TypeSafeQueryBuilder q = em.buildTypeSafeQuery().addAlias(meta);
-            q.append("select {} from {}", meta.all(), meta);
-            if (spec != null) {
-                q.append(" where {}", spec.toPredicate(meta));
-            }
-            E r = q.getExecutor(entityClass).loadUnique();
-            return Optional.of(r);
-        } catch (EmptyResultException e) {
-            return Optional.empty();
-        }
-    }
-
-    @Override
-    public List<E> findBy(Specification<E_> spec) {
-        return findBy(spec, null);
-    }
-
-    @Override
-    public List<E> findBy(Specification<E_> spec, TOrders orders) {
-        TypeSafeQueryBuilder q = em.buildTypeSafeQuery().addAlias(meta);
-        q.append("select {} from {}", meta.all(), meta);
-        if (spec != null) {
-            q.append(" where {}", spec.toPredicate(meta));
-        }
-        if (orders != null && !orders.getOrders().isEmpty()) {
-            q.append(" order by {}", orders);
-        }
-        List<E> r = q.getExecutor(entityClass).load();
-        return r;
     }
 
 }

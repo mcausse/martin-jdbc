@@ -75,8 +75,7 @@ public class XYZRepositoryTest {
         System.out.println(MetaGenerator.generateMetaColumns(emf.buildEntityMeta(Pizza.class), 0));
         EntityManager em = emf.buildEntityManager(facade, Pizza.class);
 
-        Pizza_ p = new Pizza_();
-        Repository<Pizza, Long, Pizza_> repoPizza = new Repository<>(em, p);
+        Repository<Pizza, Long, Pizza_> repoPizza = new Repository<>(em, new Pizza_());
 
         em.begin();
         try {
@@ -114,8 +113,9 @@ public class XYZRepositoryTest {
 
             List<Pizza> all = repoPizza.findBy(k -> Restrictions.and( //
                     k.idPizza.gt(0L), //
-                    k.name.ilike(ELike.CONTAINS, "o") //
-            ), TOrders.by(TOrder.asc(p.idPizza)));
+                    k.name.ilike(ELike.CONTAINS, "o")), //
+                    k -> TOrders.by(TOrder.asc(k.idPizza)) //
+            );
 
             assertEquals("[10:romana:11.50, 11:napolitana:13.50]", all.toString());
 

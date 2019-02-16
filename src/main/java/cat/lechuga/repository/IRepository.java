@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import cat.lechuga.tsmql.MetaTable;
-import cat.lechuga.tsmql.TOrders;
 
 // https://www.baeldung.com/rest-api-search-language-spring-data-specifications
 public interface IRepository<E, ID, E_ extends MetaTable<E>> {
@@ -33,6 +32,6 @@ public interface IRepository<E, ID, E_ extends MetaTable<E>> {
 
     List<E> findBy(Specification<E_> spec);
 
-    List<E> findBy(Specification<E_> spec, TOrders orders);
+    List<E> findBy(Specification<E_> spec, Sort<E_> sorting);
 
 }
