@@ -3,30 +3,29 @@ package cat.lechuga.mql;
 import java.util.Arrays;
 import java.util.List;
 
-// FIXME pq <E> ????
-public class Orders<E> {
+public class Orders {
 
-    private final List<Order<E>> orders;
+    private final List<Order> orders;
 
-    public Orders(List<Order<E>> orders) {
+    public Orders(List<Order> orders) {
         super();
         this.orders = orders;
     }
 
-    public List<Order<E>> getOrders() {
+    public List<Order> getOrders() {
         return orders;
     }
 
     @SafeVarargs
-    public static <E> Orders<E> by(Order<E>... orders) {
-        return new Orders<>(Arrays.asList(orders));
+    public static Orders by(Order... orders) {
+        return new Orders(Arrays.asList(orders));
     }
 
-    public static <E> Orders<E> by(List<Order<E>> orders) {
-        return new Orders<>(orders);
+    public static Orders by(List<Order> orders) {
+        return new Orders(orders);
     }
 
-    public static class Order<E> {
+    public static class Order {
 
         public static final String ASC = " asc";
         public static final String DESC = " desc";
@@ -40,12 +39,12 @@ public class Orders<E> {
             this.order = order;
         }
 
-        public static <E> Order<E> asc(String propName) {
-            return new Order<>(propName, ASC);
+        public static Order asc(String propName) {
+            return new Order(propName, ASC);
         }
 
-        public static <E> Order<E> desc(String propName) {
-            return new Order<>(propName, DESC);
+        public static Order desc(String propName) {
+            return new Order(propName, DESC);
         }
 
         public String getPropName() {

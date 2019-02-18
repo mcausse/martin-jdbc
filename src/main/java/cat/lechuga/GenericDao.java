@@ -100,7 +100,7 @@ public class GenericDao<E, ID> {
         return em.loadByExample(example);
     }
 
-    public List<E> loadByExample(E example, Orders<E> orders) {
+    public List<E> loadByExample(E example, Orders orders) {
         return em.loadByExample(example, orders);
     }
 

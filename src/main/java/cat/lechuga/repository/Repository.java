@@ -58,7 +58,7 @@ public class Repository<E, ID, E_ extends MetaTable<E>> implements IRepository<E
 
     public List<E> loadByExample(E example, TOrders orders) {
 
-        List<Order<E>> os = new ArrayList<>();
+        List<Order> os = new ArrayList<>();
         for (TOrder o : orders.getOrders()) {
             if (o.getOrder().equals(Order.ASC)) {
                 os.add(Order.asc(o.getMetaColumn().getPropertyName()));
@@ -66,7 +66,7 @@ public class Repository<E, ID, E_ extends MetaTable<E>> implements IRepository<E
                 os.add(Order.desc(o.getMetaColumn().getPropertyName()));
             }
         }
-        return em.loadByExample(example, new Orders<>(os));
+        return em.loadByExample(example, new Orders(os));
     }
 
     // ===========================================================

@@ -330,7 +330,7 @@ public class EntityManager {
     }
 
     @SuppressWarnings("unchecked")
-    public <E> List<E> loadByExample(E example, Orders<E> orders) {
+    public <E> List<E> loadByExample(E example, Orders orders) {
 
         Class<E> entityClass = (Class<E>) example.getClass();
         EntityMeta<E> entityMeta = getEntityMeta(entityClass);
@@ -350,7 +350,7 @@ public class EntityManager {
         if (orders != null && !orders.getOrders().isEmpty()) {
             q.append(" order by ");
             StringJoiner j = new StringJoiner(", ");
-            for (Order<E> o : orders.getOrders()) {
+            for (Order o : orders.getOrders()) {
                 PropertyMeta p = entityMeta.getProp(o.getPropName());
                 j.add(p.getColumnName() + " " + o.getOrder());
             }
