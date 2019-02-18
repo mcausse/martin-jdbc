@@ -1,5 +1,7 @@
 package cat.lechuga.jdbc.test;
 
+import static cat.lechuga.tsmql.Restrictions.and;
+
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -29,7 +31,6 @@ import cat.lechuga.jdbc.test.VotrTest.Votr;
 import cat.lechuga.jdbc.test.VotrTest.VotrInfo;
 import cat.lechuga.repository.Repository;
 import cat.lechuga.repository.Specification;
-import cat.lechuga.tsmql.Restrictions;
 import cat.lechuga.tsmql.TOrders;
 import cat.lechuga.tsmql.TOrders.TOrder;
 
@@ -116,7 +117,7 @@ public class VotrTest3 {
 
         public User loadByHash(int votrId, String hashUser) {
 
-            Specification<User_> s = u -> Restrictions.and( //
+            Specification<User_> s = u -> and( //
                     u.votrId.eq(votrId), //
                     u.userHash.eq(hashUser));
             return findUniqueBy(s).orElseThrow(() -> new RuntimeException());
@@ -129,7 +130,7 @@ public class VotrTest3 {
         public List<User> loadByVotrAndOption(int votrId, long votedOptionOrder) {
 
             return findBy( //
-                    u -> Restrictions.and( //
+                    u -> and( //
                             u.votrId.eq(votrId), //
                             u.votedOptionOrder.eq(votedOptionOrder) //
                     ), //

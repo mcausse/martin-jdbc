@@ -1,13 +1,18 @@
 package cat.lechuga.repository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.lenteja.jdbc.exception.EmptyResultException;
 
 import cat.lechuga.EntityManager;
+import cat.lechuga.mql.Orders;
+import cat.lechuga.mql.Orders.Order;
 import cat.lechuga.mql.QueryBuilder;
 import cat.lechuga.tsmql.MetaTable;
+import cat.lechuga.tsmql.TOrders;
+import cat.lechuga.tsmql.TOrders.TOrder;
 import cat.lechuga.tsmql.TypeSafeQueryBuilder;
 
 public class Repository<E, ID, E_ extends MetaTable<E>> implements IRepository<E, ID, E_> {
@@ -27,6 +32,10 @@ public class Repository<E, ID, E_ extends MetaTable<E>> implements IRepository<E
         return em;
     }
 
+    // ===========================================================
+    // ===========================================================
+    // ===========================================================
+
     public QueryBuilder buildQuery() {
         return em.buildQuery();
     }
@@ -34,6 +43,35 @@ public class Repository<E, ID, E_ extends MetaTable<E>> implements IRepository<E
     public TypeSafeQueryBuilder buildTypeSafeQuery() {
         return em.buildTypeSafeQuery();
     }
+
+    // ===========================================================
+    // ===========================================================
+    // ===========================================================
+
+    public E loadUniqueByExample(E example) {
+        return em.loadUniqueByExample(example);
+    }
+
+    public List<E> loadByExample(E example) {
+        return em.loadByExample(example);
+    }
+
+    public List<E> loadByExample(E example, TOrders orders) {
+
+        List<Order<E>> os = new ArrayList<>();
+        for (TOrder o : orders.getOrders()) {
+            if (o.getOrder().equals(Order.ASC)) {
+                os.add(Order.asc(o.getMetaColumn().getPropertyName()));
+            } else {
+                os.add(Order.desc(o.getMetaColumn().getPropertyName()));
+            }
+        }
+        return em.loadByExample(example, new Orders<>(os));
+    }
+
+    // ===========================================================
+    // ===========================================================
+    // ===========================================================
 
     @Override
     public Optional<E> findUniqueBy(Specification<E_> spec) {

@@ -3,14 +3,18 @@ package cat.lechuga;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import org.lenteja.jdbc.DataAccesFacade;
 import org.lenteja.jdbc.exception.JdbcException;
 import org.lenteja.jdbc.exception.UnexpectedResultException;
 import org.lenteja.jdbc.query.IQueryObject;
+import org.lenteja.jdbc.query.QueryObject;
 
 import cat.lechuga.generator.Generator;
 import cat.lechuga.generator.ScalarMappers;
+import cat.lechuga.mql.Orders;
+import cat.lechuga.mql.Orders.Order;
 import cat.lechuga.mql.QueryBuilder;
 import cat.lechuga.tsmql.TypeSafeQueryBuilder;
 
@@ -294,6 +298,65 @@ public class EntityManager {
         IQueryObject q = ops.exists(entityMeta, entity);
         long rows = facade.loadUnique(q, ScalarMappers.LONG);
         return rows > 0L;
+    }
+
+    // ===========================================================
+    // ===========================================================
+    // ===========================================================
+
+    @SuppressWarnings("unchecked")
+    public <E> E loadUniqueByExample(E example) {
+
+        Class<E> entityClass = (Class<E>) example.getClass();
+        EntityMeta<E> entityMeta = getEntityMeta(entityClass);
+
+        QueryObject q = new QueryObject();
+        q.append(getOperations().loadAll(entityMeta));
+        q.append(" where 1=1");
+        for (PropertyMeta p : entityMeta.getAllProps()) {
+            Object v = p.getProp().get(example);
+            if (v != null) {
+                q.append(" and ");
+                q.append(p.getColumnName());
+                q.append("=?");
+                q.addArg(p.getJdbcValue(example));
+            }
+        }
+        return getFacade().loadUnique(q, entityMeta);
+    }
+
+    public <E> List<E> loadByExample(E example) {
+        return loadByExample(example, null);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <E> List<E> loadByExample(E example, Orders<E> orders) {
+
+        Class<E> entityClass = (Class<E>) example.getClass();
+        EntityMeta<E> entityMeta = getEntityMeta(entityClass);
+
+        QueryObject q = new QueryObject();
+        q.append(getOperations().loadAll(entityMeta));
+        q.append(" where 1=1");
+        for (PropertyMeta p : entityMeta.getAllProps()) {
+            Object v = p.getProp().get(example);
+            if (v != null) {
+                q.append(" and ");
+                q.append(p.getColumnName());
+                q.append("=?");
+                q.addArg(p.getJdbcValue(example));
+            }
+        }
+        if (orders != null && !orders.getOrders().isEmpty()) {
+            q.append(" order by ");
+            StringJoiner j = new StringJoiner(", ");
+            for (Order<E> o : orders.getOrders()) {
+                PropertyMeta p = entityMeta.getProp(o.getPropName());
+                j.add(p.getColumnName() + " " + o.getOrder());
+            }
+            q.append(j.toString());
+        }
+        return getFacade().load(q, entityMeta);
     }
 
     // ===========================================================

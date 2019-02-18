@@ -3,6 +3,7 @@ package cat.lechuga.mql;
 import java.util.Arrays;
 import java.util.List;
 
+// FIXME pq <E> ????
 public class Orders<E> {
 
     private final List<Order<E>> orders;

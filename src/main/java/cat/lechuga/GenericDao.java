@@ -2,13 +2,10 @@ package cat.lechuga;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
-import java.util.StringJoiner;
 
 import org.lenteja.jdbc.query.IQueryObject;
-import org.lenteja.jdbc.query.QueryObject;
 
 import cat.lechuga.mql.Orders;
-import cat.lechuga.mql.Orders.Order;
 import cat.lechuga.mql.QueryBuilder;
 import cat.lechuga.tsmql.MetaTable;
 import cat.lechuga.tsmql.TOrders;
@@ -96,48 +93,15 @@ public class GenericDao<E, ID> {
     // ===========================================================
 
     public E loadUniqueByExample(E example) {
-        QueryObject q = new QueryObject();
-        q.append(em.getOperations().loadAll(entityMeta));
-        q.append(" where 1=1");
-        for (PropertyMeta p : entityMeta.getAllProps()) {
-            Object v = p.getProp().get(example);
-            if (v != null) {
-                q.append(" and ");
-                q.append(p.getColumnName());
-                q.append("=?");
-                q.addArg(p.getJdbcValue(example));
-            }
-        }
-        return em.getFacade().loadUnique(q, entityMeta);
+        return em.loadUniqueByExample(example);
     }
 
     public List<E> loadByExample(E example) {
-        return loadByExample(example, null);
+        return em.loadByExample(example);
     }
 
     public List<E> loadByExample(E example, Orders<E> orders) {
-        QueryObject q = new QueryObject();
-        q.append(em.getOperations().loadAll(entityMeta));
-        q.append(" where 1=1");
-        for (PropertyMeta p : entityMeta.getAllProps()) {
-            Object v = p.getProp().get(example);
-            if (v != null) {
-                q.append(" and ");
-                q.append(p.getColumnName());
-                q.append("=?");
-                q.addArg(p.getJdbcValue(example));
-            }
-        }
-        if (orders != null && !orders.getOrders().isEmpty()) {
-            q.append(" order by ");
-            StringJoiner j = new StringJoiner(", ");
-            for (Order<E> o : orders.getOrders()) {
-                PropertyMeta p = entityMeta.getProp(o.getPropName());
-                j.add(p.getColumnName() + " " + o.getOrder());
-            }
-            q.append(j.toString());
-        }
-        return em.getFacade().load(q, entityMeta);
+        return em.loadByExample(example, orders);
     }
 
     // ===========================================================

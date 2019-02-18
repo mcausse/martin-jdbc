@@ -34,6 +34,11 @@ public abstract class MetaTable<E> implements IQueryObject {
         return alias;
     }
 
+    // TODO rename
+    public List<MetaColumn<E, ?>> getCols() {
+        return cols;
+    }
+
     //////////////////////////////////////////////
 
     public IQueryObject star() {
