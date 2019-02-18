@@ -111,13 +111,20 @@ public class XYZRepositoryTest {
 
             assertEquals("10:romana:11.50", romana.toString());
 
-            List<Pizza> all = repoPizza.findBy(k -> Restrictions.and( //
-                    k.idPizza.gt(0L), //
-                    k.name.ilike(ELike.CONTAINS, "o")), //
-                    k -> TOrders.by(TOrder.asc(k.idPizza)) //
-            );
-
-            assertEquals("[10:romana:11.50, 11:napolitana:13.50]", all.toString());
+            {
+                List<Pizza> all = repoPizza.findBy(k -> Restrictions.and( //
+                        k.idPizza.gt(0L), //
+                        k.name.ilike(ELike.CONTAINS, "o")), //
+                        k -> TOrders.by(TOrder.asc(k.idPizza)) //
+                );
+                assertEquals("[10:romana:11.50, 11:napolitana:13.50]", all.toString());
+            }
+            {
+                Pizza example = new Pizza();
+                example.name = "romana";
+                List<Pizza> all = repoPizza.loadByExample(example);
+                assertEquals("[10:romana:11.50]", all.toString());
+            }
 
             repoPizza.delete(romana);
             repoPizza.deleteById(napolitana.idPizza);

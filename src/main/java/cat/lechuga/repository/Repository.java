@@ -48,14 +48,17 @@ public class Repository<E, ID, E_ extends MetaTable<E>> implements IRepository<E
     // ===========================================================
     // ===========================================================
 
+    // TODO 
     public E loadUniqueByExample(E example) {
         return em.loadUniqueByExample(example);
     }
 
+    // TODO 
     public List<E> loadByExample(E example) {
-        return em.loadByExample(example);
+        return em.loadByExample(example, null);
     }
 
+    // TODO 
     public List<E> loadByExample(E example, TOrders orders) {
 
         List<Order> os = new ArrayList<>();
@@ -66,7 +69,12 @@ public class Repository<E, ID, E_ extends MetaTable<E>> implements IRepository<E
                 os.add(Order.desc(o.getMetaColumn().getPropertyName()));
             }
         }
-        return em.loadByExample(example, new Orders(os));
+        return loadByExample(example, new Orders(os));
+    }
+
+    // TODO 
+    public List<E> loadByExample(E example, Orders orders) {
+        return em.loadByExample(example, orders);
     }
 
     // ===========================================================
