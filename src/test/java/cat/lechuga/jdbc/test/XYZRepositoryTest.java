@@ -119,12 +119,13 @@ public class XYZRepositoryTest {
                 );
                 assertEquals("[10:romana:11.50, 11:napolitana:13.50]", all.toString());
             }
-            {
-                Pizza example = new Pizza();
-                example.name = "romana";
-                List<Pizza> all = repoPizza.loadByExample(example);
-                assertEquals("[10:romana:11.50]", all.toString());
-            }
+            // {
+            // Pizza example = new Pizza();
+            // example.name = "romana";
+            // List<Pizza> all = repoPizza.loadByExample(example, p ->
+            // TOrders.by(TOrder.asc(p.price)));
+            // assertEquals("[10:romana:11.50]", all.toString());
+            // }
 
             repoPizza.delete(romana);
             repoPizza.deleteById(napolitana.idPizza);

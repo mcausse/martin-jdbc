@@ -326,12 +326,11 @@ public class EntityManager {
     }
 
     public <E> List<E> loadByExample(E example) {
-        return loadByExample(example, null);
+        return loadByExample(example, (IQueryObject) null);
     }
 
     @SuppressWarnings("unchecked")
-    public <E> List<E> loadByExample(E example, Orders orders) {
-
+    public <E> List<E> loadByExample(E example, IQueryObject orderPredicate) {
         Class<E> entityClass = (Class<E>) example.getClass();
         EntityMeta<E> entityMeta = getEntityMeta(entityClass);
 
@@ -347,16 +346,29 @@ public class EntityManager {
                 q.addArg(p.getJdbcValue(example));
             }
         }
-        if (orders != null && !orders.getOrders().isEmpty()) {
+        if (orderPredicate != null) {
             q.append(" order by ");
+            q.append(orderPredicate);
+        }
+        return getFacade().load(q, entityMeta);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <E> List<E> loadByExample(E example, Orders orders) {
+
+        Class<E> entityClass = (Class<E>) example.getClass();
+        EntityMeta<E> entityMeta = getEntityMeta(entityClass);
+
+        QueryObject orderPredicate = new QueryObject();
+        if (orders != null && !orders.getOrders().isEmpty()) {
             StringJoiner j = new StringJoiner(", ");
             for (Order o : orders.getOrders()) {
                 PropertyMeta p = entityMeta.getProp(o.getPropName());
                 j.add(p.getColumnName() + " " + o.getOrder());
             }
-            q.append(j.toString());
+            orderPredicate.append(j.toString());
         }
-        return getFacade().load(q, entityMeta);
+        return loadByExample(example, orderPredicate);
     }
 
     // ===========================================================
