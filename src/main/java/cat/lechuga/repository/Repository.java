@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.lenteja.jdbc.exception.EmptyResultException;
 import org.lenteja.jdbc.exception.TooManyResultsException;
+import org.lenteja.jdbc.exception.UnexpectedResultException;
 
 import cat.lechuga.EntityManager;
 import cat.lechuga.mql.QueryBuilder;
@@ -112,12 +113,12 @@ public class Repository<E, ID, E_ extends MetaTable<E>> implements IRepository<E
     }
 
     @Override
-    public void save(E entity) {
+    public void save(E entity) throws UnexpectedResultException {
         em.store(entity);
     }
 
     @Override
-    public void saveAll(Iterable<E> entities) {
+    public void saveAll(Iterable<E> entities) throws UnexpectedResultException {
         for (E e : entities) {
             save(e);
         }
@@ -139,18 +140,18 @@ public class Repository<E, ID, E_ extends MetaTable<E>> implements IRepository<E
     }
 
     @Override
-    public void deleteById(ID id) throws TooManyResultsException, EmptyResultException {
+    public void deleteById(ID id) throws UnexpectedResultException {
         E e = em.loadById(entityClass, id);
         em.delete(e);
     }
 
     @Override
-    public void delete(E entity) {
+    public void delete(E entity) throws UnexpectedResultException {
         em.delete(entity);
     }
 
     @Override
-    public void deleteAll(Iterable<E> entities) {
+    public void deleteAll(Iterable<E> entities) throws UnexpectedResultException {
         for (E e : entities) {
             delete(e);
         }

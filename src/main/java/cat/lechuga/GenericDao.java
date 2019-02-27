@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.lenteja.jdbc.exception.EmptyResultException;
 import org.lenteja.jdbc.exception.TooManyResultsException;
+import org.lenteja.jdbc.exception.UnexpectedResultException;
 import org.lenteja.jdbc.query.IQueryObject;
 
 import cat.lechuga.mql.Orders;
@@ -123,11 +124,11 @@ public class GenericDao<E, ID> {
         em.refresh(entity);
     }
 
-    public void store(E entity) {
+    public void store(E entity) throws UnexpectedResultException {
         em.store(entity);
     }
 
-    public void update(E entity) {
+    public void update(E entity) throws UnexpectedResultException {
         em.update(entity);
     }
 
@@ -135,7 +136,7 @@ public class GenericDao<E, ID> {
         em.insert(entity);
     }
 
-    public void delete(E entity) {
+    public void delete(E entity) throws UnexpectedResultException {
         em.delete(entity);
     }
 
@@ -151,13 +152,13 @@ public class GenericDao<E, ID> {
     // ===========================================================
     // ===========================================================
 
-    public void storeAll(Iterable<E> entities) {
+    public void storeAll(Iterable<E> entities) throws UnexpectedResultException {
         for (E e : entities) {
             store(e);
         }
     }
 
-    public void updateAll(Iterable<E> entities) {
+    public void updateAll(Iterable<E> entities) throws UnexpectedResultException {
         for (E e : entities) {
             update(e);
         }
@@ -169,7 +170,7 @@ public class GenericDao<E, ID> {
         }
     }
 
-    public void deleteAll(Iterable<E> entities) {
+    public void deleteAll(Iterable<E> entities) throws UnexpectedResultException {
         for (E e : entities) {
             delete(e);
         }

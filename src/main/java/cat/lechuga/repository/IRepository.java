@@ -5,15 +5,16 @@ import java.util.Optional;
 
 import org.lenteja.jdbc.exception.EmptyResultException;
 import org.lenteja.jdbc.exception.TooManyResultsException;
+import org.lenteja.jdbc.exception.UnexpectedResultException;
 
 import cat.lechuga.tsmql.MetaTable;
 
 // https://www.baeldung.com/rest-api-search-language-spring-data-specifications
 public interface IRepository<E, ID, E_ extends MetaTable<E>> {
 
-    void save(E entity);
+    void save(E entity) throws UnexpectedResultException;
 
-    void saveAll(Iterable<E> entities);
+    void saveAll(Iterable<E> entities) throws UnexpectedResultException;
 
     Optional<E> findById(ID id) throws TooManyResultsException;
 
@@ -23,11 +24,11 @@ public interface IRepository<E, ID, E_ extends MetaTable<E>> {
 
     List<E> findAll();
 
-    void deleteById(ID id) throws TooManyResultsException, EmptyResultException;
+    void deleteById(ID id) throws UnexpectedResultException;
 
-    void delete(E entity);
+    void delete(E entity) throws UnexpectedResultException;
 
-    void deleteAll(Iterable<E> entities);
+    void deleteAll(Iterable<E> entities) throws UnexpectedResultException;
 
     ////////////////////////////////////////////////////
 

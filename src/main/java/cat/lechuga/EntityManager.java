@@ -108,9 +108,10 @@ public class EntityManager {
      *         fisi
      * fisi
      * </pre>
+     * @throws UnexpectedResultException 
      */
     @SuppressWarnings("unchecked")
-    public <E> void store(E entity) {
+    public <E> void store(E entity) throws UnexpectedResultException {
 
         Class<E> entityClass = (Class<E>) entity.getClass();
 
@@ -195,7 +196,7 @@ public class EntityManager {
     }
 
     @SuppressWarnings("unchecked")
-    public <E> void update(E entity) {
+    public <E> void update(E entity) throws UnexpectedResultException {
 
         Class<E> entityClass = (Class<E>) entity.getClass();
 
@@ -261,7 +262,7 @@ public class EntityManager {
     }
 
     @SuppressWarnings("unchecked")
-    public <E> void delete(E entity) {
+    public <E> void delete(E entity) throws UnexpectedResultException {
 
         Class<E> entityClass = (Class<E>) entity.getClass();
         EntityMeta<E> entityMeta = getEntityMeta(entityClass);
