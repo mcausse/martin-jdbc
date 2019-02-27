@@ -3,6 +3,8 @@ package cat.lechuga;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
+import org.lenteja.jdbc.exception.EmptyResultException;
+import org.lenteja.jdbc.exception.TooManyResultsException;
 import org.lenteja.jdbc.query.IQueryObject;
 
 import cat.lechuga.mql.Orders;
@@ -60,14 +62,15 @@ public class GenericDao<E, ID> {
     // ===========================================================
     // ===========================================================
 
-    public E loadUniqueBy(MetaTable<E> metaTable, IQueryObject criterion) {
+    public E loadUniqueBy(MetaTable<E> metaTable, IQueryObject criterion)
+            throws TooManyResultsException, EmptyResultException {
         TypeSafeQueryBuilder tsq = buildTypeSafeQuery();
         tsq.addAlias(metaTable);
         tsq.append("select {} from {} where {}", metaTable.all(), metaTable, criterion);
         return tsq.getExecutor(getEntityClass()).loadUnique();
     }
 
-    public E loadFirstBy(MetaTable<E> metaTable, IQueryObject criterion) {
+    public E loadFirstBy(MetaTable<E> metaTable, IQueryObject criterion) throws EmptyResultException {
         TypeSafeQueryBuilder tsq = buildTypeSafeQuery();
         tsq.addAlias(metaTable);
         tsq.append("select {} from {} where {}", metaTable.all(), metaTable, criterion);
@@ -92,7 +95,7 @@ public class GenericDao<E, ID> {
     // ===========================================================
     // ===========================================================
 
-    public E loadUniqueByExample(E example) {
+    public E loadUniqueByExample(E example) throws TooManyResultsException, EmptyResultException {
         return em.loadUniqueByExample(example);
     }
 
@@ -112,11 +115,11 @@ public class GenericDao<E, ID> {
         return em.loadAll(entityClass);
     }
 
-    public E loadById(ID id) {
+    public E loadById(ID id) throws TooManyResultsException, EmptyResultException {
         return em.loadById(entityClass, id);
     }
 
-    public void refresh(E entity) {
+    public void refresh(E entity) throws TooManyResultsException, EmptyResultException {
         em.refresh(entity);
     }
 

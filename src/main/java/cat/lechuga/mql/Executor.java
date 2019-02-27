@@ -3,6 +3,8 @@ package cat.lechuga.mql;
 import java.util.List;
 
 import org.lenteja.jdbc.DataAccesFacade;
+import org.lenteja.jdbc.exception.EmptyResultException;
+import org.lenteja.jdbc.exception.TooManyResultsException;
 import org.lenteja.jdbc.extractor.PageResult;
 import org.lenteja.jdbc.extractor.Pager;
 import org.lenteja.jdbc.extractor.ResultSetExtractor;
@@ -28,11 +30,11 @@ public class Executor<E> {
         return facade.update(qo);
     }
 
-    public E loadUnique() {
+    public E loadUnique() throws TooManyResultsException, EmptyResultException {
         return facade.loadUnique(qo, mapable);
     }
 
-    public E loadFirst() {
+    public E loadFirst() throws EmptyResultException {
         return facade.loadFirst(qo, mapable);
     }
 

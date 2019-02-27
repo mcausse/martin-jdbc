@@ -6,7 +6,9 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 import org.lenteja.jdbc.DataAccesFacade;
+import org.lenteja.jdbc.exception.EmptyResultException;
 import org.lenteja.jdbc.exception.JdbcException;
+import org.lenteja.jdbc.exception.TooManyResultsException;
 import org.lenteja.jdbc.exception.UnexpectedResultException;
 import org.lenteja.jdbc.query.IQueryObject;
 import org.lenteja.jdbc.query.QueryObject;
@@ -69,14 +71,14 @@ public class EntityManager {
         return facade.load(q, entityMeta);
     }
 
-    public <E, ID> E loadById(Class<E> entityClass, ID id) {
+    public <E, ID> E loadById(Class<E> entityClass, ID id) throws TooManyResultsException, EmptyResultException {
         EntityMeta<E> entityMeta = getEntityMeta(entityClass);
         IQueryObject q = ops.loadById(entityMeta, id);
         return facade.loadUnique(q, entityMeta);
     }
 
     @SuppressWarnings("unchecked")
-    public <E> void refresh(E entity) {
+    public <E> void refresh(E entity) throws TooManyResultsException, EmptyResultException {
         Class<E> entityClass = (Class<E>) entity.getClass();
         EntityMeta<E> entityMeta = getEntityMeta(entityClass);
         IQueryObject q = ops.refresh(entityMeta, entity);
@@ -305,7 +307,7 @@ public class EntityManager {
     // ===========================================================
 
     @SuppressWarnings("unchecked")
-    public <E> E loadUniqueByExample(E example) {
+    public <E> E loadUniqueByExample(E example) throws TooManyResultsException, EmptyResultException {
 
         Class<E> entityClass = (Class<E>) example.getClass();
         EntityMeta<E> entityMeta = getEntityMeta(entityClass);

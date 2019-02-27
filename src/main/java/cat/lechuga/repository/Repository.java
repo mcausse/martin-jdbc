@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.lenteja.jdbc.exception.EmptyResultException;
+import org.lenteja.jdbc.exception.TooManyResultsException;
 
 import cat.lechuga.EntityManager;
 import cat.lechuga.mql.QueryBuilder;
@@ -67,7 +68,7 @@ public class Repository<E, ID, E_ extends MetaTable<E>> implements IRepository<E
     // ===========================================================
 
     @Override
-    public Optional<E> findUniqueBy(Specification<E_> spec) {
+    public Optional<E> findUniqueBy(Specification<E_> spec) throws TooManyResultsException {
         try {
             TypeSafeQueryBuilder q = em.buildTypeSafeQuery().addAlias(meta);
             q.append("select {} from {}", meta.all(), meta);
@@ -101,7 +102,7 @@ public class Repository<E, ID, E_ extends MetaTable<E>> implements IRepository<E
     }
 
     @Override
-    public Optional<E> findById(ID id) {
+    public Optional<E> findById(ID id) throws TooManyResultsException {
         try {
             E e = em.loadById(entityClass, id);
             return Optional.of(e);
@@ -138,7 +139,7 @@ public class Repository<E, ID, E_ extends MetaTable<E>> implements IRepository<E
     }
 
     @Override
-    public void deleteById(ID id) {
+    public void deleteById(ID id) throws TooManyResultsException, EmptyResultException {
         E e = em.loadById(entityClass, id);
         em.delete(e);
     }

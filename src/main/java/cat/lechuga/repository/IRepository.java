@@ -3,6 +3,9 @@ package cat.lechuga.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.lenteja.jdbc.exception.EmptyResultException;
+import org.lenteja.jdbc.exception.TooManyResultsException;
+
 import cat.lechuga.tsmql.MetaTable;
 
 // https://www.baeldung.com/rest-api-search-language-spring-data-specifications
@@ -12,7 +15,7 @@ public interface IRepository<E, ID, E_ extends MetaTable<E>> {
 
     void saveAll(Iterable<E> entities);
 
-    Optional<E> findById(ID id);
+    Optional<E> findById(ID id) throws TooManyResultsException;
 
     boolean existsById(ID id);
 
@@ -20,7 +23,7 @@ public interface IRepository<E, ID, E_ extends MetaTable<E>> {
 
     List<E> findAll();
 
-    void deleteById(ID id);
+    void deleteById(ID id) throws TooManyResultsException, EmptyResultException;
 
     void delete(E entity);
 
@@ -28,7 +31,7 @@ public interface IRepository<E, ID, E_ extends MetaTable<E>> {
 
     ////////////////////////////////////////////////////
 
-    Optional<E> findUniqueBy(Specification<E_> spec);
+    Optional<E> findUniqueBy(Specification<E_> spec) throws TooManyResultsException;
 
     List<E> findBy(Specification<E_> spec);
 
