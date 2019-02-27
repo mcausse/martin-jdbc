@@ -108,7 +108,8 @@ public class EntityManager {
      *         fisi
      * fisi
      * </pre>
-     * @throws UnexpectedResultException 
+     * 
+     * @throws UnexpectedResultException
      */
     @SuppressWarnings("unchecked")
     public <E> void store(E entity) throws UnexpectedResultException {

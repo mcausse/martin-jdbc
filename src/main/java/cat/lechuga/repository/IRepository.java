@@ -3,7 +3,6 @@ package cat.lechuga.repository;
 import java.util.List;
 import java.util.Optional;
 
-import org.lenteja.jdbc.exception.EmptyResultException;
 import org.lenteja.jdbc.exception.TooManyResultsException;
 import org.lenteja.jdbc.exception.UnexpectedResultException;
 
